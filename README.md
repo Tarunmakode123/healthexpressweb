@@ -1,16 +1,92 @@
-# React + Vite
+# Health Express — Official Public Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> **Healthcare, without the hassle.**  
+> Official repository for the Health Express soft-launch website.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🏥 Overview
 
-## React Compiler
+**Health Express** is a modern healthcare marketplace designed to make accessing diagnostic tests, home nursing, doctor consultations, and preventive health checkups seamless and stress-free.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This repository contains the first-stage public website, created to introduce Health Express services to customers and enable direct care coordination through a WhatsApp-assisted workflow.
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## ✨ Key Features & Highlights
+
+- **WhatsApp Care Coordination**: Customers can upload prescriptions or share medical requirements directly with Health Express care coordinators via WhatsApp.
+- **Comprehensive Healthcare Offerings**: Clear service showcases for Diagnostics, Imaging, Home Healthcare, Telemedicine, Pharmacy, Genetic Testing, and Preventive Health.
+- **Preventive Healthcare Pillar**: Focus on proactive screening, early risk detection, and wellness profiling.
+- **Evidence-Informed Health Library**: Educational patient guides covering common blood tests (CBC, HbA1c, Thyroid, Lipid Profile) and test preparation.
+- **Location Coverage**: Information for major operational hubs including Bangalore, Hyderabad, Mumbai, Delhi NCR, and Pune.
+- **Mobile-Optimized Experience**: Fast, responsive layout tailored for smartphones, tablets, and desktop browsers.
+
+---
+
+## 🗺️ Website Structure
+
+- **Home (`/`)**: Main showcase introducing Health Express, core benefits, how it works, services, popular tests, city coverage, trust standards, FAQs, and WhatsApp conversion actions.
+- **Services (`/services`)**: Full directory of available healthcare verticals with detailed feature overviews.
+- **Health Library (`/health-library`)**: Searchable index of patient guides and test preparation articles.
+- **About Us (`/about`)**: Company vision, quality commitment, and NABL partner lab standards.
+- **For Providers (`/providers`)**: Partnership onboarding page for labs and healthcare providers.
+- **Contact (`/contact`)**: Direct support lines and medical requirement contact form.
+- **Legal (`/legal/:type`)**: Customer transparency policies for Privacy, Terms, Refund, Cancellation, and Shipping.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React (Vite)
+- **Styling**: Tailwind CSS
+- **Iconography**: Lucide Icons
+- **Routing**: React Router
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- npm (Node Package Manager)
+
+### Local Setup Instructions
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Tarunmakode123/healthexpressweb.git
+   cd healthexpressweb
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER=919876543210
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 🔒 Privacy & Compliance Notice
+
+This public website serves purely as a discovery and customer engagement interface. No sensitive patient health records, uploaded prescriptions, or private medical data are exposed or stored within this repository.
+
+---
+
+© 2025–2026 Health Express. All rights reserved.  
+*A healthier tomorrow, together.*
