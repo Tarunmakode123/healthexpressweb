@@ -5,33 +5,33 @@ import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 export default function HowItWorksSection({ onOpenUploadModal }) {
   const steps = [
     {
-      num: '1',
+      num: '01',
       title: 'Upload',
-      desc: 'Your prescription or tell us what you need.',
+      desc: 'Upload your prescription, medical order or tell us what you need.',
       icon: Upload
     },
     {
-      num: '2',
+      num: '02',
       title: 'Compare',
-      desc: 'We identify relevant services and options.',
+      desc: 'We help you identify relevant services and available options.',
       icon: Search
     },
     {
-      num: '3',
+      num: '03',
       title: 'Book',
-      desc: 'Choose and confirm your booking.',
+      desc: 'Choose the option that works for you and confirm your booking.',
       icon: CalendarCheck
     },
     {
-      num: '4',
+      num: '04',
       title: 'Track',
-      desc: 'Stay informed as your service is arranged.',
+      desc: 'Stay informed as your service is arranged and delivered.',
       icon: Activity
     },
     {
-      num: '5',
+      num: '05',
       title: 'Receive',
-      desc: 'Get your reports, consultation or service.',
+      desc: 'Get your reports, consultation or healthcare service with less coordination on your end.',
       icon: CheckCircle2
     }
   ];
@@ -51,17 +51,17 @@ export default function HowItWorksSection({ onOpenUploadModal }) {
         </div>
 
         {/* 5 Step Timeline Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {steps.map((step, idx) => {
             const IconComp = step.icon;
             return (
               <div 
                 key={idx}
-                className="bg-white rounded-3xl p-6 border border-purple-100 shadow-xs hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between text-left relative group"
+                className="bg-white rounded-3xl p-6 border border-purple-100 shadow-xs hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between text-left group"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="w-9 h-9 rounded-xl bg-purple-700 text-white font-extrabold text-sm flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-purple-700 text-white font-extrabold text-xs flex items-center justify-center">
                       {step.num}
                     </div>
                     <IconComp className="w-5 h-5 text-purple-600 group-hover:scale-110 transition-transform" />
@@ -77,14 +77,14 @@ export default function HowItWorksSection({ onOpenUploadModal }) {
           })}
         </div>
 
-        {/* Action Callout */}
-        <div className="text-center pt-4">
+        {/* Small CTA */}
+        <div className="text-center pt-2">
           <button
             onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
-            className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-base shadow-lg shadow-purple-700/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm shadow-md shadow-purple-700/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Start with your prescription</span>
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 

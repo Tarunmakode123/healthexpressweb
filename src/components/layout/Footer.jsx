@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, Heart, Globe, Share2, Mail } from 'lucide-react';
+import { Activity, Heart, MapPin } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function Footer({ onOpenUploadModal }) {
@@ -73,10 +73,13 @@ export default function Footer({ onOpenUploadModal }) {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
               Services
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
+            <ul className="space-y-2 text-xs text-slate-400">
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Diagnostics</Link></li>
+              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Blood Tests</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Imaging</Link></li>
+              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Health Checkups</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Home Healthcare</Link></li>
+              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Home Nursing</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Telemedicine</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Pharmacy</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Genetic Testing</Link></li>
@@ -89,14 +92,14 @@ export default function Footer({ onOpenUploadModal }) {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
               Popular Tests
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
+            <ul className="space-y-2 text-xs text-slate-400">
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('CBC Test'))} className="hover:text-purple-400 transition-colors text-left">CBC Test</button></li>
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Thyroid Test'))} className="hover:text-purple-400 transition-colors text-left">Thyroid Test</button></li>
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Vitamin D Test'))} className="hover:text-purple-400 transition-colors text-left">Vitamin D Test</button></li>
-              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('HbA1c Test'))} className="hover:text-purple-400 transition-colors text-left">HbA1c Test</button></li>
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Vitamin B12 Test'))} className="hover:text-purple-400 transition-colors text-left">Vitamin B12 Test</button></li>
+              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('HbA1c Test'))} className="hover:text-purple-400 transition-colors text-left">HbA1c Test</button></li>
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Lipid Profile'))} className="hover:text-purple-400 transition-colors text-left">Lipid Profile</button></li>
-              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Full Body Checkup'))} className="hover:text-purple-400 transition-colors text-left">Full Body Checkup</button></li>
+              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Full Body Health Checkup'))} className="hover:text-purple-400 transition-colors text-left">Full Body Checkup</button></li>
             </ul>
           </div>
 
@@ -105,41 +108,57 @@ export default function Footer({ onOpenUploadModal }) {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
               Health Library
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Diagnostics Guides</Link></li>
+            <ul className="space-y-2 text-xs text-slate-400">
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Diagnostics</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Blood Tests</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Preventive Health</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Women's Health</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Men's Health</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Nutrition & Fitness</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Nutrition</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Health Conditions</Link></li>
             </ul>
           </div>
 
-          {/* Column 4: Company */}
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
-              Company
-            </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
-              <li><Link to="/about" className="hover:text-purple-400 transition-colors">About Us</Link></li>
-              <li><Link to="/about" className="hover:text-purple-400 transition-colors">How It Works</Link></li>
-              <li><Link to="/about" className="hover:text-purple-400 transition-colors">Trust & Quality</Link></li>
-              <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Careers</Link></li>
-              <li><Link to="/providers" className="hover:text-purple-400 transition-colors">For Providers</Link></li>
-              <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Contact Us</Link></li>
-            </ul>
+          {/* Column 4: Locations & Company */}
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+                Locations
+              </h4>
+              <ul className="space-y-1.5 text-xs text-slate-400">
+                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Bangalore'))} className="hover:text-purple-400 transition-colors text-left">Bangalore</button></li>
+                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Hyderabad'))} className="hover:text-purple-400 transition-colors text-left">Hyderabad</button></li>
+                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Mumbai'))} className="hover:text-purple-400 transition-colors text-left">Mumbai</button></li>
+                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Delhi NCR'))} className="hover:text-purple-400 transition-colors text-left">Delhi NCR</button></li>
+                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Pune'))} className="hover:text-purple-400 transition-colors text-left">Pune</button></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+                Company
+              </h4>
+              <ul className="space-y-1.5 text-xs text-slate-400">
+                <li><Link to="/about" className="hover:text-purple-400 transition-colors">About Us</Link></li>
+                <li><Link to="/about" className="hover:text-purple-400 transition-colors">How It Works</Link></li>
+                <li><Link to="/about" className="hover:text-purple-400 transition-colors">Trust & Quality</Link></li>
+                <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Contact Us</Link></li>
+                <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Careers</Link></li>
+                <li><Link to="/providers" className="hover:text-purple-400 transition-colors">For Providers</Link></li>
+              </ul>
+            </div>
           </div>
 
         </div>
 
         {/* Legal Links Bar */}
         <div className="pt-8 pb-4 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex flex-wrap gap-6">
+          <div className="flex flex-wrap gap-5">
             <Link to="/legal/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
             <Link to="/legal/terms" className="hover:text-slate-300 transition-colors">Terms & Conditions</Link>
             <Link to="/legal/refund" className="hover:text-slate-300 transition-colors">Refund Policy</Link>
             <Link to="/legal/cancellation" className="hover:text-slate-300 transition-colors">Cancellation Policy</Link>
-            <Link to="/legal/shipping" className="hover:text-slate-300 transition-colors">Shipping Policy</Link>
+            <Link to="/legal/shipping" className="hover:text-slate-300 transition-colors">Shipping & Delivery Policy</Link>
           </div>
 
           <div className="flex items-center gap-1 text-slate-400 font-medium">
@@ -154,7 +173,7 @@ export default function Footer({ onOpenUploadModal }) {
             © {new Date().getFullYear()} Health Express. All rights reserved.
           </div>
           <div>
-            Soft Launch Release — Simple, Verified & Conversion-Focused
+            Healthcare marketplace helping people discover & arrange healthcare services.
           </div>
         </div>
 

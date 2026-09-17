@@ -21,9 +21,14 @@ export default function PreventiveHealthSection() {
               <span className="text-purple-700"> to tell you to pay attention.</span>
             </h2>
 
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-              Healthcare is not only about treating illness. It's also about understanding your health, identifying potential risks early and making informed decisions before a problem becomes harder to manage.
-            </p>
+            <div className="text-base sm:text-lg text-slate-600 leading-relaxed space-y-3">
+              <p>
+                Healthcare is not only about treating illness. It is also about understanding your health, identifying potential risks early and making informed decisions before a problem becomes harder to manage.
+              </p>
+              <p className="text-sm sm:text-base text-slate-600">
+                Health Express is building a healthcare experience that makes preventive health more accessible, convenient and actionable — bringing diagnostics, health screening, healthcare services and health information together in one connected experience.
+              </p>
+            </div>
 
             {/* CTA Button */}
             <div className="pt-2">
@@ -46,7 +51,7 @@ export default function PreventiveHealthSection() {
                 </div>
                 <h4 className="text-base font-bold text-slate-900">Understand</h4>
                 <p className="text-xs text-slate-600 leading-normal">
-                  Get the information and clear insights you need.
+                  Get access to the information and services you need to better understand your health.
                 </p>
               </div>
 
@@ -57,7 +62,7 @@ export default function PreventiveHealthSection() {
                 </div>
                 <h4 className="text-base font-bold text-slate-900">Prevent</h4>
                 <p className="text-xs text-slate-600 leading-normal">
-                  Use screening and preventive services regularly.
+                  Use appropriate screening and preventive health services to stay ahead of potential risks.
                 </p>
               </div>
 
@@ -68,7 +73,7 @@ export default function PreventiveHealthSection() {
                 </div>
                 <h4 className="text-base font-bold text-slate-900">Act</h4>
                 <p className="text-xs text-slate-600 leading-normal">
-                  Take the next appropriate step with medical guidance.
+                  Turn health information into the next appropriate step — test, consultation, or monitoring.
                 </p>
               </div>
 
@@ -79,8 +84,6 @@ export default function PreventiveHealthSection() {
           {/* Right Column Visual Image */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative max-w-md w-full">
-              
-              {/* Main Image */}
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-[4/3] sm:aspect-square">
                 <img
                   src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"
@@ -89,14 +92,13 @@ export default function PreventiveHealthSection() {
                   loading="lazy"
                 />
                 
-                {/* Floating Badge */}
                 <div className="absolute bottom-5 right-5 left-5 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-purple-100 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                     <Activity className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-slate-900">A healthier tomorrow starts today.</div>
-                    <div className="text-[11px] text-slate-500">Regular wellness checks lead to peace of mind.</div>
+                    <div className="text-[11px] text-slate-500">Regular wellness screening leads to peace of mind.</div>
                   </div>
                 </div>
               </div>

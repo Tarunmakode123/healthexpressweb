@@ -24,8 +24,8 @@ export default function FinalCTASection({ onOpenUploadModal }) {
               <span className="text-purple-300">We'll take it from there.</span>
             </h2>
 
-            <p className="text-sm sm:text-base text-purple-100 max-w-xl mx-auto font-normal">
-              No long forms or complicated bookings. Share your prescription or requirement and let Health Express staff handle everything for you.
+            <p className="text-sm sm:text-base text-purple-100 max-w-xl mx-auto font-normal leading-relaxed">
+              Upload your prescription, share your medical requirement or simply start a conversation. Health Express will help you navigate the next step.
             </p>
 
             {/* CTA Dual Buttons */}
@@ -36,7 +36,7 @@ export default function FinalCTASection({ onOpenUploadModal }) {
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-purple-50 text-purple-900 font-bold text-base shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
               >
                 <Upload className="w-5 h-5 text-purple-700" />
-                <span>Upload Prescription</span>
+                <span>Upload Prescription / Medical Order</span>
               </button>
 
               <button
