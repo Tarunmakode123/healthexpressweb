@@ -16,6 +16,16 @@ const ALLOWED_MIME_TYPES = [
 
 const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'doc', 'docx'];
 
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 /**
  * Validates prescription file type and size
  */
@@ -109,65 +119,67 @@ export async function submitGuestPrescription({ file, fullName, phone, city = 'B
       throw new Error('Failed to securely store prescription file. Please try again.');
     }
 
-    // B. Find or Create Patient Record
+    // B. Find or Create Patient Record (Using Client-Side UUID to avoid RLS SELECT blocks)
     let patientId = null;
 
-    const { data: existingPatients, error: patientLookupError } = await supabase
-      .from('patients')
-      .select('id')
-      .eq('phone_e164', phone_e164)
-      .limit(1);
+    try {
+      const { data: existingPatients } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('phone_e164', phone_e164)
+        .limit(1);
 
-    if (patientLookupError) {
-      console.error('Patient Lookup Error:', patientLookupError);
+      if (existingPatients && existingPatients.length > 0) {
+        patientId = existingPatients[0].id;
+      }
+    } catch (e) {
+      console.warn('Patient lookup warning:', e);
     }
 
-    if (existingPatients && existingPatients.length > 0) {
-      patientId = existingPatients[0].id;
-    } else {
-      const { data: newPatient, error: createPatientError } = await supabase
+    if (!patientId) {
+      patientId = generateUUID();
+      const { error: createPatientError } = await supabase
         .from('patients')
         .insert({
+          id: patientId,
           full_name: fullName.trim(),
           phone_e164: phone_e164,
           city: city,
           email: email.trim() || null,
           user_id: null,
           is_verified: false
-        })
-        .select('id')
-        .single();
+        });
 
       if (createPatientError) {
         console.error('Create Patient Error:', createPatientError);
-        throw new Error('Failed to create patient record.');
+        throw new Error('Failed to create patient record: ' + createPatientError.message);
       }
-      patientId = newPatient.id;
     }
 
-    // C. Create Enquiry Record
-    const { data: newEnquiry, error: enquiryError } = await supabase
+    // C. Create Enquiry Record (Using Client-Side UUID)
+    const enquiryId = generateUUID();
+    const { error: enquiryError } = await supabase
       .from('enquiries')
       .insert({
+        id: enquiryId,
         enquiry_code: enquiryCode,
         patient_id: patientId,
         source: 'website',
         status: 'pending_review',
         notes: notes.trim() || null
-      })
-      .select('id')
-      .single();
+      });
 
     if (enquiryError) {
       console.error('Enquiry Insert Error:', enquiryError);
-      throw new Error('Failed to register enquiry record.');
+      throw new Error('Failed to register enquiry record: ' + enquiryError.message);
     }
 
-    // D. Create Prescription Record
+    // D. Create Prescription Record (Using Client-Side UUID)
     const { error: prescriptionError } = await supabase
       .from('prescriptions')
       .insert({
-        enquiry_id: newEnquiry.id,
+        id: generateUUID(),
+        enquiry_id: enquiryId,
         patient_id: patientId,
         file_path: uploadedFilePath,
         file_name: file.name,
@@ -178,7 +190,7 @@ export async function submitGuestPrescription({ file, fullName, phone, city = 'B
 
     if (prescriptionError) {
       console.error('Prescription DB Insert Error:', prescriptionError);
-      throw new Error('Failed to link prescription document record.');
+      throw new Error('Failed to link prescription document record: ' + prescriptionError.message);
     }
 
     return {
