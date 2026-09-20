@@ -91,12 +91,33 @@ export default function HeroSection({ onOpenUploadModal }) {
           {/* Right Hero Visual Card */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative w-full max-w-md">
+              {/* Floating Glass Badges */}
+              <div className="hidden sm:flex absolute -top-5 -left-6 z-20 glass-card px-4 py-2.5 rounded-2xl shadow-lg border border-purple-200/80 items-center gap-2.5 animate-float">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                  ✓
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Prescription Verified</div>
+                  <div className="text-[10px] text-slate-500">Partner Lab Assigned</div>
+                </div>
+              </div>
+
+              <div className="hidden sm:flex absolute -bottom-5 -right-4 z-20 glass-card px-4 py-2.5 rounded-2xl shadow-lg border border-purple-200/80 items-center gap-2.5 animate-float-delayed">
+                <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
+                  👩‍⚕️
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Care Manager</div>
+                  <div className="text-[10px] text-purple-700 font-semibold">Active & Assisting</div>
+                </div>
+              </div>
+
               <div className="absolute -inset-4 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-3xl opacity-20 blur-xl"></div>
               
               <div className="relative bg-white rounded-3xl p-6 shadow-2xl border border-purple-100 space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-purple-700 text-white flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-purple-700 text-white flex items-center justify-center shadow-xs">
                       <Activity className="w-4 h-4" />
                     </div>
                     <span className="text-sm font-bold text-slate-900">Health Express</span>
@@ -107,8 +128,9 @@ export default function HeroSection({ onOpenUploadModal }) {
                 </div>
 
                 <div className="bg-purple-50/80 rounded-2xl p-5 border border-purple-100 space-y-3">
-                  <div className="text-xs font-extrabold text-purple-900 uppercase tracking-wider">
-                    One place. Less coordination.
+                  <div className="text-xs font-extrabold text-purple-900 uppercase tracking-wider flex items-center justify-between">
+                    <span>One place. Less coordination.</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                   </div>
                   
                   <div className="space-y-2.5 pt-1">
