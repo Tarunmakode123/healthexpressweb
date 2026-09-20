@@ -1,58 +1,66 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
+import ProblemSection from '../components/sections/ProblemSection';
 import SimplerHealthcareSection from '../components/sections/SimplerHealthcareSection';
 import HowItWorksSection from '../components/sections/HowItWorksSection';
 import ServicesSection from '../components/sections/ServicesSection';
 import PreventiveHealthSection from '../components/sections/PreventiveHealthSection';
 import WhyHealthExpressSection from '../components/sections/WhyHealthExpressSection';
 import PopularTestsSection from '../components/sections/PopularTestsSection';
+import FamilySection from '../components/sections/FamilySection';
+import TrustSection from '../components/sections/TrustSection';
+import HealthRecordsSection from '../components/sections/HealthRecordsSection';
 import CitiesSection from '../components/sections/CitiesSection';
 import HealthLibrarySection from '../components/sections/HealthLibrarySection';
-import TrustSection from '../components/sections/TrustSection';
-import FamilyHealthSection from '../components/sections/FamilyHealthSection';
 import FAQSection from '../components/sections/FAQSection';
 import FinalCTASection from '../components/sections/FinalCTASection';
 
 export default function HomePage({ onOpenUploadModal }) {
   return (
     <div className="space-y-0">
-      {/* SECTION 01 — ABOVE THE FOLD */}
+      {/* 1. WHO ARE YOU? -> Hero */}
       <HeroSection onOpenUploadModal={onOpenUploadModal} />
-      
-      {/* SECTION 02 — THE CORE PROMISE (YOU ASK. WE COORDINATE.) */}
+
+      {/* 2. WHY DO I NEED YOU? -> Problem */}
+      <ProblemSection />
+
+      {/* 3. WHAT DO YOU DO? -> What Health Express Does */}
       <SimplerHealthcareSection />
-      
-      {/* SECTION 03 — HOW IT WORKS */}
+
+      {/* HOW IT WORKS -> Request to Care */}
       <HowItWorksSection onOpenUploadModal={onOpenUploadModal} />
-      
-      {/* SECTION 04 — WHAT HEALTH EXPRESS CAN HELP WITH */}
+
+      {/* 4. WHAT CAN I USE TODAY? -> Current Launch Services */}
       <ServicesSection />
-      
-      {/* SECTION 05 — PREVENTIVE HEALTH */}
+
+      {/* PREVENTIVE HEALTH -> Reactive to Proactive */}
       <PreventiveHealthSection />
-      
-      {/* SECTION 06 — WHY HEALTH EXPRESS (BUILT AROUND YOU) */}
+
+      {/* BUILT AROUND YOU -> Feature Cards */}
       <WhyHealthExpressSection />
-      
-      {/* SECTION 07 — POPULAR HEALTH SERVICES */}
+
+      {/* POPULAR SERVICES -> High intent tests */}
       <PopularTestsSection />
-      
-      {/* SECTION 08 — HEALTHCARE WHERE YOU ARE */}
-      <CitiesSection />
-      
-      {/* SECTION 09 — HEALTH LIBRARY */}
-      <HealthLibrarySection />
-      
-      {/* SECTION 10 — TRUST */}
+
+      {/* 5. WHY FOR MY FAMILY? -> Family Health Manager */}
+      <FamilySection onOpenUploadModal={onOpenUploadModal} />
+
+      {/* 6. WHY TRUST YOU? -> Verified partners & Privacy */}
       <TrustSection />
-      
-      {/* SECTION 11 — FAMILY HEALTH / HEALTH RECORDS */}
-      <FamilyHealthSection />
-      
-      {/* SECTION 12 — FAQ */}
+
+      {/* 7. WHAT ELSE? -> Health Records */}
+      <HealthRecordsSection />
+
+      {/* LOCATION -> Starting with Bengaluru */}
+      <CitiesSection />
+
+      {/* HEALTH LIBRARY -> Evidence-informed guides */}
+      <HealthLibrarySection />
+
+      {/* FAQ -> Frequently Asked Questions */}
       <FAQSection />
-      
-      {/* SECTION 13 — FINAL CTA */}
+
+      {/* FINAL CTA -> Healthcare for your family */}
       <FinalCTASection onOpenUploadModal={onOpenUploadModal} />
     </div>
   );

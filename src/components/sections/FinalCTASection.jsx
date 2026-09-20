@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Upload, MessageSquare, CheckCircle } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
@@ -20,12 +21,12 @@ export default function FinalCTASection({ onOpenUploadModal }) {
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
-              Tell us what you need.<br />
-              <span className="text-purple-300">We'll take it from there.</span>
+              Healthcare for your family,<br />
+              <span className="text-purple-300">without the hassle.</span>
             </h2>
 
             <p className="text-sm sm:text-base text-purple-100 max-w-xl mx-auto font-normal leading-relaxed">
-              Upload your prescription, share your medical requirement or simply start a conversation. Health Express will help you navigate the next step.
+              Whether you need a diagnostic test or care at home, Health Express helps you coordinate the next step.
             </p>
 
             {/* CTA Dual Buttons */}
@@ -33,26 +34,30 @@ export default function FinalCTASection({ onOpenUploadModal }) {
               
               <button
                 onClick={onOpenUploadModal}
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-purple-50 text-purple-900 font-bold text-base shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-purple-50 text-purple-900 font-bold text-sm sm:text-base shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
               >
                 <Upload className="w-5 h-5 text-purple-700" />
                 <span>Upload Prescription / Medical Order</span>
               </button>
 
-              <button
-                onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+              <Link
+                to="/services"
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-purple-700 hover:bg-purple-600 border border-purple-500 text-white font-bold text-sm sm:text-base shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                <MessageSquare className="w-5 h-5 fill-current" />
-                <span>Chat on WhatsApp</span>
-              </button>
+                <span>Explore Services</span>
+              </Link>
 
             </div>
 
-            {/* Supporting line */}
-            <div className="flex items-center justify-center gap-2 text-xs text-purple-200 pt-2 font-medium">
-              <CheckCircle className="w-4 h-4 text-emerald-400" />
-              <span>One simple step. Healthcare, simplified.</span>
+            {/* WhatsApp direct text */}
+            <div className="pt-2">
+              <button
+                onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                <MessageSquare className="w-4 h-4 fill-current" />
+                <span>Or chat directly on WhatsApp (+91 81234 14120)</span>
+              </button>
             </div>
 
           </div>

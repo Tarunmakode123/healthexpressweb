@@ -6,7 +6,7 @@
 export const WHATSAPP_NUMBER = import.meta.env.VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER ||
   import.meta.env.VITE_HEALTHeXpress_WHATSAPP_NUMBER || 
   import.meta.env.VITE_WHATSAPP_NUMBER || 
-  "919876543210"; // Placeholder number - update in .env for production soft launch
+  "918123414120"; // Dedicated WhatsApp number: +91 81234 14120
 
 export const DEFAULT_MESSAGES = {
   general: "Hello Health Express, I would like help with a prescription / healthcare service.",

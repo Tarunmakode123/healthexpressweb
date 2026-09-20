@@ -1,10 +1,11 @@
 import React from 'react';
-import { Upload, MessageSquare, CheckCircle, Activity, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Upload, MessageSquare, CheckCircle, Activity, ShieldCheck, FlaskConical, Home } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function HeroSection({ onOpenUploadModal }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-purple-50/60 via-slate-50/30 to-white pt-8 pb-16 md:pt-14 md:pb-24">
+    <section className="relative overflow-hidden bg-gradient-to-b from-purple-50/70 via-slate-50/40 to-white pt-8 pb-16 md:pt-14 md:pb-24">
       
       {/* Background Decorative Glow */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl pointer-events-none -z-10" />
@@ -22,56 +23,67 @@ export default function HeroSection({ onOpenUploadModal }) {
             </div>
 
             {/* Main H1 */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-              Healthcare,<br />
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+              Your personal health manager,<br />
               <span className="bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-700 bg-clip-text text-transparent">
-                without the hassle.
+                for you and your family.
               </span>
             </h1>
 
             {/* Supporting Copy */}
             <p className="text-base sm:text-lg text-slate-600 font-normal leading-relaxed max-w-xl">
-              Send us your prescription or tell us what you need. We’ll help you find, compare and arrange the right healthcare service — all in one place.
+              From diagnostic tests to care at home, Health Express helps you find, compare and coordinate the right healthcare — all in one place.
             </p>
 
-            {/* Primary Action Buttons */}
+            {/* Primary & Secondary Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
               
               {/* Primary CTA */}
               <button
                 onClick={onOpenUploadModal}
-                className="group relative px-7 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-base shadow-xl shadow-purple-700/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                className="group relative px-7 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm sm:text-base shadow-xl shadow-purple-700/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
               >
                 <Upload className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" />
                 <span>Upload Prescription / Medical Order</span>
               </button>
 
               {/* Secondary CTA */}
-              <button
-                onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
-                className="px-7 py-4 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-500/30 text-emerald-800 font-bold text-base shadow-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+              <Link
+                to="/services"
+                className="px-7 py-4 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 text-purple-900 font-bold text-sm sm:text-base shadow-xs transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                <MessageSquare className="w-5 h-5 text-emerald-600 fill-emerald-600/20" />
-                <span>Chat with us on WhatsApp</span>
-              </button>
+                <span>Explore Services</span>
+              </Link>
 
             </div>
 
-            {/* Microcopy beneath CTA */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 pt-1">
+            {/* Small trust statement */}
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 pt-1">
               <CheckCircle className="w-4 h-4 text-purple-600 shrink-0" />
-              <span>One simple step. We take care of the rest.</span>
+              <span>One place to coordinate your family's healthcare.</span>
             </div>
 
-            {/* Restrained Trust Microcopy Bar */}
-            <div className="pt-6 border-t border-slate-200/60 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
-              <span className="text-purple-700">Diagnostics</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-purple-700">Home Healthcare</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-purple-700">Telemedicine</span>
-              <span className="text-slate-300">•</span>
-              <span className="text-purple-700">Preventive Care</span>
+            {/* Service Strip: Only Diagnostics & Home Nursing per client instruction */}
+            <div className="pt-6 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-purple-100 shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <FlaskConical className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Diagnostics & Preventive Health</div>
+                  <div className="text-[11px] text-slate-500">Trusted labs · Home sample collection</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-purple-100 shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <Home className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Home Nursing</div>
+                  <div className="text-[11px] text-slate-500">Professional care · At home</div>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -90,13 +102,13 @@ export default function HeroSection({ onOpenUploadModal }) {
                     <span className="text-sm font-bold text-slate-900">Health Express</span>
                   </div>
                   <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                    Live Coordination
+                    Family Health Manager
                   </span>
                 </div>
 
                 <div className="bg-purple-50/80 rounded-2xl p-5 border border-purple-100 space-y-3">
                   <div className="text-xs font-extrabold text-purple-900 uppercase tracking-wider">
-                    One simple step. We take care of the rest.
+                    One place. Less coordination.
                   </div>
                   
                   <div className="space-y-2.5 pt-1">
@@ -106,7 +118,7 @@ export default function HeroSection({ onOpenUploadModal }) {
                       </div>
                       <div>
                         <div className="text-xs font-bold text-slate-900">Tell us what you need</div>
-                        <div className="text-[11px] text-slate-500">Upload prescription or describe service</div>
+                        <div className="text-[11px] text-slate-500">Upload prescription or describe care</div>
                       </div>
                       <CheckCircle className="w-4 h-4 text-emerald-500 ml-auto" />
                     </div>
@@ -116,8 +128,8 @@ export default function HeroSection({ onOpenUploadModal }) {
                         02
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-slate-900">We do the legwork</div>
-                        <div className="text-[11px] text-slate-500">Compare options & verified providers</div>
+                        <div className="text-xs font-bold text-slate-900">We help coordinate it</div>
+                        <div className="text-[11px] text-slate-500">Find options from healthcare partners</div>
                       </div>
                       <CheckCircle className="w-4 h-4 text-emerald-500 ml-auto" />
                     </div>
@@ -128,7 +140,7 @@ export default function HeroSection({ onOpenUploadModal }) {
                       </div>
                       <div>
                         <div className="text-xs font-bold text-slate-900">You stay in control</div>
-                        <div className="text-[11px] text-slate-500">Book when ready, receive reports/care</div>
+                        <div className="text-[11px] text-slate-500">Choose what works, manage from 1 place</div>
                       </div>
                       <CheckCircle className="w-4 h-4 text-emerald-500 ml-auto" />
                     </div>
@@ -140,12 +152,12 @@ export default function HeroSection({ onOpenUploadModal }) {
                   className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
                 >
                   <MessageSquare className="w-4 h-4 text-emerald-400 fill-current" />
-                  <span>Chat with us on WhatsApp</span>
+                  <span>Chat with us on WhatsApp (+91 81234 14120)</span>
                 </button>
 
                 <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
                   <ShieldCheck className="w-4 h-4 text-purple-600" />
-                  <span>Verified Healthcare Providers & Accredited Labs</span>
+                  <span>Verified Healthcare Partners & Accredited Labs</span>
                 </div>
               </div>
 

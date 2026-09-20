@@ -23,28 +23,17 @@ export default function Footer({ onOpenUploadModal }) {
             </Link>
             
             <p className="text-xs font-semibold text-purple-400 tracking-wider uppercase">
-              Healthcare, without the hassle.
+              Your personal health manager, for you and your family.
             </p>
             
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              A healthcare marketplace helping people discover, compare and arrange healthcare services through participating providers.
+              Health Express helps you find, coordinate and manage healthcare for yourself and your family — starting with diagnostics and home nursing.
             </p>
 
-            {/* Social Icons */}
+            {/* Official Social Media Links */}
             <div className="flex items-center gap-3 pt-2">
               <a 
-                href="https://linkedin.com" 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-purple-900/80 hover:text-purple-300 flex items-center justify-center text-slate-400 transition-colors"
-                aria-label="LinkedIn"
-              >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.7a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Z"/>
-                </svg>
-              </a>
-              <a 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/healthexpress_india" 
                 target="_blank" 
                 rel="noreferrer"
                 className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-purple-900/80 hover:text-purple-300 flex items-center justify-center text-slate-400 transition-colors"
@@ -55,14 +44,36 @@ export default function Footer({ onOpenUploadModal }) {
                 </svg>
               </a>
               <a 
-                href="https://youtube.com" 
+                href="https://www.facebook.com/HealthExpressIndia/" 
                 target="_blank" 
                 rel="noreferrer"
                 className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-purple-900/80 hover:text-purple-300 flex items-center justify-center text-slate-400 transition-colors"
-                aria-label="YouTube"
+                aria-label="Facebook"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a 
+                href="https://www.linkedin.com/company/healthexpressindia" 
+                target="_blank" 
+                rel="noreferrer"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-purple-900/80 hover:text-purple-300 flex items-center justify-center text-slate-400 transition-colors"
+                aria-label="LinkedIn"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.7a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Z"/>
+                </svg>
+              </a>
+              <a 
+                href="https://x.com/HealthExpressIN" 
+                target="_blank" 
+                rel="noreferrer"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-purple-900/80 hover:text-purple-300 flex items-center justify-center text-slate-400 transition-colors"
+                aria-label="X (Twitter)"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
             </div>
@@ -75,31 +86,25 @@ export default function Footer({ onOpenUploadModal }) {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Diagnostics</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Blood Tests</Link></li>
+              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Preventive Health Packages</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Imaging</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Health Checkups</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Home Healthcare</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Home Nursing</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Telemedicine</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Pharmacy</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Genetic Testing</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Preventive Healthcare</Link></li>
+              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Surgical Care</Link></li>
             </ul>
           </div>
 
           {/* Column 2: Popular Tests */}
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
-              Popular Tests
+              Popular Services
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('CBC Test'))} className="hover:text-purple-400 transition-colors text-left">CBC Test</button></li>
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Thyroid Test'))} className="hover:text-purple-400 transition-colors text-left">Thyroid Test</button></li>
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Vitamin D Test'))} className="hover:text-purple-400 transition-colors text-left">Vitamin D Test</button></li>
-              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Vitamin B12 Test'))} className="hover:text-purple-400 transition-colors text-left">Vitamin B12 Test</button></li>
               <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('HbA1c Test'))} className="hover:text-purple-400 transition-colors text-left">HbA1c Test</button></li>
-              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Lipid Profile'))} className="hover:text-purple-400 transition-colors text-left">Lipid Profile</button></li>
-              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Full Body Health Checkup'))} className="hover:text-purple-400 transition-colors text-left">Full Body Checkup</button></li>
+              <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.test('Full Body Checkup'))} className="hover:text-purple-400 transition-colors text-left">Full Body Checkup</button></li>
             </ul>
           </div>
 
@@ -109,13 +114,11 @@ export default function Footer({ onOpenUploadModal }) {
               Health Library
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Diagnostics</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Blood Tests</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Diagnostics Guides</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Health Tests</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Family Health</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Preventive Health</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Women's Health</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Men's Health</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Nutrition</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Health Conditions</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Home Care</Link></li>
             </ul>
           </div>
 
@@ -126,11 +129,15 @@ export default function Footer({ onOpenUploadModal }) {
                 Locations
               </h4>
               <ul className="space-y-1.5 text-xs text-slate-400">
-                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Bangalore'))} className="hover:text-purple-400 transition-colors text-left">Bangalore</button></li>
-                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Hyderabad'))} className="hover:text-purple-400 transition-colors text-left">Hyderabad</button></li>
-                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Mumbai'))} className="hover:text-purple-400 transition-colors text-left">Mumbai</button></li>
-                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Delhi NCR'))} className="hover:text-purple-400 transition-colors text-left">Delhi NCR</button></li>
-                <li><button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Pune'))} className="hover:text-purple-400 transition-colors text-left">Pune</button></li>
+                <li>
+                  <button onClick={() => openWhatsApp(DEFAULT_MESSAGES.city('Bengaluru'))} className="hover:text-purple-400 transition-colors text-left flex items-center gap-1.5 font-bold text-purple-300">
+                    <MapPin className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Bengaluru</span>
+                  </button>
+                </li>
+                <li className="text-[11px] text-slate-500 pt-1">
+                  Expanding to more cities soon
+                </li>
               </ul>
             </div>
 
@@ -143,7 +150,6 @@ export default function Footer({ onOpenUploadModal }) {
                 <li><Link to="/about" className="hover:text-purple-400 transition-colors">How It Works</Link></li>
                 <li><Link to="/about" className="hover:text-purple-400 transition-colors">Trust & Quality</Link></li>
                 <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Contact Us</Link></li>
-                <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Careers</Link></li>
                 <li><Link to="/providers" className="hover:text-purple-400 transition-colors">For Providers</Link></li>
               </ul>
             </div>
@@ -158,7 +164,7 @@ export default function Footer({ onOpenUploadModal }) {
             <Link to="/legal/terms" className="hover:text-slate-300 transition-colors">Terms & Conditions</Link>
             <Link to="/legal/refund" className="hover:text-slate-300 transition-colors">Refund Policy</Link>
             <Link to="/legal/cancellation" className="hover:text-slate-300 transition-colors">Cancellation Policy</Link>
-            <Link to="/legal/shipping" className="hover:text-slate-300 transition-colors">Shipping & Delivery Policy</Link>
+            <Link to="/legal/shipping" className="hover:text-slate-300 transition-colors">Shipping Policy</Link>
           </div>
 
           <div className="flex items-center gap-1 text-slate-400 font-medium">
@@ -173,7 +179,7 @@ export default function Footer({ onOpenUploadModal }) {
             © {new Date().getFullYear()} Health Express. All rights reserved.
           </div>
           <div>
-            Healthcare marketplace helping people discover & arrange healthcare services.
+            Your personal health manager, for you and your family.
           </div>
         </div>
 

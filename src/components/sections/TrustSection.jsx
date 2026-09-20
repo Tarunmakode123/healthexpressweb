@@ -1,27 +1,27 @@
 import React from 'react';
-import { ShieldCheck, Award, FileCheck, Lock } from 'lucide-react';
+import { ShieldCheck, Award, Lock, Eye } from 'lucide-react';
 
 export default function TrustSection() {
   const trustItems = [
     {
       icon: ShieldCheck,
-      title: 'Verified Providers',
-      description: 'Participating healthcare providers are subject to applicable onboarding and verification processes.'
+      title: 'Verified healthcare providers',
+      description: 'Partner network with quality and service checks.'
     },
     {
       icon: Award,
-      title: 'Accreditation',
-      description: 'Where applicable, relevant accreditation and certification information is displayed for participating providers.'
-    },
-    {
-      icon: FileCheck,
-      title: 'Transparent Information',
-      description: 'Service, provider and availability information is presented to help you make informed decisions.'
+      title: 'Accredited diagnostic partners',
+      description: 'Access diagnostic services through trusted partner laboratories.'
     },
     {
       icon: Lock,
-      title: 'Secure Healthcare Journey',
-      description: 'Your personal and health information is handled through appropriate security and privacy controls.'
+      title: 'Private & secure',
+      description: 'Your healthcare information is handled with appropriate privacy and security safeguards.'
+    },
+    {
+      icon: Eye,
+      title: 'Transparent options',
+      description: 'See available options before you decide.'
     }
   ];
 
@@ -30,16 +30,13 @@ export default function TrustSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
-            TRUST & QUALITY
+            TRUST & SAFETY
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Healthcare deserves a higher standard of trust.
+            Healthcare coordination you can trust.
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-            Health Express works with participating healthcare providers and partners to make healthcare services easier to discover and access. Depending on the service and location, provider and service information may include applicable accreditation, verification, protocols and quality-assurance information so you can make a more informed choice.
-          </p>
         </div>
 
         {/* 4 Trust Items Grid */}

@@ -6,19 +6,19 @@ export default function SimplerHealthcareSection() {
     {
       num: '01',
       title: 'Tell us what you need',
-      description: 'Upload a prescription, medical order or simply describe the healthcare service you\'re looking for.',
+      description: 'Upload a prescription, medical order, or simply tell us what kind of care you need.',
       icon: FileText
     },
     {
       num: '02',
-      title: 'We do the legwork',
-      description: 'We help identify relevant services and available healthcare providers based on your requirement.',
+      title: 'We help coordinate it',
+      description: 'We help you find suitable options from our healthcare partners and coordinate the next steps.',
       icon: Users
     },
     {
       num: '03',
       title: 'You stay in control',
-      description: 'Review your options, make your choice and book when you\'re ready.',
+      description: 'Review your options, choose what works for you, and manage the service from one place.',
       icon: CheckCircle2
     }
   ];
@@ -28,27 +28,19 @@ export default function SimplerHealthcareSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
-            YOU ASK. WE COORDINATE.
+            WHAT HEALTH EXPRESS DOES
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Healthcare should be simpler.
+            One place. Less coordination.
           </h2>
-          <div className="text-base sm:text-lg text-slate-600 leading-relaxed space-y-3">
-            <p>
-              Finding the right test, healthcare provider or service can mean searching across multiple websites, comparing providers, checking availability and coordinating appointments.
-            </p>
-            <p className="font-semibold text-slate-800">
-              Health Express brings that journey together.
-            </p>
-            <p className="text-sm sm:text-base text-slate-600">
-              Upload your prescription, share what you need, or simply tell us what you're looking for. We help coordinate the next steps so you can spend less time navigating healthcare and more time taking care of yourself.
-            </p>
-          </div>
+          <p className="text-base sm:text-lg text-slate-600">
+            Instead of navigating multiple websites, diagnostic centers, and clinics — let Health Express coordinate the journey for you.
+          </p>
         </div>
 
-        {/* 3 Feature Blocks */}
+        {/* 3 Step Pillars */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {threePillars.map((pillar) => {
             const IconComponent = pillar.icon;

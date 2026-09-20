@@ -1,38 +1,50 @@
 # Health Express — Official Public Website
 
-> **Healthcare, without the hassle.**  
-> Official repository for the Health Express soft-launch website.
+> **Your personal health manager, for you and your family.**  
+> Official repository for the Health Express public website.
 
 ---
 
 ## 🏥 Overview
 
-**Health Express** is a modern healthcare marketplace designed to make accessing diagnostic tests, home nursing, doctor consultations, and preventive health checkups seamless and stress-free.
+**Health Express** helps you find, coordinate, and manage healthcare for yourself and your family — starting with diagnostics and home nursing, and growing toward a more connected healthcare experience.
 
-This repository contains the first-stage public website, created to introduce Health Express services to customers and enable direct care coordination through a WhatsApp-assisted workflow.
+This repository contains the public website, built with a focus on clear positioning, family health management, and a WhatsApp-assisted care coordination workflow.
 
 ---
 
-## ✨ Key Features & Highlights
+## ✨ Key Features & Positioning
 
-- **WhatsApp Care Coordination**: Customers can upload prescriptions or share medical requirements directly with Health Express care coordinators via WhatsApp.
-- **Comprehensive Healthcare Offerings**: Clear service showcases for Diagnostics, Imaging, Home Healthcare, Telemedicine, Pharmacy, Genetic Testing, and Preventive Health.
-- **Preventive Healthcare Pillar**: Focus on proactive screening, early risk detection, and wellness profiling.
-- **Evidence-Informed Health Library**: Educational patient guides covering common blood tests (CBC, HbA1c, Thyroid, Lipid Profile) and test preparation.
-- **Location Coverage**: Information for major operational hubs including Bangalore, Hyderabad, Mumbai, Delhi NCR, and Pune.
+- **Core Positioning**: *"Your personal health manager, for you and your family."*
+- **Launch Scope**: Focused on **Diagnostics & Preventive Health Packages** and **Home Nursing** in **Bengaluru**.
+- **Family Health Hub**: One place to coordinate care for parents, partners, and children.
+- **WhatsApp Care Coordination**: Direct line to Health Express care managers via **+91 81234 14120**.
+- **Provider Partnership Network**: Dedicated provider onboarding form routing directly to `hello@healthexpress.care`.
+- **Evidence-Informed Health Library**: Practical guides covering blood tests, preventive health, family health, and home care.
 - **Mobile-Optimized Experience**: Fast, responsive layout tailored for smartphones, tablets, and desktop browsers.
 
 ---
 
 ## 🗺️ Website Structure
 
-- **Home (`/`)**: Main showcase introducing Health Express, core benefits, how it works, services, popular tests, city coverage, trust standards, FAQs, and WhatsApp conversion actions.
-- **Services (`/services`)**: Full directory of available healthcare verticals with detailed feature overviews.
+- **Home (`/`)**: 15-section narrative flow (*Who Are You? → The Problem → What We Do → Services → For Your Family → Trust → Health Records → Bengaluru Launch → Library → FAQ → Final CTA*).
+- **Services (`/services`)**: Full directory of launch verticals (Diagnostics, Preventive Health Packages, Imaging, Home Nursing, Genetic Testing, Surgical Care).
 - **Health Library (`/health-library`)**: Searchable index of patient guides and test preparation articles.
-- **About Us (`/about`)**: Company vision, quality commitment, and NABL partner lab standards.
-- **For Providers (`/providers`)**: Partnership onboarding page for labs and healthcare providers.
+- **About Us (`/about`)**: Founder Neha Bhansali's letter, company vision, 4 core principles (People First, Trust, Simplicity, Care), and approach.
+- **For Providers (`/providers`)**: Partnership onboarding page with contact form sending inquiries to `hello@healthexpress.care`.
 - **Contact (`/contact`)**: Direct support lines and medical requirement contact form.
 - **Legal (`/legal/:type`)**: Customer transparency policies for Privacy, Terms, Refund, Cancellation, and Shipping.
+
+---
+
+## 🌐 Official Social Links & Contact
+
+- **Phone / WhatsApp**: [+91 81234 14120](https://wa.me/918123414120)
+- **Provider Contact Email**: `hello@healthexpress.care`
+- **Instagram**: [https://www.instagram.com/healthexpress_india](https://www.instagram.com/healthexpress_india)
+- **Facebook**: [https://www.facebook.com/HealthExpressIndia/](https://www.facebook.com/HealthExpressIndia/)
+- **LinkedIn**: [https://www.linkedin.com/company/healthexpressindia](https://www.linkedin.com/company/healthexpressindia)
+- **X (Twitter)**: [https://x.com/HealthExpressIN](https://x.com/HealthExpressIN)
 
 ---
 
@@ -46,10 +58,6 @@ This repository contains the first-stage public website, created to introduce He
 ---
 
 ## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18 or higher recommended)
-- npm (Node Package Manager)
 
 ### Local Setup Instructions
 
@@ -67,7 +75,7 @@ This repository contains the first-stage public website, created to introduce He
 3. **Configure Environment Variables**:
    Create a `.env` file in the root directory:
    ```env
-   VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER=919876543210
+   VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER=918123414120
    ```
 
 4. **Run the development server**:
@@ -84,9 +92,9 @@ This repository contains the first-stage public website, created to introduce He
 
 ## 🔒 Privacy & Compliance Notice
 
-This public website serves purely as a discovery and customer engagement interface. No sensitive patient health records, uploaded prescriptions, or private medical data are exposed or stored within this repository.
+This public website serves as a discovery and customer engagement interface. No sensitive patient health records, uploaded prescriptions, or private medical data are exposed or stored within this repository.
 
 ---
 
 © 2025–2026 Health Express. All rights reserved.  
-*A healthier tomorrow, together.*
+*Your personal health manager, for you and your family.*
