@@ -5,6 +5,7 @@ import { DEFAULT_MESSAGES } from '../utils/whatsapp';
  * Health Express AI Conversational & Intent Processing Engine
  * Handles natural language matching (English & Hinglish), medical safety rules,
  * page context awareness, and contextual WhatsApp message generation.
+ * Aligned strictly with verified codebase content & soft-launch WhatsApp workflow.
  */
 
 export function processUserMessage(rawQuery, currentPath = '/', conversationHistory = []) {
@@ -20,9 +21,9 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     query.includes('severe bleeding')
   ) {
     return {
-      text: "🚨 **Immediate Medical Notice**: If you or someone around you is experiencing a medical emergency, chest pain, or severe breathing distress, please call emergency services (108 / 112) or reach the nearest hospital immediately.\n\nHealth Express is a service manager and not an emergency triage service.",
+      text: "🚨 **Immediate Medical Notice**: If you or someone around you is experiencing a medical emergency, chest pain, or severe breathing distress, please call emergency services (108 / 112) or reach the nearest hospital immediately.\n\nHealth Express is a service coordination manager and not an emergency triage service.",
       quickReplies: [
-        { label: "Talk to Health Express", action: "whatsapp_general" }
+        { label: "Talk to Health Express Team", action: "whatsapp_general" }
       ],
       whatsappMsg: DEFAULT_MESSAGES.general
     };
@@ -41,7 +42,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
       text: "⚠️ **Medical Advice Notice**: I am the Health Express Service Assistant. I cannot diagnose symptoms or prescribe medications.\n\nFor medical advice or treatment, we recommend consulting a qualified doctor. However, if you already have a prescription or need diagnostic blood tests, Health Express can coordinate your care.",
       quickReplies: [
         { label: "Send Prescription on WhatsApp", action: "whatsapp_prescription" },
-        { label: "Explore Diagnostic Tests", action: "explore_tests" }
+        { label: "Explore Diagnostic Services", action: "explore_tests" }
       ],
       whatsappMsg: DEFAULT_MESSAGES.prescription
     };
@@ -56,7 +57,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     query.includes('slip')
   ) {
     return {
-      text: "📄 **Prescription Coordination**: You can easily send your prescription or medical order directly to Health Express on WhatsApp.\n\nOur personal care coordinator will review your requirement, match accredited labs in Bengaluru, and share test timings and sample collection options.",
+      text: "📄 **Prescription Coordination**: You can easily send your prescription or medical order directly to Health Express on WhatsApp.\n\nOur care coordinator will review your requirement, match accredited labs in Bengaluru, and share test timings and home sample collection options.",
       quickReplies: [
         { label: "Send Prescription on WhatsApp", action: "whatsapp_prescription" },
         { label: "Upload Prescription File", action: "open_upload_modal" }
@@ -78,7 +79,8 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     query.includes('full body') || 
     query.includes('blood test') ||
     query.includes('karwana hai') ||
-    query.includes('test price')
+    query.includes('test price') ||
+    query.includes('fasting')
   ) {
     // Check for specific test match
     let matchedTest = CHATBOT_KNOWLEDGE.popularTests.find(t => 
@@ -87,18 +89,18 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
 
     if (matchedTest) {
       return {
-        text: `🧪 **${matchedTest.title}**\n\n${matchedTest.desc}\n\n📌 **Preparation**: ${matchedTest.fasting}\n\nOur team can share exact lab options, discounted package pricing, and arrange home sample collection in Bengaluru.`,
+        text: `🧪 **${matchedTest.title}**\n\n${matchedTest.desc}\n\nOur care coordinators will provide exact lab partner options, package details, and arrange home sample collection in Bengaluru via WhatsApp.`,
         quickReplies: [
-          { label: `Book ${matchedTest.title.split(' ')[0]} Test`, action: `whatsapp_test_${matchedTest.id}` },
+          { label: `Inquire ${matchedTest.title.split(' ')[0]} Test`, action: `whatsapp_test_${matchedTest.id}` },
           { label: "Send Prescription", action: "whatsapp_prescription" },
-          { label: "Explore All Tests", action: "explore_tests" }
+          { label: "Explore Services Directory", action: "nav_services" }
         ],
         whatsappMsg: `Namaste Health Express! I am interested in ${matchedTest.title}. Please share available lab options and home collection slots.`
       };
     }
 
     return {
-      text: "🧪 **Diagnostics & Home Sample Collection**: Health Express coordinates blood tests, complete profiles, and routine pathology through NABL-accredited labs in Bengaluru.\n\nWhich test are you interested in?",
+      text: "🧪 **Diagnostics & Home Sample Collection**: Health Express coordinates blood tests, complete profiles, and routine pathology through NABL-accredited labs in Bengaluru.\n\nWhich test or service are you interested in?",
       quickReplies: [
         { label: "CBC Test", action: "test_cbc" },
         { label: "Thyroid Profile", action: "test_thyroid" },
@@ -123,7 +125,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
       text: "🏡 **Home Healthcare Nursing**: Health Express provides certified healthcare nursing and medical support in the comfort of your home in Bengaluru.\n\nServices include post-surgical recovery, wound dressing, IV therapy, elderly care, and vital monitoring.",
       quickReplies: [
         { label: "Inquire Home Nursing on WhatsApp", action: "whatsapp_service_nursing" },
-        { label: "View All Services", action: "nav_services" }
+        { label: "View Services Directory", action: "nav_services" }
       ],
       whatsappMsg: "Namaste Health Express! I am interested in Home Healthcare Nursing services in Bengaluru. Please share details."
     };
@@ -160,7 +162,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     query.includes('order status')
   ) {
     return {
-      text: "⚡ **Soft-Launch Notice**: Online payment gateways and real-time live order tracking are part of the upcoming Health Express digital platform phase.\n\nDuring our current soft launch, our dedicated care managers handle order coordination and status updates directly via WhatsApp for maximum personal care!",
+      text: "⚡ **Soft-Launch Notice**: Online payment gateways and real-time live order tracking belong to the upcoming Health Express digital platform phase.\n\nDuring our current soft launch, our dedicated care managers handle order coordination and status updates directly via WhatsApp for maximum personal care!",
       quickReplies: [
         { label: "Chat with Care Manager", action: "whatsapp_general" },
         { label: "Send Prescription", action: "whatsapp_prescription" }
@@ -181,7 +183,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
       text: `📞 **Contact Health Express**:\n\n• **WhatsApp Support**: ${CHATBOT_KNOWLEDGE.company.whatsappNumber}\n• **Email**: ${CHATBOT_KNOWLEDGE.company.email}\n• **Operating Hub**: Bengaluru, India\n\nClick below to connect immediately on WhatsApp.`,
       quickReplies: [
         { label: "Connect on WhatsApp", action: "whatsapp_general" },
-        { label: "Email Us", action: "email_us" }
+        { label: "Email Provider Team", action: "email_us" }
       ],
       whatsappMsg: DEFAULT_MESSAGES.general
     };
