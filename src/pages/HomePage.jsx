@@ -41,7 +41,7 @@ export default function HomePage({ onOpenUploadModal }) {
       <WhyHealthExpressSection />
 
       {/* POPULAR SERVICES -> High intent tests */}
-      <PopularTestsSection />
+      <PopularTestsSection onOpenUploadModal={onOpenUploadModal} />
 
       {/* 5. WHY FOR MY FAMILY? -> Family Health Manager */}
       <FamilySection onOpenUploadModal={onOpenUploadModal} />
