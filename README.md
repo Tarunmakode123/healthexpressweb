@@ -1,50 +1,52 @@
 # Health Express — Official Public Website
 
 > **Your personal health manager, for you and your family.**  
-> Official repository for the Health Express public website.
+> Official repository for the Health Express public website (Soft Launch Phase 1).
 
 ---
 
 ## 🏥 Overview
 
-**Health Express** helps you find, coordinate, and manage healthcare for yourself and your family — starting with diagnostics and home nursing, and growing toward a more connected healthcare experience.
+**Health Express** helps individuals and families find, coordinate, and manage healthcare — starting with diagnostics and home nursing in Bengaluru, and growing toward a connected healthcare experience.
 
-This repository contains the public website, built with a focus on clear positioning, family health management, and a WhatsApp-assisted care coordination workflow.
+This repository contains the public soft-launch website, engineered with Apple-level product restraint, sleek healthcare aesthetics, contextual WhatsApp conversion flows, persistent sticky/floating CTAs, and mobile-first responsiveness.
 
 ---
 
-## ✨ Key Features & Positioning
+## ✨ Key Features & Conversions
 
-- **Core Positioning**: *"Your personal health manager, for you and your family."*
-- **Launch Scope**: Focused on **Diagnostics & Preventive Health Packages** and **Home Nursing** in **Bengaluru**.
-- **Family Health Hub**: One place to coordinate care for parents, partners, and children.
-- **WhatsApp Care Coordination**: Direct line to Health Express care managers via **+91 81234 14120**.
-- **Provider Partnership Network**: Dedicated provider onboarding form routing directly to `hello@healthexpress.care`.
-- **Evidence-Informed Health Library**: Practical guides covering blood tests, preventive health, family health, and home care.
-- **Mobile-Optimized Experience**: Fast, responsive layout tailored for smartphones, tablets, and desktop browsers.
+- **Apple-Level Premium Aesthetic**: Generous whitespace, refined cards, subtle elevations, dark navy typography, and human-centered design.
+- **Persistent Sticky & Floating CTA System**:
+  - **Desktop**: Persistent floating assistance pill (`Need healthcare assistance? [ WhatsApp Us ] [ Call Now ]`).
+  - **Mobile**: Fixed bottom CTA bar (`[ WhatsApp Us ] | [ Call Now ] | [ Upload ]`) for one-tap conversion.
+- **Contextual WhatsApp Integration**: Every service and test CTA opens WhatsApp with a specific prefilled message (e.g. CBC test, Radiology, Telemedicine, Home Nursing).
+- **Centralized Contact Configuration**: Phone & WhatsApp actions dynamically link to **+91 81234 14120**.
+- **Bengaluru Pilot Focus**: Clear location positioning highlighting current service availability in Bengaluru with a *"Notify Me"* pipeline for future cities.
+- **Provider Onboarding Form**: Partnership inquiry form routing to `hello@healthexpress.care`.
+- **Founder's Story**: About Us page featuring Founder Neha Bhansali's letter and core principles (*People First, Trust, Simplicity, Care*).
 
 ---
 
 ## 🗺️ Website Structure
 
-- **Home (`/`)**: 15-section narrative flow (*Who Are You? → The Problem → What We Do → Services → For Your Family → Trust → Health Records → Bengaluru Launch → Library → FAQ → Final CTA*).
-- **Services (`/services`)**: Full directory of launch verticals (Diagnostics, Preventive Health Packages, Imaging, Home Nursing, Genetic Testing, Surgical Care).
+- **Home (`/`)**: 15-section story narrative (*Who Are You? → The Problem → What We Do → Services → For Your Family → Trust → Health Records → Bengaluru Launch → Library → FAQ → Final CTA*).
+- **Services (`/services`)**: Comprehensive directory of launch services (Diagnostics, Imaging, Home Healthcare, Telemedicine, Preventive Packages, Pharmacy, Genetic Testing, Surgical Care).
 - **Health Library (`/health-library`)**: Searchable index of patient guides and test preparation articles.
-- **About Us (`/about`)**: Founder Neha Bhansali's letter, company vision, 4 core principles (People First, Trust, Simplicity, Care), and approach.
-- **For Providers (`/providers`)**: Partnership onboarding page with contact form sending inquiries to `hello@healthexpress.care`.
+- **About Us (`/about`)**: Founder Neha Bhansali's letter, vision, 4 core principles, and approach.
+- **For Providers (`/providers`)**: Partnership onboarding page with contact form submitting to `hello@healthexpress.care`.
 - **Contact (`/contact`)**: Direct support lines and medical requirement contact form.
 - **Legal (`/legal/:type`)**: Customer transparency policies for Privacy, Terms, Refund, Cancellation, and Shipping.
 
 ---
 
-## 🌐 Official Social Links & Contact
+## 🌐 Official Contact & Social Media
 
-- **Phone / WhatsApp**: [+91 81234 14120](https://wa.me/918123414120)
+- **Phone & WhatsApp**: [+91 81234 14120](https://wa.me/918123414120)
 - **Provider Contact Email**: `hello@healthexpress.care`
-- **Instagram**: [https://www.instagram.com/healthexpress_india](https://www.instagram.com/healthexpress_india)
-- **Facebook**: [https://www.facebook.com/HealthExpressIndia/](https://www.facebook.com/HealthExpressIndia/)
-- **LinkedIn**: [https://www.linkedin.com/company/healthexpressindia](https://www.linkedin.com/company/healthexpressindia)
-- **X (Twitter)**: [https://x.com/HealthExpressIN](https://x.com/HealthExpressIN)
+- **Instagram**: [healthexpress_india](https://www.instagram.com/healthexpress_india)
+- **Facebook**: [HealthExpressIndia](https://www.facebook.com/HealthExpressIndia/)
+- **LinkedIn**: [healthexpressindia](https://www.linkedin.com/company/healthexpressindia)
+- **X (Twitter)**: [HealthExpressIN](https://x.com/HealthExpressIN)
 
 ---
 

@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Upload, MessageSquare, CheckCircle, Activity, ShieldCheck, FlaskConical, Home } from 'lucide-react';
-import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
+import { Upload, MessageSquare, Phone, CheckCircle, Activity, ShieldCheck, FlaskConical, Home } from 'lucide-react';
+import { openWhatsApp, triggerPhoneCall, DEFAULT_MESSAGES, PHONE_NUMBER_DISPLAY } from '../../utils/whatsapp';
 
 export default function HeroSection({ onOpenUploadModal }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-purple-50/70 via-slate-50/40 to-white pt-8 pb-16 md:pt-14 md:pb-24">
+    <section className="relative overflow-hidden bg-gradient-to-b from-purple-50/70 via-slate-50/30 to-white pt-8 pb-16 md:pt-14 md:pb-24">
       
-      {/* Background Decorative Glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl pointer-events-none -z-10" />
+      {/* Background Subtle Ambient Glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl pointer-events-none -z-10" />
       <div className="absolute bottom-10 left-10 w-80 h-80 bg-purple-100/30 rounded-full blur-2xl pointer-events-none -z-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +19,7 @@ export default function HeroSection({ onOpenUploadModal }) {
             
             {/* Eyebrow badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-xs font-bold uppercase tracking-wider text-purple-800">
-              HEALTH EXPRESS
+              HEALTH EXPRESS • BENGALURU PILOT
             </div>
 
             {/* Main H1 */}
@@ -35,25 +35,35 @@ export default function HeroSection({ onOpenUploadModal }) {
               From diagnostic tests to care at home, Health Express helps you find, compare and coordinate the right healthcare — all in one place.
             </p>
 
-            {/* Primary & Secondary Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+            {/* Primary Business CTAs */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               
-              {/* Primary CTA */}
+              {/* Primary CTA 1: Send Prescription on WhatsApp */}
               <button
-                onClick={onOpenUploadModal}
-                className="group relative px-7 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm sm:text-base shadow-xl shadow-purple-700/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
+                className="group relative px-6 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base shadow-xl shadow-emerald-600/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2.5"
               >
-                <Upload className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" />
-                <span>Upload Prescription / Medical Order</span>
+                <MessageSquare className="w-5 h-5 fill-current" />
+                <span>Send Prescription on WhatsApp</span>
               </button>
 
-              {/* Secondary CTA */}
-              <Link
-                to="/services"
-                className="px-7 py-4 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 text-purple-900 font-bold text-sm sm:text-base shadow-xs transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+              {/* Primary CTA 2: Upload Prescription / Order */}
+              <button
+                onClick={onOpenUploadModal}
+                className="px-6 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm sm:text-base shadow-lg shadow-purple-700/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2.5"
               >
-                <span>Explore Services</span>
-              </Link>
+                <Upload className="w-5 h-5" />
+                <span>Upload Prescription</span>
+              </button>
+
+              {/* Secondary CTA: Call Now */}
+              <button
+                onClick={triggerPhoneCall}
+                className="px-5 py-4 rounded-2xl bg-white hover:bg-purple-50 border-2 border-slate-200 hover:border-purple-300 text-slate-800 font-bold text-sm shadow-xs transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
+              >
+                <Phone className="w-4 h-4 text-purple-700" />
+                <span>Call Now</span>
+              </button>
 
             </div>
 
@@ -63,7 +73,7 @@ export default function HeroSection({ onOpenUploadModal }) {
               <span>One place to coordinate your family's healthcare.</span>
             </div>
 
-            {/* Service Strip: Only Diagnostics & Home Nursing per client instruction */}
+            {/* Service Strip: Only Diagnostics & Home Nursing */}
             <div className="pt-6 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-purple-100 shadow-xs">
                 <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
@@ -88,7 +98,7 @@ export default function HeroSection({ onOpenUploadModal }) {
 
           </div>
 
-          {/* Right Hero Visual Card */}
+          {/* Right Hero Visual Card & Professional Image */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-4 bg-gradient-to-r from-purple-400 to-indigo-500 rounded-3xl opacity-20 blur-xl"></div>
@@ -102,7 +112,7 @@ export default function HeroSection({ onOpenUploadModal }) {
                     <span className="text-sm font-bold text-slate-900">Health Express</span>
                   </div>
                   <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                    Family Health Manager
+                    Live Assistance
                   </span>
                 </div>
 
@@ -147,13 +157,23 @@ export default function HeroSection({ onOpenUploadModal }) {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
-                  className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
-                >
-                  <MessageSquare className="w-4 h-4 text-emerald-400 fill-current" />
-                  <span>Chat with us on WhatsApp (+91 81234 14120)</span>
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
+                    className="py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                  >
+                    <MessageSquare className="w-4 h-4 fill-current" />
+                    <span>WhatsApp</span>
+                  </button>
+
+                  <button
+                    onClick={triggerPhoneCall}
+                    className="py-3 px-3 rounded-xl bg-slate-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                  >
+                    <Phone className="w-4 h-4 text-purple-400" />
+                    <span>Call Now</span>
+                  </button>
+                </div>
 
                 <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
                   <ShieldCheck className="w-4 h-4 text-purple-600" />

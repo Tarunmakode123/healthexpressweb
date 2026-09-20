@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PrescriptionModal from './components/common/PrescriptionModal';
+import StickyCTABar from './components/common/StickyCTABar';
 
 import HomePage from './pages/HomePage';
 import ServicesPage from './pages/ServicesPage';
@@ -33,7 +34,7 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
-      <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 antialiased">
+      <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 antialiased pb-16 md:pb-0">
         
         {/* Responsive Header Navbar */}
         <Navbar onOpenUploadModal={handleOpenUploadModal} />
@@ -55,7 +56,10 @@ export default function App() {
         {/* Footer */}
         <Footer onOpenUploadModal={handleOpenUploadModal} />
 
-        {/* Global Upload Prescription WhatsApp Modal */}
+        {/* Persistent Floating Desktop & Mobile Bottom Sticky CTAs */}
+        <StickyCTABar onOpenUploadModal={handleOpenUploadModal} />
+
+        {/* Global Upload Prescription Modal */}
         <PrescriptionModal 
           isOpen={isUploadModalOpen} 
           onClose={handleCloseUploadModal} 
