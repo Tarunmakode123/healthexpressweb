@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PrescriptionModal from './components/common/PrescriptionModal';
+import HealthExpressAssistant from './components/chat/HealthExpressAssistant';
 
 import HomePage from './pages/HomePage';
 import ServicesPage from './pages/ServicesPage';
@@ -66,6 +67,9 @@ export default function App() {
             isOpen={isUploadModalOpen} 
             onClose={handleCloseUploadModal} 
           />
+
+          {/* Global AI Healthcare Service Assistant */}
+          <HealthExpressAssistant />
 
         </div>
       </Router>

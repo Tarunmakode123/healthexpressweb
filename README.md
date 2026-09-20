@@ -9,12 +9,19 @@
 
 **Health Express** helps you find, coordinate, and manage healthcare for yourself and your family — starting with diagnostics and home nursing, and growing toward a more connected healthcare experience.
 
-This repository contains the public website, built with a focus on clear positioning, family health management, high-end commercial healthcare photography, dynamic interactive widgets, patient authentication, and a zero-friction WhatsApp prescription coordination workflow.
+This repository contains the public website, built with a focus on clear positioning, family health management, high-end commercial healthcare photography, dynamic interactive widgets, AI Healthcare Assistant, patient authentication, and a zero-friction WhatsApp prescription coordination workflow.
 
 ---
 
-## ✨ Key Features & Premium Visual Enhancements
+## ✨ Key Features & AI Healthcare Assistant
 
+- **Health Express AI Healthcare Service Assistant (`HealthExpressAssistant.jsx`)**:
+  - **Conversational Service Assistant**: Context-aware AI navigation assistant built for healthcare discovery, test guidance, and Bengaluru locality availability.
+  - **Natural Language & Hinglish NLP**: Understands English and Hinglish queries (*"blood test karwana hai"*, *"prescription WhatsApp pe bhejni hai"*, *"CBC test price"*, *"home collection"*).
+  - **Medical Safety & Emergency Disclaimers**: Includes strict medical safety guardrails (does not diagnose symptoms or prescribe drugs; attaches clear medical disclaimers and emergency notices).
+  - **Contextual WhatsApp Prefilled Message Generator**: Dynamically formats customized WhatsApp messages based on the exact test, service, or prescription intent.
+  - **Quick Action Chips**: Includes 1-click interactive action buttons (`[📄 Send / Upload Prescription]`, `[🧪 Find a Test]`, `[🏡 Home Healthcare Nursing]`, `[📍 Bengaluru Locality Coverage]`).
+  - **Responsive Floating Widget**: Positioned cleanly at the bottom-right of desktop screens and bottom sheet drawer on mobile viewports.
 - **High-End Commercial Photography Assets**:
   - `hero_home_care.jpg`: Warm, professional editorial photography depicting home nursing care coordination in an Indian home.
   - `family_care.jpg`: Multi-generational Indian family portrait representing family health management with trust and care.
@@ -68,6 +75,7 @@ This repository contains the public website, built with a focus on clear positio
 
 - **Frontend**: React (Vite)
 - **State Management**: React Context (`AuthContext`)
+- **AI & NLP Engine**: Client-side Chatbot Engine (`chatbotEngine.js` & `chatbotKnowledge.js`)
 - **Styling**: Tailwind CSS, Glassmorphism, Custom Keyframes
 - **Iconography**: Lucide Icons
 - **Routing**: React Router
