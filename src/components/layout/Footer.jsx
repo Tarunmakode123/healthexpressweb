@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, Heart, MapPin } from 'lucide-react';
+import { Heart, MapPin } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function Footer({ onOpenUploadModal }) {
@@ -13,13 +13,12 @@ export default function Footer({ onOpenUploadModal }) {
           
           {/* Brand Info (Spans 2 columns on lg screens) */}
           <div className="col-span-2 space-y-4 pr-4">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center">
-                <Activity className="w-4 h-4 stroke-[2.5]" />
-              </div>
-              <span className="text-xl font-extrabold tracking-tight text-white">
-                Health Express
-              </span>
+            <Link to="/" className="inline-block bg-white p-2 rounded-2xl shadow-sm hover:scale-[1.02] transition-transform">
+              <img 
+                src="/logo.png" 
+                alt="Health Express - Everything Health Fast Tracked" 
+                className="h-10 w-auto object-contain"
+              />
             </Link>
             
             <p className="text-xs font-semibold text-purple-400 tracking-wider uppercase">

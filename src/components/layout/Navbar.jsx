@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Menu, X, MessageSquare, ArrowRight, Upload } from 'lucide-react';
+import { Menu, X, MessageSquare, ArrowRight, Upload } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function Navbar({ onOpenUploadModal }) {
@@ -43,20 +43,19 @@ export default function Navbar({ onOpenUploadModal }) {
   return (
     <header className={`sticky top-0 z-40 transition-all duration-200 ${
       isScrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-purple-100/60 py-2.5 sm:py-3' 
-        : 'bg-white/85 backdrop-blur-sm border-b border-slate-100 py-3 sm:py-4'
+        ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-purple-100/60 py-2 sm:py-2.5' 
+        : 'bg-white/90 backdrop-blur-sm border-b border-slate-100 py-2.5 sm:py-3.5'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-700 text-white flex items-center justify-center shadow-md shadow-purple-700/20 group-hover:bg-purple-800 transition-colors">
-              <Activity className="w-5 h-5 stroke-[2.5]" />
-            </div>
-            <span className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-purple-700 transition-colors">
-              Health Express
-            </span>
+          {/* Official Brand Logo */}
+          <Link to="/" className="flex items-center group shrink-0 py-0.5">
+            <img 
+              src="/logo.png" 
+              alt="Health Express - Everything Health Fast Tracked" 
+              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -80,7 +79,7 @@ export default function Navbar({ onOpenUploadModal }) {
           <div className="hidden md:flex items-center gap-3">
             <button
               onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
-              className="text-xs font-semibold text-slate-700 hover:text-purple-700 px-3.5 py-2.5 rounded-xl hover:bg-purple-50 transition-colors flex items-center gap-1.5"
+              className="text-xs font-semibold text-slate-700 hover:text-purple-700 px-3.5 py-2 rounded-xl hover:bg-purple-50 transition-colors flex items-center gap-1.5"
             >
               <MessageSquare className="w-4 h-4 text-emerald-600" />
               <span>WhatsApp Us</span>
@@ -88,7 +87,7 @@ export default function Navbar({ onOpenUploadModal }) {
 
             <button
               onClick={onOpenUploadModal}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-purple-100 hover:text-purple-800 transition-all border border-slate-200/80 shadow-xs"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-purple-100 hover:text-purple-800 transition-all border border-slate-200/80 shadow-xs"
             >
               Sign In
             </button>
@@ -98,7 +97,7 @@ export default function Navbar({ onOpenUploadModal }) {
           <div className="md:hidden flex items-center gap-2">
             <button
               onClick={onOpenUploadModal}
-              className="px-3 py-2 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl shadow-xs flex items-center gap-1.5 touch-target active:scale-95 transition-transform"
+              className="px-3 py-1.5 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl shadow-xs flex items-center gap-1.5 touch-target active:scale-95 transition-transform"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload</span>
@@ -106,7 +105,7 @@ export default function Navbar({ onOpenUploadModal }) {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2.5 text-slate-700 hover:text-purple-700 hover:bg-purple-50 rounded-xl touch-target active:scale-95 transition-transform"
+              className="p-2 text-slate-700 hover:text-purple-700 hover:bg-purple-50 rounded-xl touch-target active:scale-95 transition-transform"
               aria-label="Toggle Navigation Menu"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6 text-purple-700" /> : <Menu className="w-6 h-6" />}
