@@ -120,9 +120,8 @@ export default function ContactPage() {
                   <option value="Diagnostics">Diagnostics & Blood Tests</option>
                   <option value="Imaging">Imaging (MRI, CT, X-Ray)</option>
                   <option value="Home Care">Home Healthcare & Nursing</option>
-                  <option value="Telemedicine">Doctor Teleconsultation</option>
                   <option value="Preventive">Preventive Health Checkup</option>
-                  <option value="Pharmacy">Pharmacy & Medicines</option>
+                  <option value="Genomics">Genetic Testing</option>
                 </select>
               </div>
 

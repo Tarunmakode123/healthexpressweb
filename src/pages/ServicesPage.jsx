@@ -1,14 +1,12 @@
 import React from 'react';
 import { SERVICES_DATA } from '../data/services';
-import { FlaskConical, Camera, Home, Video, Pill, Dna, HeartPulse, ArrowRight, CheckCircle2, MessageSquare } from 'lucide-react';
+import { FlaskConical, Camera, Home, Dna, HeartPulse, ArrowRight, CheckCircle2, MessageSquare } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 
 const iconMap = {
   FlaskConical,
   Camera,
   Home,
-  Video,
-  Pill,
   Dna,
   HeartPulse
 };
@@ -27,7 +25,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
             Comprehensive Healthcare Services
           </h1>
           <p className="text-base sm:text-lg text-slate-600">
-            From routine blood testing to home care nursing, telemedicine, and genetic profiling — Health Express brings top healthcare providers together.
+            From routine blood testing to home care nursing, diagnostic imaging, and genetic profiling — Health Express brings top healthcare providers together.
           </p>
         </div>
 

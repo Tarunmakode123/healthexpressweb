@@ -30,26 +30,6 @@ export const SERVICES_DATA = [
     features: ['Certified nurses & caregivers', 'Post-hospitalization care', 'IV therapy & dressing', 'Regular vital monitoring']
   },
   {
-    id: 'telemedicine',
-    slug: 'telemedicine',
-    title: 'Telemedicine',
-    shortDesc: 'Consult with healthcare professionals',
-    description: 'Instant and scheduled video consultations with verified general physicians, specialists, and superspecialists anytime.',
-    iconName: 'Video',
-    badge: 'Instant Connect',
-    features: ['50+ Specialties available', 'Digital prescription issue', 'Follow-up coordination', '100% Private & Secure']
-  },
-  {
-    id: 'pharmacy',
-    slug: 'pharmacy',
-    title: 'Pharmacy',
-    shortDesc: 'Medicines through partner pharmacies',
-    description: 'Fulfillment of genuine prescription medicines and health supplies delivered directly to your doorstep through verified retail partner pharmacies.',
-    iconName: 'Pill',
-    badge: 'Doorstep Delivery',
-    features: ['100% Genuine medicines', 'Prescription validation', 'Temperature-controlled delivery', 'Refill reminders']
-  },
-  {
     id: 'genetic-testing',
     slug: 'genetic-testing',
     title: 'Genetic Testing',

@@ -7,7 +7,7 @@ export default function FAQSection() {
   const faqs = [
     {
       q: 'What is Health Express?',
-      a: 'Health Express is a healthcare marketplace that helps people discover, compare and arrange healthcare services through participating providers. Services can include diagnostics, imaging, home healthcare, telemedicine, pharmacy, genetic testing and preventive healthcare, depending on location and availability.'
+      a: 'Health Express is a healthcare platform that helps people discover, compare and arrange healthcare services through participating providers. Services include diagnostics, imaging, home healthcare nursing, genetic testing, and preventive healthcare, depending on location and availability.'
     },
     {
       q: 'How does Health Express work?',

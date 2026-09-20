@@ -11,7 +11,7 @@ export default function WhyHealthExpressSection() {
     {
       icon: Grid,
       title: 'Multiple healthcare services',
-      description: 'Access diagnostics, home healthcare, telemedicine, pharmacy, genetic testing and preventive health services through one platform.'
+      description: 'Access diagnostics, home healthcare, genetic testing, imaging, and preventive health services through one platform.'
     },
     {
       icon: Share2,
@@ -21,7 +21,7 @@ export default function WhyHealthExpressSection() {
     {
       icon: Home,
       title: 'Designed for convenience',
-      description: 'From home sample collection to virtual consultations and home healthcare, access services in ways that fit your life.'
+      description: 'From home sample collection to home healthcare nursing, access services in ways that fit your life.'
     },
     {
       icon: HeartHandshake,

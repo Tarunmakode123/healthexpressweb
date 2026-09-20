@@ -1,6 +1,7 @@
 /**
  * Health Express WhatsApp Integration Utility
  * Configurable via environment variables.
+ * Formatted with warm, professional Indian healthcare messaging lingo.
  */
 
 export const WHATSAPP_NUMBER = import.meta.env.VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER ||
@@ -9,13 +10,13 @@ export const WHATSAPP_NUMBER = import.meta.env.VITE_HEALTH_EXPRESS_WHATSAPP_NUMB
   "918123414120"; // Dedicated WhatsApp number: +91 81234 14120
 
 export const DEFAULT_MESSAGES = {
-  general: "Hello Health Express, I would like help with a prescription / healthcare service.",
-  prescription: "Hello Health Express, I would like to upload/send my prescription / medical requirement. Please coordinate my service.",
-  preventive: "Hello Health Express, I am interested in exploring preventive health checkups and packages.",
-  service: (serviceName) => `Hello Health Express, I would like to inquire about ${serviceName}.`,
-  test: (testName) => `Hello Health Express, I would like to book or inquire about the ${testName}.`,
-  city: (cityName) => `Hello Health Express, I am looking for healthcare services available in ${cityName}.`,
-  provider: "Hello Health Express, I am a healthcare / diagnostic provider interested in partnering with Health Express."
+  general: "Namaste Health Express! I would like help coordinating healthcare services for myself / my family.",
+  prescription: "Namaste Health Express! I would like to share my prescription / medical order for coordination.",
+  preventive: "Namaste Health Express! I am interested in exploring Preventive Health Packages.",
+  service: (serviceName) => `Namaste Health Express! I am interested in ${serviceName}. Please share available options and booking details.`,
+  test: (testName) => `Namaste Health Express! I am interested in ${testName}. Please share test details, pricing, and home sample collection availability.`,
+  city: (cityName) => `Namaste Health Express! I am looking for available healthcare services in ${cityName}.`,
+  provider: "Namaste Health Express! I am a healthcare / diagnostic provider interested in partnering with Health Express."
 };
 
 /**
