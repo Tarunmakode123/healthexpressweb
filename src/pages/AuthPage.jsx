@@ -244,11 +244,12 @@ export default function AuthPage() {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
           <div className="relative z-10 space-y-6">
-            <Link to="/" className="inline-flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white">
-                <Activity className="w-5 h-5" />
-              </div>
-              <span className="text-lg font-extrabold tracking-tight text-white">Health Express</span>
+            <Link to="/" className="inline-block group bg-white px-3.5 py-2 rounded-2xl border border-purple-100 shadow-md transition-transform hover:scale-105">
+              <img 
+                src="/logo.png" 
+                alt="Health Express - Everything Health Fast Tracked" 
+                className="h-10 sm:h-12 w-auto object-contain"
+              />
             </Link>
 
             <div className="space-y-3 pt-4">
