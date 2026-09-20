@@ -155,32 +155,19 @@ export default function HealthExpressAssistant() {
         </div>
       )}
 
-      {/* 1. Floating Animated Avatar Trigger Button */}
+      {/* 1. Floating Circular Avatar Trigger Button Only */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-3 p-2 sm:px-5 sm:py-3.5 rounded-full bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white shadow-2xl shadow-purple-950/40 border border-purple-300/40 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          className="group relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-white shadow-2xl shadow-purple-950/50 ring-4 ring-purple-400/40 animate-pulse-glow transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer shrink-0"
           aria-label="Open Health Express Assistant"
         >
-          {/* Animated Avatar Circle Container */}
-          <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-white shadow-md shrink-0 ring-4 ring-purple-400/40 animate-pulse-glow">
-            <img 
-              src="/assistant_avatar.jpg" 
-              alt="Priya - Health Express Care Assistant Avatar"
-              className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300" 
-            />
-            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white"></span>
-          </div>
-
-          <div className="hidden sm:flex flex-col text-left pr-1">
-            <span className="text-xs font-extrabold tracking-wide text-white flex items-center gap-1.5">
-              <span>Health Express AI</span>
-              <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-spin [animation-duration:8s]" />
-            </span>
-            <span className="text-[10px] text-purple-200 font-medium">
-              Care Assistant · Priya
-            </span>
-          </div>
+          <img 
+            src="/assistant_avatar.jpg" 
+            alt="Priya - Health Express Care Assistant Avatar"
+            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300" 
+          />
+          <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white"></span>
         </button>
       )}
 
