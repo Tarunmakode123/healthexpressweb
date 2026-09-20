@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Upload, MessageSquare, CheckCircle, Activity, ShieldCheck, FlaskConical, Home } from 'lucide-react';
+import { Upload, CheckCircle, Activity, ShieldCheck, FlaskConical, Home, HeartHandshake } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function HeroSection({ onOpenUploadModal }) {
@@ -63,7 +63,7 @@ export default function HeroSection({ onOpenUploadModal }) {
               <span>One place to coordinate your family's healthcare.</span>
             </div>
 
-            {/* Service Strip: Only Diagnostics & Home Nursing per client instruction */}
+            {/* Service Strip: Only Diagnostics & Home Nursing */}
             <div className="pt-6 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-purple-100 shadow-xs">
                 <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
@@ -147,13 +147,16 @@ export default function HeroSection({ onOpenUploadModal }) {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
-                  className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
-                >
-                  <MessageSquare className="w-4 h-4 text-emerald-400 fill-current" />
-                  <span>Chat with us on WhatsApp (+91 81234 14120)</span>
-                </button>
+                {/* Status Callout replacing repetitive WhatsApp button */}
+                <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-100 text-xs font-semibold text-purple-900 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <HeartHandshake className="w-4 h-4 text-purple-700" />
+                    <span>Personal Care Coordination</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full bg-purple-700 text-white text-[10px] font-bold">
+                    Active
+                  </span>
+                </div>
 
                 <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-1">
                   <ShieldCheck className="w-4 h-4 text-purple-600" />
