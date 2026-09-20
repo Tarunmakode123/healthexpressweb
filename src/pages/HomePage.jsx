@@ -14,10 +14,11 @@ import CitiesSection from '../components/sections/CitiesSection';
 import HealthLibrarySection from '../components/sections/HealthLibrarySection';
 import FAQSection from '../components/sections/FAQSection';
 import FinalCTASection from '../components/sections/FinalCTASection';
+import StickyMobileCTA from '../components/layout/StickyMobileCTA';
 
 export default function HomePage({ onOpenUploadModal }) {
   return (
-    <div className="space-y-0">
+    <div className="space-y-0 relative">
       {/* 1. WHO ARE YOU? -> Hero */}
       <HeroSection onOpenUploadModal={onOpenUploadModal} />
 
@@ -62,6 +63,9 @@ export default function HomePage({ onOpenUploadModal }) {
 
       {/* FINAL CTA -> Healthcare for your family */}
       <FinalCTASection onOpenUploadModal={onOpenUploadModal} />
+
+      {/* Floating Sticky Mobile WhatsApp CTA */}
+      <StickyMobileCTA onOpenUploadModal={onOpenUploadModal} />
     </div>
   );
 }

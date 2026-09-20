@@ -9,12 +9,17 @@
 
 **Health Express** helps you find, coordinate, and manage healthcare for yourself and your family — starting with diagnostics and home nursing, and growing toward a more connected healthcare experience.
 
-This repository contains the public website, built with a focus on clear positioning, family health management, dynamic interactive widgets, patient authentication, and a WhatsApp-assisted care coordination workflow.
+This repository contains the public website, built with a focus on clear positioning, family health management, high-end commercial healthcare photography, dynamic interactive widgets, patient authentication, and a zero-friction WhatsApp prescription coordination workflow.
 
 ---
 
-## ✨ Key Features & Interactive Widgets
+## ✨ Key Features & Premium Visual Enhancements
 
+- **High-End Commercial Photography Assets**:
+  - `hero_home_care.jpg`: Warm, professional editorial photography depicting home nursing care coordination in an Indian home.
+  - `family_care.jpg`: Multi-generational Indian family portrait representing family health management with trust and care.
+- **Primary Conversion CTA**: *"Send Prescription on WhatsApp"* visually prioritized across Hero, Services, and sticky mobile views.
+- **Sticky Mobile WhatsApp CTA Bar (`StickyMobileCTA.jsx`)**: Floating non-intrusive mobile conversion bar for 1-tap WhatsApp prescription uploads on smartphones.
 - **Official Brand Identity & Favicon**: Includes the official Health Express logo (*Everything Health - Fast Tracked*) and brand favicon (`public/favicon.png`).
 - **Core Positioning**: *"Your personal health manager, for you and your family."*
 - **Launch Scope**: Focused on **Diagnostics & Preventive Health Packages** and **Home Nursing** in **Bengaluru**.
@@ -37,7 +42,7 @@ This repository contains the public website, built with a focus on clear positio
 
 ## 🗺️ Website Structure
 
-- **Home (`/`)**: 15-section narrative flow (*Who Are You? → The Problem → What We Do → Services → Interactive Test Estimator → For Your Family → Trust → Health Records → Bengaluru Locality Checker → Library → FAQ → Final CTA*).
+- **Home (`/`)**: 15-section narrative flow (*Hero → Problem → What We Do → Services → Interactive Test Estimator → For Your Family → Trust → Health Records → Bengaluru Locality Checker → Library → FAQ → Final CTA*).
 - **Authentication (`/auth`, `/login`, `/signup`)**: Patient authentication with Indian Mobile OTP verification or Email/Password login.
 - **Services (`/services`)**: Full directory of launch verticals with dynamic tab filtering (Diagnostics, Preventive Health Packages, Imaging, Home Nursing, Genetic Testing, Surgical Care).
 - **Health Library (`/health-library`)**: Searchable index of patient guides and test preparation articles.
