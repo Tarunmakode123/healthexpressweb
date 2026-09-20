@@ -26,16 +26,16 @@ export default function TrustSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-slate-50/50 border-t border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <section className="py-16 md:py-24 bg-mesh-purple border-t border-purple-100/60 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100 border border-purple-200 text-xs font-extrabold uppercase tracking-wider text-purple-700 shadow-2xs">
             TRUST & SAFETY
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Healthcare coordination you can trust.
+            Healthcare coordination <span className="gradient-text-purple">you can trust.</span>
           </h2>
         </div>
 
@@ -46,12 +46,12 @@ export default function TrustSection() {
             return (
               <div 
                 key={idx}
-                className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs space-y-3 text-left"
+                className="glass-card hover:bg-white p-6 rounded-3xl border border-purple-100/80 shadow-xs hover-glow space-y-4 text-left group"
               >
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <IconComponent className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:bg-purple-800 transition-all">
+                  <IconComponent className="w-6 h-6" />
                 </div>
-                <h4 className="text-base font-bold text-slate-900">{item.title}</h4>
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-purple-900 transition-colors">{item.title}</h4>
                 <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
               </div>
             );

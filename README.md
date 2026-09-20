@@ -41,7 +41,11 @@ This repository contains the public website, built with a focus on clear positio
 - **Interactive Bengaluru Locality Checker**: Live search and quick selector tags for Koramangala, Indiranagar, HSR Layout, Whitefield, Bellandur, Jayanagar, Electronic City, Sarjapur Road, Hebbal, and JP Nagar with instant coverage status & direct locality booking.
 - **Interactive Test Package Estimator**: Multi-test selector (CBC, Thyroid Profile, Vitamin D, HbA1c, Lipid Profile, Full Body Checkup) with real-time package estimation and 1-click WhatsApp order generation.
 - **Dynamic Category Filter Tabs**: Filter services dynamically across Diagnostics, Care at Home, and Specialized Care with custom feature badges.
-- **Glassmorphism & Micro-Animations**: Floating glassmorphism badges (*"Prescription Verified ✓"*, *"Care Manager Assigned 👩‍⚕️"*), smooth float animations, hover glow cards, and 60fps micro-interactions.
+- **Glassmorphism, Mesh Gradients & Micro-Animations**:
+  - **Radial Mesh Gradients (`.bg-mesh-purple`, `.bg-mesh-dark`)**: Soft purple and deep dark radial light overlays across section backgrounds.
+  - **Animated Gradient Headers (`.gradient-text-purple`, `.gradient-text-light`)**: Gradient typography shifts for section titles.
+  - **Glowing Card Hover Effects (`.hover-glow`, `.card-interactive`)**: Smooth 3D tilt, subtle vertical translation, and soft purple glow shadow elevation on hover.
+  - **Animated CTA Card (`.animated-gradient-bg`)**: Dynamic multi-stop gradient background with smooth keyframe color shifts and pulsing ambient light rings.
 - **Family Health Hub**: Dedicated section for coordinating healthcare across multiple family members.
 - **WhatsApp Care Coordination**: Direct line to Health Express care managers via **+91 81234 14120**.
 - **Provider Partnership Network**: Dedicated provider onboarding form routing directly to `hello@healthexpress.care`.
