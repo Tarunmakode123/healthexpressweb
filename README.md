@@ -15,7 +15,7 @@ This repository contains the public website, built with a focus on clear positio
 
 ## ✨ Key Features & Positioning
 
-- **Official Brand Identity**: Includes the official Health Express logo (*Everything Health - Fast Tracked*).
+- **Official Brand Identity & Favicon**: Includes the official Health Express logo (*Everything Health - Fast Tracked*) and brand favicon (`public/favicon.png`).
 - **Core Positioning**: *"Your personal health manager, for you and your family."*
 - **Launch Scope**: Focused on **Diagnostics & Preventive Health Packages** and **Home Nursing** in **Bengaluru**.
 - **Family Health Hub**: One place to coordinate care for parents, partners, and children.
