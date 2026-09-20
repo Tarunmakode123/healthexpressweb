@@ -39,23 +39,24 @@ export default function HeroSection({ onOpenUploadModal }) {
             {/* Primary & Secondary Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
               
-              {/* Primary WhatsApp CTA */}
+              {/* Primary 3-Step Upload Prescription Modal CTA */}
               <button
-                onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
+                onClick={onOpenUploadModal}
                 className="group relative px-7 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm sm:text-base shadow-xl shadow-purple-700/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
               >
-                <MessageSquare className="w-5 h-5 text-emerald-300 fill-emerald-300/20 transition-transform group-hover:scale-110" />
-                <span>Send Prescription on WhatsApp</span>
+                <Upload className="w-5 h-5 text-purple-200 transition-transform group-hover:scale-110" />
+                <span>Upload Prescription / Medical Order</span>
                 <ArrowRight className="w-4 h-4 text-purple-200 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
-              {/* Secondary CTA */}
-              <Link
-                to="/services"
+              {/* Secondary WhatsApp CTA */}
+              <button
+                onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
                 className="px-6 py-4 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 text-purple-900 font-bold text-sm sm:text-base shadow-xs transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                <span>Explore Services</span>
-              </Link>
+                <MessageSquare className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
+                <span>Chat on WhatsApp</span>
+              </button>
 
             </div>
 
