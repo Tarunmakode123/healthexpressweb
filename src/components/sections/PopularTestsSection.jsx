@@ -1,63 +1,55 @@
 import React from 'react';
-import { Droplet, Grid, Activity, Sun, Target, Heart, UserCheck, Shield, MessageSquare, ArrowRight } from 'lucide-react';
+import { Droplet, Grid, Activity, Sun, Target, Heart, UserCheck, Shield, ArrowRight } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function PopularTestsSection() {
   const popularServices = [
     {
-      id: 'cbc-test',
-      title: 'CBC Test',
-      desc: 'Complete blood count evaluating overall health, infection & anemia.',
-      whatsappMsg: DEFAULT_MESSAGES.cbc,
-      icon: Grid
+      id: 'blood-tests',
+      title: 'Blood Tests',
+      desc: 'Home sample collection and diagnostic blood testing.',
+      icon: Droplet
     },
     {
-      id: 'hba1c-test',
-      title: 'HbA1c Test',
-      desc: 'Average blood glucose indicator for 3-month diabetes evaluation.',
-      whatsappMsg: DEFAULT_MESSAGES.test('HbA1c Test'),
-      icon: Target
+      id: 'cbc-test',
+      title: 'CBC Test',
+      desc: 'Learn about complete blood count testing and available booking options.',
+      icon: Grid
     },
     {
       id: 'thyroid-tests',
       title: 'Thyroid Tests',
-      desc: 'T3, T4, TSH panel evaluating thyroid gland metabolic balance.',
-      whatsappMsg: DEFAULT_MESSAGES.test('Thyroid Panel'),
+      desc: 'Explore thyroid-related diagnostic testing.',
       icon: Activity
     },
     {
       id: 'vitamin-d-test',
       title: 'Vitamin D Test',
-      desc: '25-Hydroxy Vitamin D level check for bone health & immunity.',
-      whatsappMsg: DEFAULT_MESSAGES.test('Vitamin D Test'),
+      desc: 'Find Vitamin D testing options.',
       icon: Sun
+    },
+    {
+      id: 'hba1c-test',
+      title: 'HbA1c Test',
+      desc: 'Explore testing used to assess average blood glucose levels.',
+      icon: Target
     },
     {
       id: 'lipid-profile',
       title: 'Lipid Profile',
-      desc: 'Cholesterol, HDL, LDL & Triglycerides cardiovascular screening.',
-      whatsappMsg: DEFAULT_MESSAGES.test('Lipid Profile'),
+      desc: 'Find cholesterol and lipid testing options.',
       icon: Heart
     },
     {
       id: 'full-body-checkup',
       title: 'Full Body Health Checkup',
-      desc: 'Comprehensive preventive health checkup covering 70+ essential parameters.',
-      whatsappMsg: DEFAULT_MESSAGES.test('Full Body Health Checkup'),
+      desc: 'Explore comprehensive preventive health checkup options.',
       icon: UserCheck
-    },
-    {
-      id: 'blood-tests',
-      title: 'Routine Blood Tests',
-      desc: 'Routine biochemistry, organ profiles, and metabolic screening.',
-      whatsappMsg: DEFAULT_MESSAGES.test('Routine Blood Test'),
-      icon: Droplet
     },
     {
       id: 'health-screening',
       title: 'Health Screening',
-      desc: 'Proactive wellness packages for early risk identification.',
-      whatsappMsg: DEFAULT_MESSAGES.preventive,
+      desc: 'Discover preventive screening services.',
       icon: Shield
     }
   ];
@@ -69,31 +61,31 @@ export default function PopularTestsSection() {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
-            POPULAR TESTS & DIAGNOSTICS
+            POPULAR SERVICES
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Start with what you need.
           </h2>
           <p className="text-sm sm:text-base text-slate-600">
-            Explore diagnostic tests commonly requested with convenient home sample collection.
+            Explore some of the healthcare services people commonly search for and book.
           </p>
         </div>
 
-        {/* Popular Test Cards Grid */}
+        {/* Popular Test Link Cards (Grid) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {popularServices.map((service) => {
             const IconComp = service.icon;
             return (
               <button
                 key={service.id}
-                onClick={() => openWhatsApp(service.whatsappMsg)}
+                onClick={() => openWhatsApp(DEFAULT_MESSAGES.test(service.title))}
                 className="group bg-white hover:bg-purple-50/80 p-6 rounded-3xl border border-purple-100/80 shadow-xs hover:shadow-md transition-all text-left flex flex-col justify-between space-y-4 cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <IconComp className="w-5 h-5" />
                   </div>
-                  <MessageSquare className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-purple-400 group-hover:translate-x-1 group-hover:text-purple-700 transition-all" />
                 </div>
                 
                 <div>
@@ -103,11 +95,6 @@ export default function PopularTestsSection() {
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                     {service.desc}
                   </p>
-                </div>
-
-                <div className="pt-1 text-xs font-bold text-emerald-700 flex items-center gap-1">
-                  <span>Inquire on WhatsApp</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
             );

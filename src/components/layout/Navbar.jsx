@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Menu, X, MessageSquare, Phone, ArrowRight, Upload } from 'lucide-react';
-import { openWhatsApp, triggerPhoneCall, DEFAULT_MESSAGES, PHONE_NUMBER_DISPLAY } from '../../utils/whatsapp';
+import { Activity, Menu, X, MessageSquare, ArrowRight, Upload } from 'lucide-react';
+import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function Navbar({ onOpenUploadModal }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,10 +16,12 @@ export default function Navbar({ onOpenUploadModal }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
+  // Lock body scroll when mobile drawer is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -77,27 +79,18 @@ export default function Navbar({ onOpenUploadModal }) {
           {/* Header Right Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
             <button
-              onClick={triggerPhoneCall}
-              className="text-xs font-bold text-slate-700 hover:text-purple-700 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors flex items-center gap-1.5"
-              aria-label="Call Health Express"
+              onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
+              className="text-xs font-semibold text-slate-700 hover:text-purple-700 px-3.5 py-2.5 rounded-xl hover:bg-purple-50 transition-colors flex items-center gap-1.5"
             >
-              <Phone className="w-3.5 h-3.5 text-purple-700" />
-              <span>Call ({PHONE_NUMBER_DISPLAY})</span>
-            </button>
-
-            <button
-              onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
-              className="text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
-            >
-              <MessageSquare className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
+              <MessageSquare className="w-4 h-4 text-emerald-600" />
               <span>WhatsApp Us</span>
             </button>
 
             <button
               onClick={onOpenUploadModal}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 transition-all shadow-md shadow-purple-700/20"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-purple-100 hover:text-purple-800 transition-all border border-slate-200/80 shadow-xs"
             >
-              Upload Prescription
+              Sign In
             </button>
           </div>
 
@@ -127,6 +120,7 @@ export default function Navbar({ onOpenUploadModal }) {
         <div className="md:hidden fixed inset-x-0 top-[57px] bottom-0 bg-slate-900/40 backdrop-blur-sm z-50 animate-in fade-in duration-150">
           <div className="bg-white border-b border-purple-100 shadow-xl px-5 pt-3 pb-6 max-h-[85vh] overflow-y-auto space-y-4">
             
+            {/* Nav Links List */}
             <div className="flex flex-col space-y-1">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 py-1">
                 Navigation
@@ -147,24 +141,14 @@ export default function Navbar({ onOpenUploadModal }) {
               ))}
             </div>
             
+            {/* Quick Action Buttons */}
             <div className="pt-3 border-t border-slate-100 space-y-2.5">
               <button
-                onClick={triggerPhoneCall}
-                className="w-full py-3.5 px-5 rounded-2xl bg-slate-100 text-slate-900 font-bold text-sm flex items-center justify-between shadow-xs"
-              >
-                <span className="flex items-center gap-2.5">
-                  <Phone className="w-5 h-5 text-purple-700" />
-                  Call Us ({PHONE_NUMBER_DISPLAY})
-                </span>
-                <ArrowRight className="w-4 h-4 text-slate-400" />
-              </button>
-
-              <button
                 onClick={() => {
-                  openWhatsApp(DEFAULT_MESSAGES.prescription);
+                  openWhatsApp(DEFAULT_MESSAGES.general);
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full py-3.5 px-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-sm flex items-center justify-between shadow-xs"
+                className="w-full py-3.5 px-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-sm flex items-center justify-between shadow-xs active:scale-[0.98] transition-transform"
               >
                 <span className="flex items-center gap-2.5">
                   <MessageSquare className="w-5 h-5 text-emerald-600 fill-emerald-600/20" />
@@ -178,7 +162,7 @@ export default function Navbar({ onOpenUploadModal }) {
                   onOpenUploadModal();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full py-3.5 px-5 rounded-2xl bg-purple-700 text-white font-bold text-sm flex items-center justify-between shadow-md shadow-purple-700/20"
+                className="w-full py-3.5 px-5 rounded-2xl bg-purple-700 text-white font-bold text-sm flex items-center justify-between shadow-md shadow-purple-700/20 active:scale-[0.98] transition-transform"
               >
                 <span className="flex items-center gap-2.5">
                   <Upload className="w-5 h-5" />
