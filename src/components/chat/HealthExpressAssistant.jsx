@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   MessageSquare, X, Send, Sparkles, Phone, Upload, ArrowRight, 
-  RotateCcw, ShieldCheck, CheckCircle2, ChevronDown, Activity 
+  RotateCcw, ShieldCheck, CheckCircle2, ChevronDown, Activity, ChevronRight
 } from 'lucide-react';
 import { processUserMessage } from '../../services/chatbotEngine';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
@@ -13,11 +13,28 @@ export default function HealthExpressAssistant() {
   const [messages, setMessages] = useState([]);
   const [inputQuery, setInputQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [tooltipIndex, setTooltipIndex] = useState(0);
+  const [isTooltipDismissed, setIsTooltipDismissed] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isLoggedIn } = useAuth();
+  const { user } = useAuth();
   const messagesEndRef = useRef(null);
+
+  const tooltipPrompts = [
+    "💬 Need help with prescriptions?",
+    "🧪 Find lab tests in Bengaluru",
+    "🏡 Ask about Home Nursing Care",
+    "⚡ Instant Care Manager Support"
+  ];
+
+  // Rotate speech tooltip prompts every 6 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTooltipIndex((prev) => (prev + 1) % tooltipPrompts.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Initialize Welcome Message on Open
   useEffect(() => {
@@ -25,7 +42,7 @@ export default function HealthExpressAssistant() {
       const initialGreeting = {
         id: 1,
         sender: 'assistant',
-        text: `Hi${user?.name ? ' ' + user.name.split(' ')[0] : ''}! 👋 I'm the **Health Express Assistant**.\n\nI can help you find diagnostic tests, understand home nursing services, check Bengaluru locality availability, or send your prescription to our team on WhatsApp.`,
+        text: `Namaste${user?.name ? ' ' + user.name.split(' ')[0] : ''}! 👋 I'm **Priya**, your Health Express Care Assistant.\n\nI can help you find diagnostic tests, explain home nursing care, verify Bengaluru locality availability, or send your prescription to our team on WhatsApp.`,
         quickReplies: [
           { label: "📄 Send / Upload Prescription", action: "whatsapp_prescription" },
           { label: "🧪 Find a Test (CBC, Thyroid...)", action: "explore_tests" },
@@ -116,41 +133,69 @@ export default function HealthExpressAssistant() {
   };
 
   return (
-    <div className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6">
+    <div className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end">
       
-      {/* 1. Floating Assistant Trigger Button */}
+      {/* Dynamic Floating Speech Teaser Tooltip */}
+      {!isOpen && !isTooltipDismissed && (
+        <div className="mb-3 animate-bounce-subtle flex items-center gap-2">
+          <div 
+            onClick={() => setIsOpen(true)}
+            className="cursor-pointer bg-white text-slate-900 border border-purple-200/80 shadow-xl px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2 hover:bg-purple-50 transition-all hover:scale-105"
+          >
+            <span className="w-2 h-2 rounded-full bg-purple-600 animate-ping"></span>
+            <span>{tooltipPrompts[tooltipIndex]}</span>
+          </div>
+          <button
+            onClick={() => setIsTooltipDismissed(true)}
+            className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center text-[10px] shadow-xs"
+            aria-label="Dismiss message tip"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* 1. Floating Animated Avatar Trigger Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative px-4 py-3.5 sm:px-5 sm:py-4 rounded-full bg-purple-700 hover:bg-purple-800 text-white shadow-2xl shadow-purple-950/40 border border-purple-400/40 flex items-center gap-2.5 transition-all duration-300 hover:scale-105 active:scale-95"
+          className="group relative flex items-center gap-3 p-2 sm:px-5 sm:py-3.5 rounded-full bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white shadow-2xl shadow-purple-950/40 border border-purple-300/40 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
           aria-label="Open Health Express Assistant"
         >
-          <div className="relative">
-            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-purple-700 animate-ping"></span>
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-purple-700"></span>
+          {/* Animated Avatar Circle Container */}
+          <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-white shadow-md shrink-0 ring-4 ring-purple-400/40 animate-pulse-glow">
+            <img 
+              src="/assistant_avatar.jpg" 
+              alt="Priya - Health Express Care Assistant Avatar"
+              className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300" 
+            />
+            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white"></span>
           </div>
 
-          <span className="hidden sm:inline text-xs font-extrabold tracking-wide text-white">
-            Health Express Assistant
-          </span>
-
-          <span className="sm:hidden text-xs font-bold text-white">
-            Assistant
-          </span>
+          <div className="hidden sm:flex flex-col text-left pr-1">
+            <span className="text-xs font-extrabold tracking-wide text-white flex items-center gap-1.5">
+              <span>Health Express AI</span>
+              <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-spin [animation-duration:8s]" />
+            </span>
+            <span className="text-[10px] text-purple-200 font-medium">
+              Care Assistant · Priya
+            </span>
+          </div>
         </button>
       )}
 
       {/* 2. Chatbot Window (Mobile Bottom Sheet / Desktop Floating Box) */}
       {isOpen && (
-        <div className="w-[92vw] sm:w-[390px] h-[82vh] sm:h-[600px] max-h-[700px] bg-white rounded-3xl shadow-2xl border border-purple-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="w-[92vw] sm:w-[410px] h-[84vh] sm:h-[620px] max-h-[720px] bg-white rounded-3xl shadow-2xl border border-purple-200/90 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
           
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 p-4 text-white flex items-center justify-between shadow-xs shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xs">
-                <img src="/logo.png" alt="Health Express Logo" className="w-full h-full object-contain" />
+          <div className="bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 p-4 text-white flex items-center justify-between shadow-md shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-white/90 shadow-md shrink-0">
+                <img src="/assistant_avatar.jpg" alt="Priya Care Assistant" className="w-full h-full object-cover" />
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-purple-900"></span>
               </div>
+
               <div>
                 <div className="text-xs font-extrabold text-white flex items-center gap-1.5">
                   <span>Health Express Assistant</span>
@@ -160,7 +205,7 @@ export default function HealthExpressAssistant() {
                   </span>
                 </div>
                 <div className="text-[10px] text-purple-200">
-                  Here to help you find healthcare services
+                  Care Coordinator · Priya
                 </div>
               </div>
             </div>
@@ -175,27 +220,35 @@ export default function HealthExpressAssistant() {
           </div>
 
           {/* Message History Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/40 text-xs">
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/50 text-xs">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-2`}
               >
-                <div
-                  className={`max-w-[88%] p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs ${
-                    msg.sender === 'user'
-                      ? 'bg-purple-700 text-white rounded-br-xs font-medium'
-                      : 'bg-white text-slate-800 border border-purple-100 rounded-bl-xs'
-                  }`}
-                >
-                  <p className="whitespace-pre-line">{msg.text}</p>
+                <div className="flex items-start gap-2 max-w-[90%]">
+                  {msg.sender === 'assistant' && (
+                    <div className="w-7 h-7 rounded-full overflow-hidden border border-purple-200 shrink-0 mt-0.5 shadow-xs">
+                      <img src="/assistant_avatar.jpg" alt="Avatar" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  <div
+                    className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-xs ${
+                      msg.sender === 'user'
+                        ? 'bg-purple-700 text-white rounded-br-xs font-medium ml-auto'
+                        : 'bg-white text-slate-800 border border-purple-100 rounded-bl-xs'
+                    }`}
+                  >
+                    <p className="whitespace-pre-line">{msg.text}</p>
+                  </div>
                 </div>
 
                 {/* Direct WhatsApp Callout Banner inside Assistant Msg */}
                 {msg.whatsappMsg && (
                   <button
                     onClick={() => openWhatsApp(msg.whatsappMsg)}
-                    className="max-w-[88%] p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-[11px] font-bold flex items-center justify-between gap-2 shadow-xs transition-colors"
+                    className="max-w-[88%] p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 text-[11px] font-bold flex items-center justify-between gap-2 shadow-xs transition-all hover:scale-[1.01]"
                   >
                     <span className="flex items-center gap-1.5">
                       <MessageSquare className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600/20" />
@@ -212,9 +265,10 @@ export default function HealthExpressAssistant() {
                       <button
                         key={idx}
                         onClick={() => handleQuickAction(reply)}
-                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-purple-50 text-purple-900 border border-purple-200 text-[11px] font-bold shadow-xs hover:border-purple-300 transition-all text-left"
+                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-purple-50 text-purple-900 border border-purple-200 text-[11px] font-bold shadow-xs hover:border-purple-300 transition-all text-left flex items-center gap-1"
                       >
-                        {reply.label}
+                        <span>{reply.label}</span>
+                        <ChevronRight className="w-3 h-3 text-purple-400" />
                       </button>
                     ))}
                   </div>
@@ -224,13 +278,13 @@ export default function HealthExpressAssistant() {
 
             {/* Typing Indicator */}
             {isTyping && (
-              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium italic pt-1">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium italic pt-1 pl-8">
                 <div className="flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce"></span>
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce [animation-delay:0.2s]"></span>
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce [animation-delay:0.4s]"></span>
                 </div>
-                <span>Health Express Assistant is typing...</span>
+                <span>Priya is typing...</span>
               </div>
             )}
 
@@ -256,14 +310,17 @@ export default function HealthExpressAssistant() {
               <button
                 type="submit"
                 disabled={!inputQuery.trim()}
-                className="p-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 disabled:opacity-40 text-white font-bold transition-colors shrink-0"
+                className="p-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 disabled:opacity-40 text-white font-bold transition-colors shrink-0 shadow-xs"
               >
                 <Send className="w-4 h-4" />
               </button>
             </form>
 
             <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 pt-0.5">
-              <span>Healthcare Service Assistant</span>
+              <span className="flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-purple-600" />
+                <span>Health Express Assistant</span>
+              </span>
               <button
                 onClick={() => setMessages([])}
                 className="hover:text-purple-700 font-medium flex items-center gap-1"
