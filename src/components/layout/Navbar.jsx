@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MessageSquare, ArrowRight, Upload } from 'lucide-react';
+import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar({ onOpenUploadModal }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
+  const { user, isLoggedIn, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +22,7 @@ export default function Navbar({ onOpenUploadModal }) {
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setShowProfileMenu(false);
   }, [location]);
 
   // Lock body scroll when mobile drawer is open
@@ -85,23 +89,71 @@ export default function Navbar({ onOpenUploadModal }) {
               <span>WhatsApp Us</span>
             </button>
 
-            <button
-              onClick={onOpenUploadModal}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-purple-100 hover:text-purple-800 transition-all border border-slate-200/80 shadow-xs"
-            >
-              Sign In
-            </button>
+            {isLoggedIn ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-900 bg-purple-100 hover:bg-purple-200 transition-all border border-purple-200 shadow-xs flex items-center gap-2"
+                >
+                  <div className="w-5 h-5 rounded-full bg-purple-700 text-white flex items-center justify-center text-[10px] font-bold">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <span>{user?.name ? user.name.split(' ')[0] : 'Account'}</span>
+                </button>
+
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-purple-100 p-2 z-50 space-y-1 animate-in fade-in duration-100">
+                    <Link
+                      to="/auth"
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2"
+                    >
+                      <User className="w-3.5 h-3.5 text-purple-600" />
+                      <span>My Profile</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+                    >
+                      <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/auth"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-purple-100 hover:text-purple-800 transition-all border border-slate-200/80 shadow-xs"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Mobile Right Quick Action & Hamburger */}
           <div className="md:hidden flex items-center gap-2">
-            <button
-              onClick={onOpenUploadModal}
-              className="px-3 py-1.5 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl shadow-xs flex items-center gap-1.5 touch-target active:scale-95 transition-transform"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>Upload</span>
-            </button>
+            {!isLoggedIn ? (
+              <Link
+                to="/auth"
+                className="px-3 py-1.5 text-xs font-bold text-purple-900 bg-purple-100 hover:bg-purple-200 rounded-xl shadow-xs flex items-center gap-1 touch-target active:scale-95 transition-transform border border-purple-200"
+              >
+                <User className="w-3.5 h-3.5 text-purple-700" />
+                <span>Sign In</span>
+              </Link>
+            ) : (
+              <Link
+                to="/auth"
+                className="px-3 py-1.5 text-xs font-bold text-purple-900 bg-purple-100 rounded-xl shadow-xs flex items-center gap-1 touch-target border border-purple-200"
+              >
+                <div className="w-4 h-4 rounded-full bg-purple-700 text-white flex items-center justify-center text-[9px] font-bold">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <span>Account</span>
+              </Link>
+            )}
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -142,6 +194,18 @@ export default function Navbar({ onOpenUploadModal }) {
             
             {/* Quick Action Buttons */}
             <div className="pt-3 border-t border-slate-100 space-y-2.5">
+              <Link
+                to="/auth"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-3.5 px-5 rounded-2xl bg-purple-50 border border-purple-200 text-purple-900 font-bold text-sm flex items-center justify-between shadow-xs active:scale-[0.98] transition-transform"
+              >
+                <span className="flex items-center gap-2.5">
+                  <User className="w-5 h-5 text-purple-700" />
+                  {isLoggedIn ? `Account (${user?.name || 'Member'})` : 'Sign In / Register'}
+                </span>
+                <ArrowRight className="w-4 h-4 text-purple-700" />
+              </Link>
+
               <button
                 onClick={() => {
                   openWhatsApp(DEFAULT_MESSAGES.general);

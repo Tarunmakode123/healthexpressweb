@@ -9,7 +9,7 @@
 
 **Health Express** helps you find, coordinate, and manage healthcare for yourself and your family — starting with diagnostics and home nursing, and growing toward a more connected healthcare experience.
 
-This repository contains the public website, built with a focus on clear positioning, family health management, dynamic interactive widgets, and a WhatsApp-assisted care coordination workflow.
+This repository contains the public website, built with a focus on clear positioning, family health management, dynamic interactive widgets, patient authentication, and a WhatsApp-assisted care coordination workflow.
 
 ---
 
@@ -18,6 +18,11 @@ This repository contains the public website, built with a focus on clear positio
 - **Official Brand Identity & Favicon**: Includes the official Health Express logo (*Everything Health - Fast Tracked*) and brand favicon (`public/favicon.png`).
 - **Core Positioning**: *"Your personal health manager, for you and your family."*
 - **Launch Scope**: Focused on **Diagnostics & Preventive Health Packages** and **Home Nursing** in **Bengaluru**.
+- **Patient Authentication Page (`/auth`, `/login`, `/signup`)**:
+  - Dual modes for **Sign In** and **Sign Up**.
+  - **Indian Mobile OTP** login with 10-digit number validation, 4-digit code verification, countdown timer, and resend OTP support.
+  - **Email & Password** alternative authentication with show/hide password toggle.
+  - **AuthContext & Local Storage State**: Persisted patient session with user profile menu in Navbar.
 - **Interactive Bengaluru Locality Checker**: Live search and quick selector tags for Koramangala, Indiranagar, HSR Layout, Whitefield, Bellandur, Jayanagar, Electronic City, Sarjapur Road, Hebbal, and JP Nagar with instant coverage status & direct locality booking.
 - **Interactive Test Package Estimator**: Multi-test selector (CBC, Thyroid Profile, Vitamin D, HbA1c, Lipid Profile, Full Body Checkup) with real-time package estimation and 1-click WhatsApp order generation.
 - **Dynamic Category Filter Tabs**: Filter services dynamically across Diagnostics, Care at Home, and Specialized Care with custom feature badges.
@@ -33,6 +38,7 @@ This repository contains the public website, built with a focus on clear positio
 ## 🗺️ Website Structure
 
 - **Home (`/`)**: 15-section narrative flow (*Who Are You? → The Problem → What We Do → Services → Interactive Test Estimator → For Your Family → Trust → Health Records → Bengaluru Locality Checker → Library → FAQ → Final CTA*).
+- **Authentication (`/auth`, `/login`, `/signup`)**: Patient authentication with Indian Mobile OTP verification or Email/Password login.
 - **Services (`/services`)**: Full directory of launch verticals with dynamic tab filtering (Diagnostics, Preventive Health Packages, Imaging, Home Nursing, Genetic Testing, Surgical Care).
 - **Health Library (`/health-library`)**: Searchable index of patient guides and test preparation articles.
 - **About Us (`/about`)**: Founder Neha Bhansali's letter, company vision, 4 core principles (People First, Trust, Simplicity, Care), and approach.
@@ -56,6 +62,7 @@ This repository contains the public website, built with a focus on clear positio
 ## 🛠️ Technology Stack
 
 - **Frontend**: React (Vite)
+- **State Management**: React Context (`AuthContext`)
 - **Styling**: Tailwind CSS, Glassmorphism, Custom Keyframes
 - **Iconography**: Lucide Icons
 - **Routing**: React Router
