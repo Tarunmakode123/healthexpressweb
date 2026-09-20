@@ -1,59 +1,58 @@
 import React, { useState } from 'react';
-import { Droplet, Grid, Activity, Sun, Target, Heart, UserCheck, Shield, Check, MessageCircle, Upload, ArrowRight } from 'lucide-react';
+import { Droplet, Grid, Activity, Sun, Target, Heart, UserCheck, Shield, ArrowRight, Check, Sparkles, MessageCircle } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
-export default function PopularTestsSection({ onOpenUploadModal }) {
+export default function PopularTestsSection() {
   const [selectedTests, setSelectedTests] = useState(['cbc-test', 'thyroid-tests']);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const popularServices = [
     {
+      id: 'blood-tests',
+      title: 'Blood Tests',
+      desc: 'Home sample collection and diagnostic blood testing.',
+      icon: Droplet
+    },
+    {
       id: 'cbc-test',
-      title: 'Complete Blood Count (CBC)',
-      category: 'Blood Tests',
-      desc: 'Evaluates overall health, detects anemia, infection, and various blood disorders.',
-      preparation: 'No special preparation required. Fasting not mandatory.',
+      title: 'CBC Test',
+      desc: 'Learn about complete blood count testing and available booking options.',
       icon: Grid
     },
     {
       id: 'thyroid-tests',
-      title: 'Thyroid Profile (T3, T4, TSH)',
-      category: 'Hormone Tests',
-      desc: 'Assesses thyroid gland function to screen for hypothyroidism or hyperthyroidism.',
-      preparation: 'Overnight fasting recommended (8-10 hours).',
+      title: 'Thyroid Tests',
+      desc: 'Explore thyroid-related diagnostic testing.',
       icon: Activity
     },
     {
       id: 'vitamin-d-test',
-      title: 'Vitamin D (25-OH)',
-      category: 'Vitamins',
-      desc: 'Measures Vitamin D level crucial for bone health and immune function.',
-      preparation: 'No fasting required.',
+      title: 'Vitamin D Test',
+      desc: 'Find Vitamin D testing options.',
       icon: Sun
     },
     {
       id: 'hba1c-test',
-      title: 'HbA1c (Glycated Hemoglobin)',
-      category: 'Diabetes Care',
-      desc: 'Evaluates average blood sugar levels over the past 2 to 3 months.',
-      preparation: 'No fasting required. Can be done anytime.',
+      title: 'HbA1c Test',
+      desc: 'Explore testing used to assess average blood glucose levels.',
       icon: Target
     },
     {
       id: 'lipid-profile',
-      title: 'Lipid Profile (Cholesterol)',
-      category: 'Heart Care',
-      desc: 'Measures total cholesterol, HDL, LDL, and triglycerides for cardiac health.',
-      preparation: 'Overnight fasting mandatory (10-12 hours).',
+      title: 'Lipid Profile',
+      desc: 'Find cholesterol and lipid testing options.',
       icon: Heart
     },
     {
       id: 'full-body-checkup',
       title: 'Full Body Health Checkup',
-      category: 'Health Packages',
-      desc: 'Comprehensive preventive health profile covering liver, kidney, blood, and metabolic parameters.',
-      preparation: '10-12 hours overnight fasting required.',
+      desc: 'Explore comprehensive preventive health checkup options.',
       icon: UserCheck
+    },
+    {
+      id: 'health-screening',
+      title: 'Health Screening',
+      desc: 'Discover preventive screening services.',
+      icon: Shield
     }
   ];
 
@@ -63,148 +62,98 @@ export default function PopularTestsSection({ onOpenUploadModal }) {
     );
   };
 
-  const filteredTests = searchQuery.trim()
-    ? popularServices.filter(t => 
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        t.category.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : popularServices;
-
   const selectedTitles = popularServices
     .filter(s => selectedTests.includes(s.id))
     .map(s => s.title);
 
   const handleBookPackage = () => {
     if (selectedTitles.length === 0) {
-      openWhatsApp("Hello Health Express, I would like to inquire about popular diagnostic lab tests.");
+      openWhatsApp("Hello Health Express, I would like to inquire about popular diagnostic tests.");
       return;
     }
-    const message = `Hello Health Express, I would like to inquire about booking the following diagnostic tests: ${selectedTitles.join(', ')}. Please share available options & home sample collection details.`;
+    const message = `Hello Health Express, I would like to inquire about booking the following selected test package: ${selectedTitles.join(', ')}. Please provide available options & home sample collection details.`;
     openWhatsApp(message);
   };
 
   return (
-    <section className="py-16 md:py-24 bg-white border-t border-purple-100/60" id="tests">
+    <section className="py-16 md:py-24 bg-purple-50/20 border-t border-purple-100/40" id="tests">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wider">
-            POPULAR DIAGNOSTIC TESTS
+          <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700 flex items-center justify-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            <span>INTERACTIVE TEST PACKAGE ESTIMATOR</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Start with what you need.
           </h2>
           <p className="text-sm sm:text-base text-slate-600">
-            Select one or multiple diagnostic tests below to inquire or coordinate home sample collection.
+            Select one or multiple tests below to customize your health checkup package and request instant partner lab coordination.
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="max-w-md mx-auto">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tests (e.g. CBC, Thyroid, HbA1c)..."
-            className="w-full px-4 py-3 rounded-2xl bg-purple-50/50 border border-purple-200 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-2xs"
-          />
-        </div>
-
-        {/* Test Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTests.map((service) => {
+        {/* Popular Test Link Cards (Interactive Grid) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {popularServices.map((service) => {
             const IconComp = service.icon;
             const isSelected = selectedTests.includes(service.id);
             return (
               <div
                 key={service.id}
-                className={`bento-card rounded-3xl p-6 flex flex-col justify-between space-y-5 text-left relative transition-all ${
+                onClick={() => toggleTest(service.id)}
+                className={`group p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 text-left relative ${
                   isSelected
-                    ? 'border-2 border-purple-600 ring-2 ring-purple-600/10 bg-purple-50/20'
-                    : 'bg-white hover:border-purple-200'
+                    ? 'bg-purple-900 text-white border-purple-800 shadow-lg scale-[1.02]'
+                    : 'bg-white hover:bg-purple-50/80 border-purple-100/80 shadow-xs hover:shadow-md text-slate-900'
                 }`}
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
-                      <IconComp className="w-5 h-5" />
-                    </div>
-                    
-                    <button
-                      onClick={() => toggleTest(service.id)}
-                      className={`px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-purple-700 text-white shadow-xs'
-                          : 'bg-slate-100 hover:bg-purple-100 text-slate-600 hover:text-purple-800'
-                      }`}
-                    >
-                      {isSelected ? <Check className="w-3.5 h-3.5" /> : '+ Select'}
-                    </button>
+                <div className="flex items-center justify-between">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform ${
+                    isSelected ? 'bg-purple-800 text-white' : 'bg-purple-50 text-purple-700 group-hover:scale-110'
+                  }`}>
+                    <IconComp className="w-5 h-5" />
                   </div>
-                  
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase text-purple-700 tracking-wider">
-                      {service.category}
-                    </span>
-                    <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
-                      {service.title}
-                    </h3>
-                    <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                      {service.desc}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-purple-100/60 text-[11px] text-slate-500 font-medium">
-                    <strong className="text-slate-700 font-bold">Prep:</strong> {service.preparation}
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    isSelected ? 'bg-emerald-400 text-slate-950' : 'bg-slate-100 text-slate-400 group-hover:bg-purple-200 group-hover:text-purple-900'
+                  }`}>
+                    {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : '+'}
                   </div>
                 </div>
-
-                {/* Card Dual CTAs */}
-                <div className="pt-2 flex items-center gap-2">
-                  <button
-                    onClick={() => openWhatsApp(`Hello Health Express, I would like to inquire about booking the ${service.title}.`)}
-                    className="flex-1 py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Ask on WhatsApp</span>
-                  </button>
-
-                  {onOpenUploadModal && (
-                    <button
-                      onClick={onOpenUploadModal}
-                      className="py-2.5 px-3 rounded-xl bg-white hover:bg-purple-50 border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                      title="Upload Prescription"
-                    >
-                      <Upload className="w-3.5 h-3.5 text-purple-700" />
-                    </button>
-                  )}
+                
+                <div>
+                  <h4 className={`text-base font-bold transition-colors ${isSelected ? 'text-white' : 'group-hover:text-purple-800'}`}>
+                    {service.title}
+                  </h4>
+                  <p className={`text-xs mt-1 leading-relaxed ${isSelected ? 'text-purple-200' : 'text-slate-500'}`}>
+                    {service.desc}
+                  </p>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Selected Package Action Banner */}
-        <div className="bg-purple-950 text-white rounded-3xl p-6 shadow-xl max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5">
+        {/* Selected Package Banner / Action bar */}
+        <div className="bg-white rounded-3xl p-6 border border-purple-200 shadow-md max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5">
           <div className="space-y-1 text-center sm:text-left">
-            <div className="text-xs font-extrabold text-purple-200 flex items-center justify-center sm:justify-start gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <div className="text-xs font-bold text-slate-900 flex items-center justify-center sm:justify-start gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-700 animate-pulse"></span>
               <span>{selectedTests.length} {selectedTests.length === 1 ? 'Test' : 'Tests'} Selected</span>
             </div>
-            <p className="text-xs text-slate-300 font-normal">
+            <p className="text-xs text-slate-500">
               {selectedTitles.length > 0
                 ? selectedTitles.join(' • ')
-                : 'Select test cards above to build your customized inquiry package'}
+                : 'Tap test cards above to build your custom package'}
             </p>
           </div>
 
           <button
             onClick={handleBookPackage}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all hover:scale-[1.02] cursor-pointer"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all hover:scale-[1.02]"
           >
-            <MessageCircle className="w-4 h-4 fill-white text-purple-600" />
-            <span>Inquire Selected Package</span>
+            <MessageCircle className="w-4 h-4 fill-white text-purple-700" />
+            <span>Book Custom Package on WhatsApp</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
