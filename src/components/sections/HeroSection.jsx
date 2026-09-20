@@ -51,24 +51,24 @@ export default function HeroSection({ onOpenUploadModal }) {
             {/* Primary & Secondary Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
               
-              {/* Primary 3-Step Upload Prescription Modal CTA */}
+              {/* Single Clear Primary CTA: 3-Step Upload Prescription Modal */}
               <button
                 onClick={onOpenUploadModal}
                 className="group relative px-8 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-purple-700/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
               >
                 <Upload className="w-5 h-5 text-purple-200 transition-transform group-hover:scale-110" />
-                <span>Upload Prescription / Medical Order</span>
+                <span>Upload Prescription</span>
                 <ArrowRight className="w-4 h-4 text-purple-200 group-hover:translate-x-1 transition-transform" />
               </button>
 
-              {/* Secondary WhatsApp CTA */}
-              <button
-                onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
+              {/* Distinct Secondary Action: Explore Lab Packages */}
+              <a
+                href="#tests"
                 className="px-6 py-4 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 text-purple-900 font-extrabold text-sm sm:text-base shadow-xs transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                <MessageSquare className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
-                <span>Chat on WhatsApp</span>
-              </button>
+                <FlaskConical className="w-4 h-4 text-purple-700" />
+                <span>Explore Lab Packages</span>
+              </a>
 
             </div>
 
@@ -150,28 +150,36 @@ export default function HeroSection({ onOpenUploadModal }) {
                   </div>
                 </div>
 
-                <div className="p-5 bg-white space-y-3">
-                  <div className="flex items-center justify-between text-xs">
+                {/* Streamlined Live Clinical Telemetry Showcase (Replaced redundant upload card) */}
+                <div className="p-5 bg-white space-y-3.5">
+                  <div className="flex items-center justify-between text-xs border-b border-slate-100 pb-2.5">
                     <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
                       <Activity className="w-4 h-4 text-purple-700" />
-                      Family Care Coordination
+                      Live Care Telemetry
                     </span>
-                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      Active
+                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Active Coverage
                     </span>
                   </div>
 
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Upload your prescription or medical order to save it in your secure backend account & receive WhatsApp care coordination.
-                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-left">
+                    <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 space-y-0.5">
+                      <div className="text-[10px] font-bold text-slate-500">Sample Pickup</div>
+                      <div className="text-xs font-extrabold text-purple-900">30-Min Arrival</div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-0.5">
+                      <div className="text-[10px] font-bold text-slate-500">Lab Reports</div>
+                      <div className="text-xs font-extrabold text-emerald-900">Same Day Result</div>
+                    </div>
+                  </div>
 
-                  <button
-                    onClick={onOpenUploadModal}
-                    className="w-full py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+                  <a
+                    href="#services"
+                    className="w-full py-3 rounded-xl bg-slate-900 hover:bg-purple-900 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
                   >
-                    <Upload className="w-4 h-4 text-white" />
-                    <span>Upload Prescription File</span>
-                  </button>
+                    <span>View All Healthcare Services</span>
+                    <ArrowRight className="w-4 h-4 text-purple-300" />
+                  </a>
                 </div>
 
               </div>
