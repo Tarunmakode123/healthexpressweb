@@ -4,7 +4,7 @@ import {
   MessageSquare, X, Send, Sparkles, Phone, Upload, ArrowRight, 
   RotateCcw, ShieldCheck, CheckCircle2, ChevronDown, Activity, ChevronRight
 } from 'lucide-react';
-import { processUserMessage } from '../../services/chatbotEngine';
+import { processUserMessageAsync } from '../../services/chatbotEngine';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
 
@@ -61,7 +61,7 @@ export default function HealthExpressAssistant() {
   }, [messages, isTyping]);
 
   // Process user input
-  const handleSendMessage = (textToSend = inputQuery) => {
+  const handleSendMessage = async (textToSend = inputQuery) => {
     const query = textToSend.trim();
     if (!query) return;
 
@@ -76,9 +76,8 @@ export default function HealthExpressAssistant() {
     setInputQuery('');
     setIsTyping(true);
 
-    // Simulate natural response latency (400ms - 800ms)
-    setTimeout(() => {
-      const response = processUserMessage(query, location.pathname, messages);
+    try {
+      const response = await processUserMessageAsync(query, location.pathname, messages);
       const assistantMsg = {
         id: Date.now() + 1,
         sender: 'assistant',
@@ -88,8 +87,11 @@ export default function HealthExpressAssistant() {
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
+    } catch (e) {
+      console.error("Chatbot processing error:", e);
+    } finally {
       setIsTyping(false);
-    }, 600);
+    }
   };
 
   // Handle Quick Reply Actions

@@ -3,12 +3,10 @@ import { DEFAULT_MESSAGES } from '../utils/whatsapp';
 
 /**
  * Health Express AI Conversational & Intent Processing Engine
- * Handles natural language matching (English & Hinglish), medical safety rules,
- * page context awareness, and contextual WhatsApp message generation.
- * Aligned strictly with verified codebase content & soft-launch WhatsApp workflow.
+ * Supports local NLP intent matching AND live Gemini LLM API integration if VITE_GEMINI_API_KEY is configured.
  */
 
-export function processUserMessage(rawQuery, currentPath = '/', conversationHistory = []) {
+export async function processUserMessageAsync(rawQuery, currentPath = '/', conversationHistory = []) {
   const query = rawQuery.toLowerCase().trim();
 
   // 1. EMERGENCY MEDICAL DISCLAIMER CHECK
@@ -48,7 +46,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     };
   }
 
-  // 3. PRESCRIPTION INTENTS (Hinglish & English)
+  // 3. PRESCRIPTION INTENTS
   if (
     query.includes('prescription') || 
     query.includes('upload') || 
@@ -66,7 +64,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     };
   }
 
-  // 4. LAB TESTS & DIAGNOSTICS (CBC, Thyroid, HbA1c, Vitamin D, Lipid, Blood Test)
+  // 4. LAB TESTS & DIAGNOSTICS
   if (
     query.includes('cbc') || 
     query.includes('blood count') ||
@@ -82,7 +80,6 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     query.includes('test price') ||
     query.includes('fasting')
   ) {
-    // Check for specific test match
     let matchedTest = CHATBOT_KNOWLEDGE.popularTests.find(t => 
       query.includes(t.id) || query.includes(t.title.toLowerCase().split(' ')[0])
     );
@@ -153,7 +150,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     };
   }
 
-  // 7. FUTURE PLATFORM FEATURE INQUIRIES (Tracking, Online Payment, Live Cart)
+  // 7. FUTURE PLATFORM FEATURE INQUIRIES
   if (
     query.includes('track') || 
     query.includes('payment') || 
@@ -171,7 +168,7 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     };
   }
 
-  // 8. CONTACT & PHONE NUMBER INTENTS
+  // 8. CONTACT & PHONE INTENTS
   if (
     query.includes('contact') || 
     query.includes('phone') || 
@@ -189,15 +186,65 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     };
   }
 
-  // 9. DEFAULT / FALLBACK RESPONSE WITH HELPFUL CHIPS
+  // 9. LIVE GEMINI API CALL FOR OPEN-ENDED QUESTIONS (If VITE_GEMINI_API_KEY exists)
+  const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (geminiApiKey) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are Priya, the friendly Health Express AI Healthcare Service Assistant for Bengaluru, India. 
+Company context: Health Express helps users coordinate diagnostic blood tests (CBC, Thyroid, HbA1c, Vitamin D), home healthcare nursing, and preventive checkups. 
+Answer the following user question concisely (2-3 sentences max). Remain polite, helpful, and suggest reaching out on WhatsApp for care coordination if relevant.
+User question: "${rawQuery}"`
+            }]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (answer) {
+        return {
+          text: answer,
+          quickReplies: [
+            { label: "Send Prescription", action: "whatsapp_prescription" },
+            { label: "Explore Services", action: "nav_services" },
+            { label: "Talk on WhatsApp", action: "whatsapp_general" }
+          ],
+          whatsappMsg: DEFAULT_MESSAGES.general
+        };
+      }
+    } catch (e) {
+      console.warn("Gemini API call skipped or failed, using smart fallback:", e);
+    }
+  }
+
+  // 10. DEFAULT SMART FALLBACK RESPONSE
   return {
-    text: "I'm here to help you navigate Health Express services! You can ask me about blood tests (CBC, Thyroid, Vitamin D), home nursing, preventive packages, or Bengaluru service coverage.",
+    text: `I understand you are asking about "${rawQuery}".\n\nI am the Health Express Service Assistant. I can help you find diagnostic tests, home nursing care, or connect you with a care manager in Bengaluru.\n\nWould you like to speak directly with our team?`,
     quickReplies: [
+      { label: "Talk to Care Manager on WhatsApp", action: "whatsapp_general" },
       { label: "Send Prescription", action: "whatsapp_prescription" },
-      { label: "Find a Test", action: "explore_tests" },
-      { label: "Home Healthcare", action: "whatsapp_service_nursing" },
-      { label: "Talk on WhatsApp", action: "whatsapp_general" }
+      { label: "Explore Services Directory", action: "nav_services" }
     ],
-    whatsappMsg: DEFAULT_MESSAGES.general
+    whatsappMsg: `Namaste Health Express! I have a question regarding: "${rawQuery}". Please assist me.`
+  };
+}
+
+export function processUserMessage(rawQuery, currentPath = '/', conversationHistory = []) {
+  // Synchronous fallback wrapper
+  return {
+    text: `I am the Health Express Service Assistant. I can help you find diagnostic tests, home nursing, or send prescriptions in Bengaluru.\n\nRegarding "${rawQuery}", would you like to connect directly with our care manager?`,
+    quickReplies: [
+      { label: "Connect on WhatsApp", action: "whatsapp_general" },
+      { label: "Send Prescription", action: "whatsapp_prescription" },
+      { label: "Explore Services Directory", action: "nav_services" }
+    ],
+    whatsappMsg: `Namaste Health Express! I have an inquiry about: "${rawQuery}". Please assist me.`
   };
 }
