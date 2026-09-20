@@ -8,7 +8,7 @@ import { processUserMessageAsync } from '../../services/chatbotEngine';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
 
-export default function HealthExpressAssistant() {
+export default function HealthExpressAssistant({ onOpenUploadModal }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputQuery, setInputQuery] = useState('');
@@ -44,11 +44,11 @@ export default function HealthExpressAssistant() {
         sender: 'assistant',
         text: `Namaste${user?.name ? ' ' + user.name.split(' ')[0] : ''}! 👋 I'm **Priya**, your Health Express Care Assistant.\n\nI can help you find diagnostic tests, explain home nursing care, verify Bengaluru locality availability, or send your prescription to our team on WhatsApp.`,
         quickReplies: [
-          { label: "📄 Send / Upload Prescription", action: "whatsapp_prescription" },
+          { label: "📄 Upload Prescription File", action: "open_upload_modal" },
+          { label: "💬 Send Prescription on WhatsApp", action: "whatsapp_prescription" },
           { label: "🧪 Find a Test (CBC, Thyroid...)", action: "explore_tests" },
           { label: "🏡 Home Healthcare Nursing", action: "whatsapp_service_nursing" },
-          { label: "📍 Bengaluru Locality Coverage", action: "whatsapp_locality" },
-          { label: "💬 Talk on WhatsApp", action: "whatsapp_general" }
+          { label: "📍 Bengaluru Locality Coverage", action: "whatsapp_locality" }
         ]
       };
       setMessages([initialGreeting]);
@@ -97,6 +97,12 @@ export default function HealthExpressAssistant() {
   // Handle Quick Reply Actions
   const handleQuickAction = (reply) => {
     const { label, action } = reply;
+
+    if (action === 'open_upload_modal') {
+      if (onOpenUploadModal) onOpenUploadModal();
+      setIsOpen(false);
+      return;
+    }
 
     if (action === 'whatsapp_prescription') {
       openWhatsApp("Namaste Health Express! I would like to send my prescription for service coordination.");

@@ -45,25 +45,39 @@ This repository contains the public website, built with a focus on clear positio
   - **Radial Mesh Gradients (`.bg-mesh-purple`, `.bg-mesh-dark`)**: Soft purple and deep dark radial light overlays across section backgrounds.
   - **Animated Gradient Headers (`.gradient-text-purple`, `.gradient-text-light`)**: Gradient typography shifts for section titles.
   - **Glowing Card Hover Effects (`.hover-glow`, `.card-interactive`)**: Smooth 3D tilt, subtle vertical translation, and soft purple glow shadow elevation on hover.
-  - **Animated CTA Card (`.animated-gradient-bg`)**: Dynamic multi-stop gradient background with smooth keyframe color shifts and pulsing ambient light rings.
-- **Family Health Hub**: Dedicated section for coordinating healthcare across multiple family members.
-- **WhatsApp Care Coordination**: Direct line to Health Express care managers via **+91 81234 14120**.
-- **Provider Partnership Network**: Dedicated provider onboarding form routing directly to `hello@healthexpress.care`.
-- **Evidence-Informed Health Library**: Practical guides covering blood tests, preventive health, family health, and home care.
-- **Mobile-Optimized Experience**: Fast, responsive layout tailored with 44px min touch targets for mobile, tablet, and desktop screens.
+- **Secure Guest Prescription Upload System & System of Record**:
+  - **Zero-Friction Guest Flow**: Visitors can upload prescriptions without mandatory login or account creation.
+  - **3-Step Interactive Wizard (`PrescriptionModal.jsx`)**: File Upload (drag & drop, MIME validation, max 10MB check) → Patient Details (Name, E.164 Mobile Normalization, Locality) → Confirmation & System of Record Registration.
+  - **Human-Readable Enquiry ID Generator (`src/utils/enquiryCode.js`)**: Generates collision-safe enquiry codes (e.g. `HE-2026-89421`).
+  - **Private Storage Security**: Uploaded files are stored in a Private Supabase Storage Bucket (`public = false`) and accessible only via short-lived signed URLs.
+  - **Indian E.164 Phone Normalization (`src/utils/phone.js`)**: Converts 10-digit Indian numbers starting with 6,7,8,9 to standard `+91XXXXXXXXXX`.
+  - **Post-OTP Account Linking Trigger**: Hardened PostgreSQL function `link_guest_records_on_otp_login` links past guest prescriptions to authenticated users upon SMS OTP verification.
 
 ---
 
-## 🗺️ Website Structure
+## 🔒 Supabase Architecture & Production SQL Setup
 
-- **Home (`/`)**: 15-section narrative flow (*Hero → Problem → What We Do → Services → Interactive Test Estimator → For Your Family → Trust → Health Records → Bengaluru Locality Checker → Library → FAQ → Final CTA*).
-- **Authentication (`/auth`, `/login`, `/signup`)**: Patient authentication with Indian Mobile OTP verification or Email/Password login.
-- **Services (`/services`)**: Full directory of launch verticals with dynamic tab filtering (Diagnostics, Preventive Health Packages, Imaging, Home Nursing, Genetic Testing, Surgical Care).
-- **Health Library (`/health-library`)**: Searchable index of patient guides and test preparation articles.
-- **About Us (`/about`)**: Founder Neha Bhansali's letter, company vision, 4 core principles (People First, Trust, Simplicity, Care), and approach.
-- **For Providers (`/providers`)**: Partnership onboarding page with contact form sending inquiries to `hello@healthexpress.care`.
-- **Contact (`/contact`)**: Direct support lines and medical requirement contact form.
-- **Legal (`/legal/:type`)**: Customer transparency policies for Privacy, Terms, Refund, Cancellation, and Shipping.
+### 1. Database Schema & RLS Setup
+Run the production SQL migration script located at `supabase/schema.sql` in your Supabase SQL Editor:
+- **`patients` table**: Stores patient profiles with `phone_e164` unique identifier and nullable `user_id`.
+- **`enquiries` table**: System of record for patient service enquiries with human-readable `enquiry_code`.
+- **`prescriptions` table**: Stores document metadata (`file_path`, `file_name`, `file_size`, `file_type`).
+- **Private Storage Bucket `prescriptions`**: Configured with `public = false` and 10MB file limit.
+
+### 2. Environment Variables Configuration
+
+Create a `.env` file in the project root:
+
+```env
+# Public Supabase Frontend Credentials (Anon Key ONLY - NEVER Service Role)
+VITE_SUPABASE_URL=https://your-supabase-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Configurable WhatsApp Coordination Number
+VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER=918123414120
+```
+
+> ⚠️ **SECURITY WARNING**: `SUPABASE_SERVICE_ROLE_KEY` must **NEVER** be placed in frontend `.env` files or exposed to client-side code.
 
 ---
 
@@ -81,6 +95,7 @@ This repository contains the public website, built with a focus on clear positio
 ## 🛠️ Technology Stack
 
 - **Frontend**: React (Vite)
+- **Database & Storage**: Supabase PostgreSQL & Private Supabase Storage
 - **State Management**: React Context (`AuthContext`)
 - **AI & NLP Engine**: Client-side Chatbot Engine (`chatbotEngine.js` & `chatbotKnowledge.js`)
 - **Styling**: Tailwind CSS, Glassmorphism, Custom Keyframes
@@ -107,6 +122,8 @@ This repository contains the public website, built with a focus on clear positio
 3. **Configure Environment Variables**:
    Create a `.env` file in the root directory:
    ```env
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
    VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER=918123414120
    ```
 
@@ -124,9 +141,10 @@ This repository contains the public website, built with a focus on clear positio
 
 ## 🔒 Privacy & Compliance Notice
 
-This public website serves as a discovery and customer engagement interface. No sensitive patient health records, uploaded prescriptions, or private medical data are exposed or stored within this repository.
+This public website serves as a discovery and customer engagement interface. No sensitive patient health records, uploaded prescriptions, or private medical data are exposed or stored publicly. All uploaded healthcare documents are secured in a private storage bucket behind Row Level Security.
 
 ---
 
 © 2025–2026 Health Express. All rights reserved.  
 *Your personal health manager, for you and your family.*
+

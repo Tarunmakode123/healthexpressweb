@@ -69,7 +69,7 @@ export default function App() {
           />
 
           {/* Global AI Healthcare Service Assistant */}
-          <HealthExpressAssistant />
+          <HealthExpressAssistant onOpenUploadModal={handleOpenUploadModal} />
 
         </div>
       </Router>

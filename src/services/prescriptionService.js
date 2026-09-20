@@ -1,0 +1,209 @@
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { validateAndNormalizeIndianPhone } from '../utils/phone';
+import { generateEnquiryCode } from '../utils/enquiryCode';
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
+const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+];
+
+const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'doc', 'docx'];
+
+/**
+ * Validates prescription file type and size
+ */
+export function validatePrescriptionFile(file) {
+  if (!file) {
+    return { isValid: false, error: 'Please select a prescription file.' };
+  }
+
+  if (file.size <= 0) {
+    return { isValid: false, error: 'The selected file appears to be empty.' };
+  }
+
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return { isValid: false, error: 'File size exceeds 10MB limit. Please upload a smaller file.' };
+  }
+
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+    return { 
+      isValid: false, 
+      error: `Invalid file format (.${extension}). Supported formats: PDF, JPG, PNG, WEBP, DOC, DOCX.` 
+    };
+  }
+
+  // Validate MIME type
+  if (file.type && !ALLOWED_MIME_TYPES.includes(file.type.toLowerCase())) {
+    return { 
+      isValid: false, 
+      error: 'Invalid file MIME type. Please upload a valid document or image.' 
+    };
+  }
+
+  return { isValid: true, error: null };
+}
+
+/**
+ * Submits guest prescription and creates backend system-of-record entries
+ */
+export async function submitGuestPrescription({ file, fullName, phone, city = 'Bengaluru', notes = '', email = '' }) {
+  // 1. Validate Patient Name
+  if (!fullName || fullName.trim().length < 2) {
+    return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
+  }
+
+  // 2. Validate & Normalize Phone Number
+  const phoneValidation = validateAndNormalizeIndianPhone(phone);
+  if (!phoneValidation.isValid) {
+    return { success: false, error: phoneValidation.error };
+  }
+  const phone_e164 = phoneValidation.phone_e164;
+
+  // 3. Validate File
+  const fileValidation = validatePrescriptionFile(file);
+  if (!fileValidation.isValid) {
+    return { success: false, error: fileValidation.error };
+  }
+
+  // 4. Generate Human-Readable Enquiry Code
+  const enquiryCode = generateEnquiryCode();
+
+  // LOCAL DEMO / FALLBACK MODE
+  if (!isSupabaseConfigured) {
+    await new Promise(res => setTimeout(res, 800)); // Simulate async submission
+    return {
+      success: true,
+      enquiry_code: enquiryCode,
+      phone_e164: phone_e164,
+      patient_name: fullName.trim(),
+      isDemoMode: true,
+      message: 'Prescription enquiry registered successfully (Demo Mode).'
+    };
+  }
+
+  // PRODUCTION SUPABASE SUBMISSION
+  let uploadedFilePath = null;
+  try {
+    // A. Upload file to Private Storage Bucket
+    const timeStamp = Date.now();
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    uploadedFilePath = `guest/${enquiryCode}/${timeStamp}_${cleanFileName}`;
+
+    const { data: storageData, error: storageError } = await supabase.storage
+      .from('prescriptions')
+      .upload(uploadedFilePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (storageError) {
+      console.error('Storage Upload Error:', storageError);
+      throw new Error('Failed to securely store prescription file. Please try again.');
+    }
+
+    // B. Find or Create Patient Record
+    let patientId = null;
+
+    const { data: existingPatients, error: patientLookupError } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('phone_e164', phone_e164)
+      .limit(1);
+
+    if (patientLookupError) {
+      console.error('Patient Lookup Error:', patientLookupError);
+    }
+
+    if (existingPatients && existingPatients.length > 0) {
+      patientId = existingPatients[0].id;
+    } else {
+      const { data: newPatient, error: createPatientError } = await supabase
+        .from('patients')
+        .insert({
+          full_name: fullName.trim(),
+          phone_e164: phone_e164,
+          city: city,
+          email: email.trim() || null,
+          user_id: null,
+          is_verified: false
+        })
+        .select('id')
+        .single();
+
+      if (createPatientError) {
+        console.error('Create Patient Error:', createPatientError);
+        throw new Error('Failed to create patient record.');
+      }
+      patientId = newPatient.id;
+    }
+
+    // C. Create Enquiry Record
+    const { data: newEnquiry, error: enquiryError } = await supabase
+      .from('enquiries')
+      .insert({
+        enquiry_code: enquiryCode,
+        patient_id: patientId,
+        source: 'website',
+        status: 'pending_review',
+        notes: notes.trim() || null
+      })
+      .select('id')
+      .single();
+
+    if (enquiryError) {
+      console.error('Enquiry Insert Error:', enquiryError);
+      throw new Error('Failed to register enquiry record.');
+    }
+
+    // D. Create Prescription Record
+    const { error: prescriptionError } = await supabase
+      .from('prescriptions')
+      .insert({
+        enquiry_id: newEnquiry.id,
+        patient_id: patientId,
+        file_path: uploadedFilePath,
+        file_name: file.name,
+        file_type: file.type || 'application/octet-stream',
+        file_size: file.size,
+        user_id: null
+      });
+
+    if (prescriptionError) {
+      console.error('Prescription DB Insert Error:', prescriptionError);
+      throw new Error('Failed to link prescription document record.');
+    }
+
+    return {
+      success: true,
+      enquiry_code: enquiryCode,
+      phone_e164: phone_e164,
+      patient_name: fullName.trim(),
+      isDemoMode: false
+    };
+
+  } catch (err) {
+    console.error('Submission processing failure:', err);
+
+    // ATOMIC CLEANUP: If file was uploaded to storage but DB inserts failed, clean up file
+    if (uploadedFilePath && isSupabaseConfigured) {
+      try {
+        await supabase.storage.from('prescriptions').remove([uploadedFilePath]);
+      } catch (cleanupErr) {
+        console.warn('Failed to clean up uploaded file after DB error:', cleanupErr);
+      }
+    }
+
+    return {
+      success: false,
+      error: err.message || 'We couldn\'t submit your prescription right now. Please try again.'
+    };
+  }
+}
