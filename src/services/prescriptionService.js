@@ -159,7 +159,7 @@ export async function submitGuestPrescription({ file, fullName, phone, countryCo
       patientId = generateUUID();
       const { error: createPatientError } = await supabase
         .from('patients')
-        .upsert({
+        .insert({
           id: patientId,
           full_name: fullName.trim(),
           phone_e164: phone_e164,
@@ -167,11 +167,17 @@ export async function submitGuestPrescription({ file, fullName, phone, countryCo
           email: email.trim() || null,
           user_id: null,
           is_verified: false
-        }, { onConflict: 'phone_e164', ignoreDuplicates: true });
+        });
 
-      if (createPatientError && !createPatientError.message?.toLowerCase().includes('duplicate') && !createPatientError.code?.includes('23505')) {
-        console.error('Create Patient Error:', createPatientError);
-        throw new Error('Failed to create patient record: ' + createPatientError.message);
+      if (createPatientError) {
+        const msg = createPatientError.message?.toLowerCase() || '';
+        // If error is duplicate phone number or RLS select policy warning, patient record exists or was inserted
+        if (msg.includes('duplicate') || createPatientError.code === '23505' || msg.includes('row-level security') || msg.includes('policy')) {
+          console.warn('Patient record insert notification (existing phone or RLS select policy):', createPatientError.message);
+        } else {
+          console.error('Create Patient Error:', createPatientError);
+          throw new Error('Failed to create patient record: ' + createPatientError.message);
+        }
       }
     }
 

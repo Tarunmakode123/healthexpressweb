@@ -62,10 +62,10 @@ alter table public.patients enable row level security;
 alter table public.enquiries enable row level security;
 alter table public.prescriptions enable row level security;
 
--- Patients RLS: Authenticated users can read their own profile
+-- Patients RLS: Authenticated users can view own profile, guest flow can access unlinked profiles
 create policy "Users can view own patient profile" on public.patients
   for select using (
-    auth.uid() = user_id
+    user_id is null or auth.uid() = user_id
   );
 
 -- Enquiries RLS: Authenticated users can view their own enquiries
