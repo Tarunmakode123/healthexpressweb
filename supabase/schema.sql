@@ -160,3 +160,37 @@ $$ language plpgsql security definer set search_path = public;
 -- Revoke execute from public; grant only to authenticated role
 revoke execute on function public.link_guest_records_on_otp_login(text) from public;
 grant execute on function public.link_guest_records_on_otp_login(text) to authenticated;
+
+-- ============================================================
+-- GUEST PATIENT ATOMIC LOOKUP/CREATION SECURITY DEFINER FUNCTION
+-- (Supports multiple prescription uploads per phone number)
+-- ============================================================
+
+create or replace function public.get_or_create_guest_patient(
+  p_full_name text,
+  p_phone_e164 text,
+  p_city text default 'Bengaluru',
+  p_email text default null
+) returns uuid as $$
+declare
+  v_patient_id uuid;
+begin
+  -- 1. Check if patient record with this phone number already exists
+  select id into v_patient_id
+  from public.patients
+  where phone_e164 = p_phone_e164
+  limit 1;
+
+  -- 2. If not found, create new patient record
+  if v_patient_id is null then
+    insert into public.patients (full_name, phone_e164, city, email)
+    values (p_full_name, p_phone_e164, p_city, p_email)
+    returning id into v_patient_id;
+  end if;
+
+  return v_patient_id;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+-- Grant execute to anon and authenticated roles for guest uploads
+grant execute on function public.get_or_create_guest_patient(text, text, text, text) to anon, authenticated;

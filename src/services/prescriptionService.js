@@ -119,28 +119,47 @@ export async function submitGuestPrescription({ file, fullName, phone, city = 'B
       throw new Error('Failed to securely store prescription file. Please try again.');
     }
 
-    // B. Find or Create Patient Record (Using Client-Side UUID to avoid RLS SELECT blocks)
+    // B. Find or Create Patient Record (Supports multiple uploads per phone number)
     let patientId = null;
 
+    // Try RPC function first (handles RLS bypass for existing guest phone numbers)
     try {
-      const { data: existingPatients } = await supabase
-        .from('patients')
-        .select('id')
-        .eq('phone_e164', phone_e164)
-        .limit(1);
+      const { data: rpcPatientId, error: rpcError } = await supabase.rpc('get_or_create_guest_patient', {
+        p_full_name: fullName.trim(),
+        p_phone_e164: phone_e164,
+        p_city: city,
+        p_email: email.trim() || null
+      });
 
-      if (existingPatients && existingPatients.length > 0) {
-        patientId = existingPatients[0].id;
+      if (!rpcError && rpcPatientId) {
+        patientId = rpcPatientId;
       }
-    } catch (e) {
-      console.warn('Patient lookup warning:', e);
+    } catch (rpcErr) {
+      console.warn('RPC lookup fallback:', rpcErr);
+    }
+
+    // Fallback: Direct lookup & Upsert handling
+    if (!patientId) {
+      try {
+        const { data: existingPatients } = await supabase
+          .from('patients')
+          .select('id')
+          .eq('phone_e164', phone_e164)
+          .limit(1);
+
+        if (existingPatients && existingPatients.length > 0) {
+          patientId = existingPatients[0].id;
+        }
+      } catch (lookupErr) {
+        console.warn('Patient lookup warning:', lookupErr);
+      }
     }
 
     if (!patientId) {
       patientId = generateUUID();
       const { error: createPatientError } = await supabase
         .from('patients')
-        .insert({
+        .upsert({
           id: patientId,
           full_name: fullName.trim(),
           phone_e164: phone_e164,
@@ -148,9 +167,9 @@ export async function submitGuestPrescription({ file, fullName, phone, city = 'B
           email: email.trim() || null,
           user_id: null,
           is_verified: false
-        });
+        }, { onConflict: 'phone_e164', ignoreDuplicates: true });
 
-      if (createPatientError) {
+      if (createPatientError && !createPatientError.message?.toLowerCase().includes('duplicate') && !createPatientError.code?.includes('23505')) {
         console.error('Create Patient Error:', createPatientError);
         throw new Error('Failed to create patient record: ' + createPatientError.message);
       }
