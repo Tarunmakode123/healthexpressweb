@@ -30,9 +30,9 @@ export default function HeroSection({ onOpenUploadModal }) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-              <span className="text-purple-900 font-extrabold uppercase tracking-wider text-[11px]">BENGALURU SOFT LAUNCH</span>
+              <span className="text-purple-900 font-extrabold uppercase tracking-wider text-[11px]">⚡ 30-MIN HOME SAMPLE COLLECTION</span>
               <span className="text-slate-300">|</span>
-              <span className="text-emerald-700 font-bold">12 Care Coordinators Active</span>
+              <span className="text-emerald-700 font-bold">100% Cold-Chain Monitored</span>
             </div>
 
             {/* Main H1 */}
