@@ -201,4 +201,21 @@
   border-color: rgba(168, 85, 247, 0.8);
 }
 
+/* Mobile Viewport & Touch Optimization */
+@media (max-width: 640px) {
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .glass-card, .bento-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Disable hover transform on mobile touch devices to avoid sticky state */
+  .bento-card:hover, .glow-emerald-hover:hover {
+    transform: none;
+  }
+}
+
 
