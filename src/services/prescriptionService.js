@@ -113,6 +113,8 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
 
   // PRODUCTION SUPABASE SUBMISSION
   const uploadedFiles = [];
+  const uploadErrors = [];
+
   try {
     // A. Upload all files to Private Storage Bucket
     const timeStamp = Date.now();
@@ -121,23 +123,24 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
       const cleanFileName = f.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const filePath = `guest/${enquiryCode}/${timeStamp}_${idx + 1}_${cleanFileName}`;
 
-      const { error: storageError } = await supabase.storage
+      const { error: uploadErr } = await supabase.storage
         .from('prescriptions')
         .upload(filePath, f, {
           cacheControl: '3600',
           upsert: false
         });
 
-      if (!storageError) {
+      if (!uploadErr) {
         uploadedFiles.push({ filePath, name: f.name, type: f.type, size: f.size });
       } else {
-        console.warn(`Storage Upload Warning for ${f.name}:`, storageError);
+        console.warn(`Storage Upload Warning for ${f.name}:`, uploadErr);
+        uploadErrors.push(uploadErr);
       }
     }
 
-    if (storageError) {
-      console.error('Storage Upload Error:', storageError);
-      throw new Error('Failed to securely store prescription file. Please try again.');
+    if (uploadedFiles.length === 0 && fileList.length > 0) {
+      console.error('Storage Upload Error:', uploadErrors);
+      throw new Error('Failed to securely store prescription files. Please try again.');
     }
 
     // B. Find or Create Patient Record (Supports multiple uploads per phone number)
@@ -259,19 +262,21 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
       enquiry_code: enquiryCode,
       phone_e164: phone_e164,
       patient_name: fullName.trim(),
+      file_count: uploadedFiles.length,
       isDemoMode: false
     };
 
   } catch (err) {
     console.error('Submission processing failure:', err);
 
-    // If file was uploaded to storage, still generate Enquiry Code for patient
-    if (uploadedFilePath) {
+    // If at least one file was uploaded to storage, still generate Enquiry Code for patient
+    if (uploadedFiles && uploadedFiles.length > 0) {
       return {
         success: true,
         enquiry_code: enquiryCode,
         phone_e164: phone_e164,
         patient_name: fullName.trim(),
+        file_count: uploadedFiles.length,
         isDemoMode: false,
         message: 'Prescription file uploaded to storage successfully.'
       };
