@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import { POPULAR_COUNTRY_CODES, validateAndNormalizeInternationalPhone } from '../utils/phone';
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function AuthPage() {
 
   // Form Fields
   const [fullName, setFullName] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -108,9 +110,9 @@ export default function AuthPage() {
     e.preventDefault();
     setError('');
 
-    const cleanedPhone = phone.replace(/\D/g, '');
-    if (cleanedPhone.length < 10) {
-      setError('Please enter a valid 10-digit mobile number.');
+    const phoneCheck = validateAndNormalizeInternationalPhone(phone, countryCode);
+    if (!phoneCheck.isValid) {
+      setError(phoneCheck.error);
       return;
     }
 
@@ -130,7 +132,7 @@ export default function AuthPage() {
       setOtpStep(true);
       setOtpTimer(30);
       setCanResendOtp(false);
-      setSuccessMessage(`OTP sent successfully to +91 ${cleanedPhone}`);
+      setSuccessMessage(`OTP sent successfully to ${phoneCheck.phone_e164}`);
     }, 800);
   };
 
@@ -421,19 +423,30 @@ export default function AuthPage() {
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800">Mobile Number (India)</label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-3.5 text-xs font-extrabold text-slate-500 pointer-events-none">
-                        🇮🇳 +91
-                      </span>
-                      <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Enter 10-digit mobile number"
-                        maxLength={10}
-                        className="w-full pl-16 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
-                      />
+                    <label className="text-xs font-bold text-slate-800">Mobile Phone Number</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        className="px-2.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white shrink-0 cursor-pointer"
+                      >
+                        {POPULAR_COUNTRY_CODES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.flag} {c.code} ({c.country})
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="relative flex-1">
+                        <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder={countryCode === '+91' ? 'Enter 10-digit mobile' : 'Enter mobile number'}
+                          className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                        />
+                      </div>
                     </div>
                   </div>
 

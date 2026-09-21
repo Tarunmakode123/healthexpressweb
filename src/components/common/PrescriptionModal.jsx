@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { validatePrescriptionFile, submitGuestPrescription } from '../../services/prescriptionService';
-import { validateAndNormalizeIndianPhone } from '../../utils/phone';
+import { validateAndNormalizeInternationalPhone, POPULAR_COUNTRY_CODES } from '../../utils/phone';
 
 export default function PrescriptionModal({ isOpen, onClose }) {
   // Wizard Steps: 1 = File Upload, 2 = Patient Details, 3 = Confirmation
@@ -18,6 +18,7 @@ export default function PrescriptionModal({ isOpen, onClose }) {
 
   // Step 2 State: Patient Form
   const [fullName, setFullName] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('Bengaluru');
   const [email, setEmail] = useState('');
@@ -112,7 +113,7 @@ export default function PrescriptionModal({ isOpen, onClose }) {
     const val = e.target.value;
     setPhone(val);
     if (val.trim()) {
-      const check = validateAndNormalizeIndianPhone(val);
+      const check = validateAndNormalizeInternationalPhone(val, countryCode);
       if (!check.isValid && val.replace(/\D/g, '').length >= 10) {
         setPhoneError(check.error);
       } else {
@@ -133,7 +134,7 @@ export default function PrescriptionModal({ isOpen, onClose }) {
       return;
     }
 
-    const phoneCheck = validateAndNormalizeIndianPhone(phone);
+    const phoneCheck = validateAndNormalizeInternationalPhone(phone, countryCode);
     if (!phoneCheck.isValid) {
       setPhoneError(phoneCheck.error);
       setErrorMessage(phoneCheck.error);
@@ -152,6 +153,7 @@ export default function PrescriptionModal({ isOpen, onClose }) {
         file: selectedFile,
         fullName,
         phone,
+        countryCode,
         city,
         email,
         notes
@@ -375,30 +377,46 @@ export default function PrescriptionModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Mobile Number */}
+              {/* Mobile Number with Country Code Dropdown */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Indian Mobile Number <span className="text-rose-500">*</span>
+                  Mobile Phone Number <span className="text-rose-500">*</span>
                 </label>
-                <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 flex items-center gap-1">
-                    <Phone className="w-3.5 h-3.5 text-slate-400" />
-                    <span>+91</span>
+                <div className="flex gap-2">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => {
+                      setCountryCode(e.target.value);
+                      if (phone) {
+                        const check = validateAndNormalizeInternationalPhone(phone, e.target.value);
+                        setPhoneError(check.isValid ? '' : check.error);
+                      }
+                    }}
+                    className="px-2.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-purple-900 bg-purple-50/80 focus:ring-2 focus:ring-purple-600 outline-none shrink-0 cursor-pointer"
+                  >
+                    {POPULAR_COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.code} ({c.country})
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="relative flex-1">
+                    <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      placeholder={countryCode === '+91' ? '98765 43210' : 'Enter mobile number'}
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs font-medium text-slate-900 focus:ring-2 focus:ring-purple-600 outline-none ${
+                        phoneError ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200'
+                      }`}
+                    />
                   </div>
-                  <input
-                    type="tel"
-                    required
-                    maxLength={13}
-                    value={phone}
-                    onChange={handlePhoneChange}
-                    placeholder="98765 43210"
-                    className={`w-full pl-16 pr-4 py-2.5 rounded-xl border text-xs font-medium text-slate-900 focus:ring-2 focus:ring-purple-600 outline-none ${
-                      phoneError ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200'
-                    }`}
-                  />
                 </div>
                 {phoneError && <p className="text-[11px] text-rose-600 mt-1">{phoneError}</p>}
-                <p className="text-[10px] text-slate-400 mt-1">Used as your unique guest identifier for care coordination.</p>
+                <p className="text-[10px] text-slate-400 mt-1">International & Indian numbers supported for WhatsApp coordination.</p>
               </div>
 
               {/* City / Locality */}

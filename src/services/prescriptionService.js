@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { validateAndNormalizeIndianPhone } from '../utils/phone';
+import { validateAndNormalizeInternationalPhone } from '../utils/phone';
 import { generateEnquiryCode } from '../utils/enquiryCode';
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
@@ -64,14 +64,14 @@ export function validatePrescriptionFile(file) {
 /**
  * Submits guest prescription and creates backend system-of-record entries
  */
-export async function submitGuestPrescription({ file, fullName, phone, city = 'Bengaluru', notes = '', email = '' }) {
+export async function submitGuestPrescription({ file, fullName, phone, countryCode = '+91', city = 'Bengaluru', notes = '', email = '' }) {
   // 1. Validate Patient Name
   if (!fullName || fullName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
   }
 
   // 2. Validate & Normalize Phone Number
-  const phoneValidation = validateAndNormalizeIndianPhone(phone);
+  const phoneValidation = validateAndNormalizeInternationalPhone(phone, countryCode);
   if (!phoneValidation.isValid) {
     return { success: false, error: phoneValidation.error };
   }
