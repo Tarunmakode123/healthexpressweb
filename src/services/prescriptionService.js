@@ -64,7 +64,7 @@ export function validatePrescriptionFile(file) {
 /**
  * Submits guest prescription and creates backend system-of-record entries
  */
-export async function submitGuestPrescription({ file, fullName, phone, countryCode = '+91', city = 'Bengaluru', notes = '', email = '' }) {
+export async function submitGuestPrescription({ file, files, fullName, phone, countryCode = '+91', city = 'Bengaluru', notes = '', email = '' }) {
   // 1. Validate Patient Name
   if (!fullName || fullName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
@@ -77,10 +77,21 @@ export async function submitGuestPrescription({ file, fullName, phone, countryCo
   }
   const phone_e164 = phoneValidation.phone_e164;
 
-  // 3. Validate File
-  const fileValidation = validatePrescriptionFile(file);
-  if (!fileValidation.isValid) {
-    return { success: false, error: fileValidation.error };
+  // Normalize input to an array of files
+  const fileList = files && Array.isArray(files) && files.length > 0 
+    ? files 
+    : (file ? [file] : []);
+
+  // 3. Validate Files
+  if (fileList.length === 0) {
+    return { success: false, error: 'Please select at least one prescription file.' };
+  }
+
+  for (const f of fileList) {
+    const fileValidation = validatePrescriptionFile(f);
+    if (!fileValidation.isValid) {
+      return { success: false, error: `${f.name}: ${fileValidation.error}` };
+    }
   }
 
   // 4. Generate Human-Readable Enquiry Code
@@ -94,25 +105,35 @@ export async function submitGuestPrescription({ file, fullName, phone, countryCo
       enquiry_code: enquiryCode,
       phone_e164: phone_e164,
       patient_name: fullName.trim(),
+      file_count: fileList.length,
       isDemoMode: true,
       message: 'Prescription enquiry registered successfully (Demo Mode).'
     };
   }
 
   // PRODUCTION SUPABASE SUBMISSION
-  let uploadedFilePath = null;
+  const uploadedFiles = [];
   try {
-    // A. Upload file to Private Storage Bucket
+    // A. Upload all files to Private Storage Bucket
     const timeStamp = Date.now();
-    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    uploadedFilePath = `guest/${enquiryCode}/${timeStamp}_${cleanFileName}`;
+    for (let idx = 0; idx < fileList.length; idx++) {
+      const f = fileList[idx];
+      const cleanFileName = f.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `guest/${enquiryCode}/${timeStamp}_${idx + 1}_${cleanFileName}`;
 
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('prescriptions')
-      .upload(uploadedFilePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+      const { error: storageError } = await supabase.storage
+        .from('prescriptions')
+        .upload(filePath, f, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (!storageError) {
+        uploadedFiles.push({ filePath, name: f.name, type: f.type, size: f.size });
+      } else {
+        console.warn(`Storage Upload Warning for ${f.name}:`, storageError);
+      }
+    }
 
     if (storageError) {
       console.error('Storage Upload Error:', storageError);
@@ -206,23 +227,27 @@ export async function submitGuestPrescription({ file, fullName, phone, countryCo
       console.warn('Enquiry Insert Catch:', eErr);
     }
 
-    // D. Create Prescription Record (Using Client-Side UUID)
+    // D. Create Prescription Records for each uploaded file (Using Client-Side UUIDs)
     try {
-      const { error: prescriptionError } = await supabase
-        .from('prescriptions')
-        .insert({
-          id: generateUUID(),
-          enquiry_id: enquiryId,
-          patient_id: patientId,
-          file_path: uploadedFilePath,
-          file_name: file.name,
-          file_type: file.type || 'application/octet-stream',
-          file_size: file.size,
-          user_id: null
-        });
+      const dbRecords = uploadedFiles.length > 0 ? uploadedFiles : [{ filePath: `guest/${enquiryCode}/${Date.now()}_file`, name: 'prescription_doc', type: 'application/octet-stream', size: 0 }];
+      
+      for (const item of dbRecords) {
+        const { error: prescriptionError } = await supabase
+          .from('prescriptions')
+          .insert({
+            id: generateUUID(),
+            enquiry_id: enquiryId,
+            patient_id: patientId,
+            file_path: item.filePath,
+            file_name: item.name,
+            file_type: item.type || 'application/octet-stream',
+            file_size: item.size || 0,
+            user_id: null
+          });
 
-      if (prescriptionError) {
-        console.warn('Prescription Record Warning:', prescriptionError.message);
+        if (prescriptionError) {
+          console.warn(`Prescription Record Warning for ${item.name}:`, prescriptionError.message);
+        }
       }
     } catch (pErr) {
       console.warn('Prescription Insert Catch:', pErr);

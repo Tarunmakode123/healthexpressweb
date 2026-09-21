@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, MessageSquare, FileText, CheckCircle2, ShieldCheck, Upload, 
-  AlertCircle, ArrowRight, Loader2, Copy, Check, FileCheck, RefreshCw, User, Phone, MapPin, Mail
+  AlertCircle, ArrowRight, Loader2, Copy, Check, FileCheck, RefreshCw, User, Phone, MapPin, Mail, Trash2, Plus
 } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { validatePrescriptionFile, submitGuestPrescription } from '../../services/prescriptionService';
@@ -11,8 +11,8 @@ export default function PrescriptionModal({ isOpen, onClose }) {
   // Wizard Steps: 1 = File Upload, 2 = Patient Details, 3 = Confirmation
   const [step, setStep] = useState(1);
 
-  // Step 1 State: File
-  const [selectedFile, setSelectedFile] = useState(null);
+  // Step 1 State: Files (Multi-file support)
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -50,7 +50,7 @@ export default function PrescriptionModal({ isOpen, onClose }) {
     onClose();
     setTimeout(() => {
       setStep(1);
-      setSelectedFile(null);
+      setSelectedFiles([]);
       setFullName('');
       setPhone('');
       setCity('Bengaluru');
@@ -65,19 +65,30 @@ export default function PrescriptionModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // File Selector Handler
-  const handleFileSelect = (file) => {
+  // File Selector & Multi-file Add Handler
+  const handleFilesAdd = (newFiles) => {
     setErrorMessage('');
-    if (!file) return;
+    if (!newFiles || newFiles.length === 0) return;
 
-    const validation = validatePrescriptionFile(file);
-    if (!validation.isValid) {
-      setErrorMessage(validation.error);
-      setSelectedFile(null);
-      return;
+    const validFiles = [];
+    for (const file of newFiles) {
+      const validation = validatePrescriptionFile(file);
+      if (!validation.isValid) {
+        setErrorMessage(`${file.name}: ${validation.error}`);
+        return;
+      }
+      validFiles.push(file);
     }
 
-    setSelectedFile(file);
+    setSelectedFiles(prev => {
+      const existingSignatures = new Set(prev.map(f => `${f.name}_${f.size}`));
+      const uniqueNew = validFiles.filter(f => !existingSignatures.has(`${f.name}_${f.size}`));
+      return [...prev, ...uniqueNew];
+    });
+  };
+
+  const handleRemoveFile = (indexToRemove) => {
+    setSelectedFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleDragOver = (e) => {
@@ -93,15 +104,15 @@ export default function PrescriptionModal({ isOpen, onClose }) {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilesAdd(Array.from(e.dataTransfer.files));
     }
   };
 
   // Step 1 -> Step 2
   const handleNextToDetails = () => {
-    if (!selectedFile) {
-      setErrorMessage('Please select or drop a prescription file before continuing.');
+    if (selectedFiles.length === 0) {
+      setErrorMessage('Please select or drop at least one prescription file before continuing.');
       return;
     }
     setErrorMessage('');
@@ -141,7 +152,7 @@ export default function PrescriptionModal({ isOpen, onClose }) {
       return;
     }
 
-    if (!selectedFile) {
+    if (selectedFiles.length === 0) {
       setErrorMessage('Prescription file is missing. Please go back to Step 1.');
       return;
     }
@@ -150,7 +161,8 @@ export default function PrescriptionModal({ isOpen, onClose }) {
 
     try {
       const result = await submitGuestPrescription({
-        file: selectedFile,
+        files: selectedFiles,
+        file: selectedFiles[0],
         fullName,
         phone,
         countryCode,
@@ -259,80 +271,103 @@ export default function PrescriptionModal({ isOpen, onClose }) {
           {step === 1 && (
             <div className="space-y-5">
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-                Upload your prescription, medical order, or test recommendation slip. No account creation required.
+                Upload one or multiple prescriptions, medical orders, or test recommendation slips in a single submission. No account creation required.
               </p>
 
-              {/* Drag and Drop Zone */}
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-3xl p-6 sm:p-8 text-center cursor-pointer transition-all ${
-                  isDragOver 
-                    ? 'border-purple-600 bg-purple-50/80 scale-[0.99]' 
-                    : selectedFile 
-                      ? 'border-emerald-400 bg-emerald-50/40' 
-                      : 'border-purple-200 hover:border-purple-400 bg-purple-50/30'
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                  onChange={(e) => e.target.files && handleFileSelect(e.target.files[0])}
-                  className="hidden"
-                />
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                onChange={(e) => e.target.files && handleFilesAdd(Array.from(e.target.files))}
+                className="hidden"
+              />
 
-                {selectedFile ? (
-                  <div className="space-y-3">
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-md">
-                      <FileCheck className="w-7 h-7" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-slate-900 truncate max-w-[260px] mx-auto">
-                        {selectedFile.name}
-                      </div>
-                      <div className="text-xs text-slate-500 mt-1">
-                        {formatFileSize(selectedFile.size)} • {selectedFile.name.split('.').pop()?.toUpperCase()}
-                      </div>
-                    </div>
+              {selectedFiles.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700">
+                      Selected Files ({selectedFiles.length})
+                    </span>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedFile(null);
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs text-rose-600 font-semibold hover:text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1 text-xs text-purple-700 font-bold hover:text-purple-900"
                     >
-                      <RefreshCw className="w-3 h-3" />
-                      <span>Change File</span>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add More Files</span>
                     </button>
                   </div>
-                ) : (
+
+                  <div className="max-h-56 overflow-y-auto space-y-2 pr-1">
+                    {selectedFiles.map((file, idx) => (
+                      <div 
+                        key={`${file.name}_${idx}`} 
+                        className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/60 border border-emerald-200/70"
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                            <FileCheck className="w-5 h-5" />
+                          </div>
+                          <div className="overflow-hidden">
+                            <div className="text-xs font-bold text-slate-900 truncate max-w-[200px] sm:max-w-[240px]">
+                              {file.name}
+                            </div>
+                            <div className="text-[10px] text-slate-500">
+                              {formatFileSize(file.size)} • {file.name.split('.').pop()?.toUpperCase()}
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(idx)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Remove file"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Drag and Drop Zone */
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-3xl p-6 sm:p-8 text-center cursor-pointer transition-all ${
+                    isDragOver 
+                      ? 'border-purple-600 bg-purple-50/80 scale-[0.99]' 
+                      : 'border-purple-200 hover:border-purple-400 bg-purple-50/30'
+                  }`}
+                >
                   <div className="space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-xs">
                       <Upload className="w-6 h-6" />
                     </div>
                     <div>
-                      <span className="text-sm font-bold text-purple-900">Click to upload</span>
+                      <span className="text-sm font-bold text-purple-900">Click to upload files</span>
                       <span className="text-sm text-slate-500"> or drag & drop</span>
                     </div>
                     <p className="text-[11px] text-slate-400">
-                      Supported formats: PDF, JPG, PNG, WEBP, DOC, DOCX (Max 10 MB)
+                      Select multiple documents at once. Formats: PDF, JPG, PNG, WEBP, DOC, DOCX (Max 10 MB per file)
                     </p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Step 1 Action Button */}
               <button
                 type="button"
                 onClick={handleNextToDetails}
-                disabled={!selectedFile}
+                disabled={selectedFiles.length === 0}
                 className="w-full py-3.5 px-6 rounded-2xl bg-purple-700 hover:bg-purple-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all touch-target"
               >
-                <span>Continue to Patient Details</span>
+                <span>Continue to Patient Details ({selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''})</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -344,18 +379,22 @@ export default function PrescriptionModal({ isOpen, onClose }) {
           {step === 2 && (
             <form onSubmit={handleSubmitPrescription} className="space-y-4">
               
-              {/* Selected File Summary Bar */}
+              {/* Selected Files Summary Bar */}
               <div className="flex items-center justify-between p-3 rounded-2xl bg-purple-50 border border-purple-100 text-xs">
                 <div className="flex items-center gap-2 overflow-hidden">
                   <FileText className="w-4 h-4 text-purple-700 shrink-0" />
-                  <span className="font-semibold text-slate-900 truncate">{selectedFile?.name}</span>
+                  <span className="font-semibold text-slate-900 truncate">
+                    {selectedFiles.length === 1 
+                      ? selectedFiles[0].name 
+                      : `${selectedFiles.length} Prescription Documents Selected`}
+                  </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setStep(1)}
                   className="text-purple-700 font-bold hover:underline shrink-0 text-[11px]"
                 >
-                  Edit File
+                  Edit Files
                 </button>
               </div>
 
@@ -510,7 +549,9 @@ export default function PrescriptionModal({ isOpen, onClose }) {
               <div className="space-y-1">
                 <h4 className="text-xl font-extrabold text-slate-900">Prescription Received!</h4>
                 <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-                  Your prescription has been securely saved. Our care team will review it and contact you on WhatsApp shortly.
+                  {submissionResult.file_count && submissionResult.file_count > 1 
+                    ? `All ${submissionResult.file_count} prescription documents have been securely uploaded.`
+                    : 'Your prescription has been securely saved.'} Our care team will review and contact you on WhatsApp shortly.
                 </p>
               </div>
 
@@ -553,7 +594,7 @@ export default function PrescriptionModal({ isOpen, onClose }) {
                   type="button"
                   onClick={() => {
                     setStep(1);
-                    setSelectedFile(null);
+                    setSelectedFiles([]);
                     setErrorMessage('');
                   }}
                   className="text-xs text-purple-700 hover:text-purple-900 font-bold hover:underline block mx-auto"
