@@ -6,24 +6,23 @@ export default function JourneyVideoSection({ onOpenUploadModal }) {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Handle autoplay check
-    const playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch((err) => {
-          console.warn('Autoplay prevented or interrupted:', err);
-          setIsPlaying(false);
-        });
-    }
+    // Force autoplay attempt
+    const attemptPlay = () => {
+      video.muted = true;
+      video.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.warn('Autoplay prevented by browser:', err);
+        setIsPlaying(false);
+      });
+    };
+
+    attemptPlay();
   }, []);
 
   const togglePlay = () => {
@@ -70,26 +69,21 @@ export default function JourneyVideoSection({ onOpenUploadModal }) {
         {/* 16:9 Cinematic Video Container */}
         <div className="max-w-5xl mx-auto relative group">
           <div className="relative aspect-video w-full rounded-2xl md:rounded-[28px] overflow-hidden border border-slate-700/60 shadow-2xl bg-slate-950">
-            {!hasError ? (
-              <video
-                ref={videoRef}
-                src="/videos/healthexpress-journey-story.mp4"
-                poster="/logo.png"
-                autoPlay
-                muted
-                playsInline
-                loop
-                preload="metadata"
-                onError={() => setHasError(true)}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 p-6 text-center">
-                <p className="text-slate-400 text-sm mb-4">Unable to load journey video playback.</p>
-              </div>
-            )}
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              loop
+              preload="auto"
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              className="w-full h-full object-cover"
+            >
+              <source src="/videos/healthexpress-journey-story.mp4" type="video/mp4" />
+              <source src="/videos/healthexpress-2nd%20video.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
 
             {/* Video Controls Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4 sm:p-6 pointer-events-none">
