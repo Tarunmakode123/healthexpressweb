@@ -313,12 +313,12 @@ export default function HeroSection({ onOpenUploadModal }) {
             <div className="relative w-full max-w-md">
               
               {/* LAYER 1: Ambient Lighting Glow */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 rounded-3xl opacity-70 blur-2xl -z-10"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 rounded-3xl opacity-70 blur-2xl -z-10" />
 
-              {/* LAYER 3: TRANSLUCENT GLASS UI FLOATING CARDS */}
+              {/* LAYER 3: TRANSLUCENT GLASS UI FLOATING CARDS (MAX 2) */}
               
-              {/* Floating Card 1: Home Healthcare */}
-              <div className="hidden sm:flex absolute -top-4 -left-6 z-20 glass-card px-4 py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float">
+              {/* Card 1 (Upper-left edge): Home Healthcare */}
+              <div className="flex absolute -top-4 -left-4 sm:-left-6 z-20 glass-card px-4 py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float">
                 <div className="w-8 h-8 rounded-xl bg-purple-700 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
                   <Home className="w-4 h-4" />
                 </div>
@@ -331,31 +331,20 @@ export default function HeroSection({ onOpenUploadModal }) {
                 </div>
               </div>
 
-              {/* Floating Card 2: Lab Tests */}
-              <div className="hidden sm:flex absolute -bottom-4 -right-4 z-20 glass-card px-4 py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float-delayed">
-                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-                  <FlaskConical className="w-4 h-4" />
+              {/* Card 2 (Lower-right edge): Prescription Received */}
+              <div className="hidden sm:flex absolute -bottom-4 -right-4 sm:-right-6 z-20 glass-card px-4 py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float-delayed">
+                <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                  <FileCheck className="w-4 h-4 text-purple-300" />
                 </div>
                 <div className="text-left">
-                  <div className="text-xs font-extrabold text-slate-900">Lab Tests</div>
-                  <div className="text-[10px] text-purple-700 font-bold">NABL Accredited Partner Labs</div>
-                </div>
-              </div>
-
-              {/* Floating Card 3: Prescription Received Status */}
-              <div className="hidden sm:flex absolute top-1/2 -right-6 z-20 glass-card px-3.5 py-2.5 rounded-2xl shadow-lg border border-purple-200/90 items-center gap-2.5 backdrop-blur-md">
-                <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
-                  <FileCheck className="w-3.5 h-3.5 text-purple-300" />
-                </div>
-                <div className="text-left">
-                  <div className="text-[11px] font-extrabold text-slate-900">Prescription Received</div>
-                  <div className="text-[9px] text-slate-500 font-semibold">Care Team Assigned</div>
+                  <div className="text-xs font-extrabold text-slate-900">Prescription Received</div>
+                  <div className="text-[10px] text-slate-500 font-semibold">Care Team Assigned</div>
                 </div>
               </div>
 
               {/* LAYER 2: MAIN HEALTHCARE EDITORIAL PHOTOGRAPHY CONTAINER */}
               <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-white group text-left">
-                <div className="relative h-72 sm:h-84 w-full overflow-hidden">
+                <div className="relative h-80 sm:h-96 w-full overflow-hidden">
                   <img
                     src="/hero_home_care.jpg"
                     alt="Health Express Care Manager providing personalized healthcare assistance"
@@ -363,25 +352,14 @@ export default function HeroSection({ onOpenUploadModal }) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
                   
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <div className="absolute bottom-5 left-5 right-5 text-white">
                     <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-purple-700 text-white backdrop-blur-md shadow-inner">
                       Professional Home Care
                     </span>
-                    <h3 className="text-sm font-extrabold text-white mt-2 drop-shadow-sm">
+                    <h3 className="text-sm sm:text-base font-extrabold text-white mt-2 drop-shadow-sm">
                       Care coordinated in the comfort of your home.
                     </h3>
                   </div>
-                </div>
-
-                {/* Direct Action Link Strip */}
-                <div className="p-4 bg-white">
-                  <Link
-                    to="/services"
-                    className="w-full py-3 rounded-xl bg-slate-900 hover:bg-purple-900 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
-                  >
-                    <span>View All Healthcare Services</span>
-                    <ArrowRight className="w-4 h-4 text-purple-300" />
-                  </Link>
                 </div>
               </div>
 
