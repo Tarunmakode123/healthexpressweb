@@ -1,9 +1,47 @@
-import React, { useState } from 'react';
-import { Upload, Search, CalendarCheck, Activity, CheckCircle2, ArrowRight, ShieldCheck, PhoneCall, UserCheck, HeartPulse } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload, Search, CalendarCheck, Activity, CheckCircle2, ArrowRight, ShieldCheck, PhoneCall, UserCheck, HeartPulse, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function HowItWorksSection({ onOpenUploadModal }) {
   const [activeStep, setActiveStep] = useState(0);
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const attemptPlay = () => {
+      video.muted = true;
+      video.play().then(() => {
+        setIsPlaying(true);
+      }).catch((err) => {
+        console.warn('Autoplay prevented:', err);
+        setIsPlaying(false);
+      });
+    };
+
+    attemptPlay();
+  }, []);
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      video.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
 
   const steps = [
     {
@@ -75,7 +113,7 @@ export default function HowItWorksSection({ onOpenUploadModal }) {
       <div className="absolute top-0 right-0 w-96 h-96 bg-purple-900/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-900/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
         {/* Editorial Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -86,12 +124,62 @@ export default function HowItWorksSection({ onOpenUploadModal }) {
             Healthcare, <span className="text-purple-400">without the runaround.</span>
           </h2>
           <p className="text-base sm:text-lg text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed">
-            Tell us what you need. We'll help coordinate the next step for you and your family.
+            Upload your prescription and let Health Express take care of your family's healthcare journey.
           </p>
         </div>
 
+        {/* 16:9 CINEMATIC STORY VIDEO PLAYER */}
+        <div className="max-w-4xl mx-auto relative group">
+          <div className="relative aspect-video w-full rounded-2xl md:rounded-3xl overflow-hidden border border-purple-900/60 shadow-2xl bg-slate-900">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              loop
+              preload="auto"
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              className="w-full h-full object-cover"
+            >
+              <source src="/videos/healthexpress-journey-story.mp4" type="video/mp4" />
+              <source src="/videos/healthexpress-2nd%20video.mp4" type="video/mp4" />
+              Your browser does not support video playback.
+            </video>
+
+            {/* Video Controls Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4 sm:p-6 pointer-events-none">
+              <div className="flex items-center gap-3 pointer-events-auto">
+                <button
+                  onClick={togglePlay}
+                  className="w-10 h-10 rounded-full bg-slate-900/90 hover:bg-purple-600 text-white flex items-center justify-center backdrop-blur-md border border-slate-700 transition-all shadow-lg"
+                  aria-label={isPlaying ? 'Pause Video' : 'Play Video'}
+                >
+                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+                </button>
+                <button
+                  onClick={toggleMute}
+                  className="w-10 h-10 rounded-full bg-slate-900/90 hover:bg-purple-600 text-white flex items-center justify-center backdrop-blur-md border border-slate-700 transition-all shadow-lg"
+                  aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+                >
+                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <div className="text-right pointer-events-auto">
+                <span className="text-xs font-semibold text-purple-300 bg-purple-950/80 px-3 py-1 rounded-full border border-purple-800">
+                  Health Express Journey
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Ambient Video Glow */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 via-indigo-600/20 to-purple-600/20 rounded-[28px] blur-xl -z-10 opacity-70 group-hover:opacity-100 transition-opacity" />
+        </div>
+
         {/* STEP SELECTOR BAR (HORIZONTAL TIMELINE) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
           {steps.map((s, idx) => {
             const isActive = activeStep === idx;
             const IconComp = s.icon;
