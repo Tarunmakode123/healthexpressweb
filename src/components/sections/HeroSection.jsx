@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Upload, CheckCircle, FlaskConical, Home, ArrowRight } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
+import DiscountHeroBanner from '../common/DiscountHeroBanner';
 
 export default function HeroSection({ onOpenUploadModal }) {
   return (
@@ -24,6 +25,9 @@ export default function HeroSection({ onOpenUploadModal }) {
           {/* Left Hero Content */}
           <div className="lg:col-span-7 space-y-6 text-left">
             
+            {/* Promo Discount & Health Manager WhatsApp Banner */}
+            <DiscountHeroBanner />
+
             {/* Live Clinical Availability Pill */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-purple-200 text-xs font-extrabold text-slate-800 shadow-xs backdrop-blur-md">
               <span className="relative flex h-2.5 w-2.5">

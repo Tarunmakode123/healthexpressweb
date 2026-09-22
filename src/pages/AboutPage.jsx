@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 
+import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+
 export default function AboutPage({ onOpenUploadModal }) {
   const [activeTab, setActiveTab] = useState('health-express');
   const [activeMilestone, setActiveMilestone] = useState(1);
@@ -49,6 +51,8 @@ export default function AboutPage({ onOpenUploadModal }) {
         
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
+          <DiscountHeroBanner />
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-200 text-xs font-extrabold text-slate-800 shadow-2xs backdrop-blur-md">
             <Heart className="w-4 h-4 text-purple-600 fill-purple-600/20" />
             <span className="text-purple-900 uppercase tracking-wider text-[11px] font-extrabold">OUR MISSION & STORY</span>

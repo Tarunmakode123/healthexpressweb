@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 
+import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+
 export default function HealthLibraryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -70,6 +72,8 @@ export default function HealthLibraryPage() {
         
         {/* Animated Hero Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
+          <DiscountHeroBanner />
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-200 text-xs font-extrabold text-slate-800 shadow-2xs backdrop-blur-md">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span className="text-purple-900 uppercase tracking-wider text-[11px] font-extrabold">EVIDENCE-INFORMED HEALTH LIBRARY</span>

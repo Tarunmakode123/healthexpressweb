@@ -11,6 +11,8 @@ import {
 import { openWhatsApp } from '../utils/whatsapp';
 import { HEALTH_MANAGER_PHONE } from '../config/constants';
 
+import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+
 const categoryIconMap = {
   'lab-tests': FlaskConical,
   'imaging': Scan,
@@ -46,6 +48,8 @@ export default function ServicesPage({ onOpenUploadModal }) {
       <div className="bg-gradient-to-b from-purple-50/80 via-white to-slate-50/50 py-12 md:py-16 border-b border-purple-100/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-center">
           
+          <DiscountHeroBanner />
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-xs font-extrabold text-purple-900 shadow-2xs">
             ⚡ LIVE HEALTHCARE DIRECTORY
           </div>

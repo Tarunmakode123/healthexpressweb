@@ -9,6 +9,8 @@ import { ALL_SERVICES, CATEGORIES } from '../data/services';
 import { CATEGORY_GUIDANCE_BLOCKS, HEALTH_MANAGER_PHONE } from '../config/constants';
 import { openWhatsApp } from '../utils/whatsapp';
 
+import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+
 export default function ServiceDetailPage({ onOpenUploadModal }) {
   const { slug } = useParams();
 
@@ -43,6 +45,8 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
             {/* Left Content Column */}
             <div className="lg:col-span-8 space-y-5 text-left">
               
+              <DiscountHeroBanner />
+
               {/* Promotional Discount Badge */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1 rounded-full bg-purple-700 text-white text-xs font-extrabold shadow-sm">
