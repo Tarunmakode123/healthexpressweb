@@ -68,16 +68,13 @@ export default function HealthExpressIntro() {
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] bg-slate-950 flex items-center justify-center pointer-events-auto transition-opacity duration-600 ease-out ${
+      className={`fixed inset-0 w-screen h-screen z-[99999] bg-black flex items-center justify-center overflow-hidden pointer-events-auto transition-opacity duration-600 ease-out ${
         state === 'FADING_OUT' ? 'opacity-0' : 'opacity-100'
       }`}
       aria-hidden="true"
     >
-      {/* Background Subtle Ambient Lighting */}
-      <div className="absolute inset-0 bg-radial from-purple-950/20 via-slate-950 to-slate-950 pointer-events-none" />
-
-      {/* Video Container - Whole Logo Always Visible (object-contain) */}
-      <div className="relative w-full h-full max-w-4xl max-h-[85vh] p-4 flex items-center justify-center">
+      {/* Video Container - Full Screen Cinematic (object-cover edge-to-edge) */}
+      <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
         <video
           ref={videoRef}
           src="/videos/health-express-logo-intro.mp4"
@@ -88,9 +85,17 @@ export default function HealthExpressIntro() {
           preload="metadata"
           onEnded={handleVideoEnded}
           onError={handleVideoError}
-          className="w-full h-full object-contain pointer-events-none select-none"
+          className="w-full h-full object-cover pointer-events-none select-none"
         />
       </div>
+
+      {/* Skip Intro Button */}
+      <button
+        onClick={dismissIntro}
+        className="absolute bottom-6 right-6 z-10 px-4 py-2 rounded-full bg-black/60 hover:bg-black/90 text-white/80 hover:text-white border border-white/20 text-xs font-semibold backdrop-blur-md transition-all cursor-pointer"
+      >
+        Skip Intro →
+      </button>
     </div>
   );
 }
