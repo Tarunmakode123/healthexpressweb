@@ -4,23 +4,22 @@ import {
   Search, Upload, ArrowRight, CheckCircle, Sparkles, MessageSquare, 
   FlaskConical, Scan, Home, Dna, FileCheck, ShieldCheck, ChevronRight, Activity, X
 } from 'lucide-react';
-import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
+import { openWhatsApp } from '../../utils/whatsapp';
 import DiscountHeroBanner from '../common/DiscountHeroBanner';
 import { searchServicesQuery } from '../../services/serviceSearchEngine';
 
 const ROTATING_PLACEHOLDERS = [
-  "Search for a blood test (e.g. CBC, HbA1c)...",
-  "Find nursing care or dressing at home...",
-  "Search a diagnostic scan (e.g. MRI, CT, X-Ray)...",
-  "Search a health package or full body checkup...",
-  "Find genetic screening or precision tests..."
+  "Search for a blood test...",
+  "Find nursing care at home...",
+  "Search a diagnostic scan...",
+  "Find a health package..."
 ];
 
 const POPULAR_CHIPS = [
-  { label: 'CBC Test', query: 'cbc' },
+  { label: 'CBC', query: 'cbc' },
   { label: 'Thyroid Profile', query: 'thyroid' },
   { label: 'MRI Brain', query: 'mri' },
-  { label: 'HbA1c Test', query: 'hba1c' },
+  { label: 'HbA1c', query: 'hba1c' },
   { label: 'Home Nursing', query: 'nursing' }
 ];
 
@@ -81,17 +80,11 @@ export default function HeroSection({ onOpenUploadModal }) {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-purple-50/80 via-slate-50/50 to-white pt-6 pb-16 md:pt-12 md:pb-24">
+    <section className="relative overflow-hidden bg-gradient-to-b from-purple-50/60 via-slate-50/40 to-white pt-6 pb-16 md:pt-12 md:pb-24">
       
-      {/* Background ECG Waveform & Ambient Glow Orbs */}
-      <div className="absolute top-1/4 left-0 right-0 h-48 opacity-10 pointer-events-none -z-10 flex items-center justify-center">
-        <svg viewBox="0 0 1200 120" className="w-full h-full text-purple-600 fill-none stroke-current stroke-[2] stroke-linecap-round">
-          <path d="M0,60 L250,60 L280,30 L300,90 L320,10 L340,110 L360,60 L390,60 L420,60 L1200,60" className="animate-ecg" />
-        </svg>
-      </div>
-
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-glow" />
-      <div className="absolute bottom-10 left-10 w-80 h-80 bg-indigo-200/30 rounded-full blur-2xl pointer-events-none -z-10" />
+      {/* Subtle Background Ambient Glow Orbs */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-glow" />
+      <div className="absolute bottom-10 left-10 w-80 h-80 bg-indigo-200/20 rounded-full blur-2xl pointer-events-none -z-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
@@ -104,18 +97,18 @@ export default function HeroSection({ onOpenUploadModal }) {
               <DiscountHeroBanner />
 
               <span className="px-3.5 py-1 rounded-full bg-purple-100/90 border border-purple-200 text-purple-900 font-extrabold text-[11px] uppercase tracking-wider shadow-2xs">
-                ⚡ HEALTH EXPRESS PLATFORM
+                HEALTH EXPRESS PLATFORM
               </span>
             </div>
 
             {/* Premium Editorial Headline */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
-              Healthcare,<br />
-              <span className="gradient-text-purple">connected around you.</span>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.14]">
+              Your <span className="gradient-text-purple">personal health manager</span>,<br />
+              for you and your family.
             </h1>
 
             {/* Supporting Description */}
-            <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-xl">
+            <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-[580px]">
               From diagnostics and home healthcare to specialist services and preventive care, Health Express helps you discover, coordinate and manage healthcare for you and your family.
             </p>
 
@@ -234,7 +227,7 @@ export default function HeroSection({ onOpenUploadModal }) {
                 </div>
               )}
 
-              {/* 4-5 POPULAR SEARCH CHIPS */}
+              {/* 5 POPULAR SEARCH CHIPS */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
                 <span className="text-[11px] font-bold text-slate-400 mr-1">Popular:</span>
                 {POPULAR_CHIPS.map((chip) => (
@@ -313,12 +306,12 @@ export default function HeroSection({ onOpenUploadModal }) {
             <div className="relative w-full max-w-md">
               
               {/* LAYER 1: Ambient Lighting Glow */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 rounded-3xl opacity-70 blur-2xl -z-10" />
+              <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/15 to-indigo-600/15 rounded-3xl opacity-70 blur-2xl -z-10" />
 
-              {/* LAYER 3: TRANSLUCENT GLASS UI FLOATING CARDS (MAX 2) */}
+              {/* LAYER 3: TRANSLUCENT GLASS UI FLOATING CARDS (MAXIMUM 2) */}
               
-              {/* Card 1 (Upper-left edge): Home Healthcare */}
-              <div className="flex absolute -top-4 -left-4 sm:-left-6 z-20 glass-card px-4 py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float">
+              {/* Card 1 (Upper-left edge): Home Healthcare (Desktop view) */}
+              <div className="hidden sm:flex absolute -top-4 -left-6 z-20 glass-card px-4 py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float">
                 <div className="w-8 h-8 rounded-xl bg-purple-700 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
                   <Home className="w-4 h-4" />
                 </div>
@@ -326,13 +319,13 @@ export default function HeroSection({ onOpenUploadModal }) {
                   <div className="text-xs font-extrabold text-slate-900">Home Healthcare</div>
                   <div className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Certified Nursing Care
+                    Care at Home
                   </div>
                 </div>
               </div>
 
-              {/* Card 2 (Lower-right edge): Prescription Received */}
-              <div className="hidden sm:flex absolute -bottom-4 -right-4 sm:-right-6 z-20 glass-card px-4 py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float-delayed">
+              {/* Card 2 (Lower-right edge): Prescription Received (Mobile + Desktop) */}
+              <div className="flex absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-6 z-20 glass-card px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl shadow-xl border border-purple-200/90 items-center gap-3 backdrop-blur-md animate-float-delayed">
                 <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
                   <FileCheck className="w-4 h-4 text-purple-300" />
                 </div>
@@ -371,3 +364,4 @@ export default function HeroSection({ onOpenUploadModal }) {
     </section>
   );
 }
+
