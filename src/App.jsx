@@ -6,6 +6,7 @@ import Footer from './components/layout/Footer';
 import PrescriptionModal from './components/common/PrescriptionModal';
 import CareManagerCTA from './components/common/CareManagerCTA';
 import HealthExpressAssistant from './components/chat/HealthExpressAssistant';
+import HealthExpressIntro from './components/common/HealthExpressIntro';
 
 import HomePage from './pages/HomePage';
 import ServicesPage from './pages/ServicesPage';
@@ -39,6 +40,7 @@ export default function App() {
     <AuthProvider>
       <Router>
         <ScrollToTop />
+        <HealthExpressIntro />
         <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 antialiased">
           
           {/* Responsive Header Navbar */}
