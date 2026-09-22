@@ -1,160 +1,197 @@
-import React, { useState } from 'react';
-import { Droplet, Grid, Activity, Sun, Target, Heart, UserCheck, Shield, ArrowRight, Check, Sparkles, MessageCircle } from 'lucide-react';
-import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
+import React, { useState, useMemo } from 'react';
+import { Search, Sparkles, MessageCircle, ArrowRight, CheckCircle2, ShieldCheck, Droplet, Activity, Sun, Target, Heart, UserCheck, Shield } from 'lucide-react';
+import { openWhatsApp } from '../../utils/whatsapp';
 
 export default function PopularTestsSection() {
-  const [selectedTests, setSelectedTests] = useState(['cbc-test', 'thyroid-tests']);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const popularServices = [
     {
-      id: 'blood-tests',
-      title: 'Blood Tests',
-      desc: 'Home sample collection and diagnostic blood testing.',
+      id: 'cbc-test',
+      title: 'CBC Test (Complete Blood Count)',
+      category: 'Blood Test',
+      desc: 'Evaluates overall health, infection markers, hemoglobin, and blood cell counts.',
+      keywords: ['cbc', 'blood', 'hemoglobin', 'count', 'infection'],
       icon: Droplet
     },
     {
-      id: 'cbc-test',
-      title: 'CBC Test',
-      desc: 'Learn about complete blood count testing and available booking options.',
-      icon: Grid
-    },
-    {
       id: 'thyroid-tests',
-      title: 'Thyroid Tests',
-      desc: 'Explore thyroid-related diagnostic testing.',
+      title: 'Thyroid Profile (T3, T4, TSH)',
+      category: 'Hormone Screening',
+      desc: 'Assesses thyroid gland function, metabolism, and endocrine balance.',
+      keywords: ['thyroid', 'tsh', 't3', 't4', 'hormone', 'metabolism'],
       icon: Activity
     },
     {
       id: 'vitamin-d-test',
-      title: 'Vitamin D Test',
-      desc: 'Find Vitamin D testing options.',
+      title: 'Vitamin D (25-OH)',
+      category: 'Vitamin & Mineral',
+      desc: 'Measures Vitamin D levels essential for bone health and immune function.',
+      keywords: ['vitamin', 'd', 'vitamin d', 'bones', 'deficiency'],
       icon: Sun
     },
     {
       id: 'hba1c-test',
-      title: 'HbA1c Test',
-      desc: 'Explore testing used to assess average blood glucose levels.',
+      title: 'HbA1c Glycated Hemoglobin',
+      category: 'Diabetes Care',
+      desc: 'Evaluates average blood sugar levels over the past 2 to 3 months.',
+      keywords: ['hba1c', 'diabetes', 'sugar', 'glucose'],
       icon: Target
     },
     {
       id: 'lipid-profile',
-      title: 'Lipid Profile',
-      desc: 'Find cholesterol and lipid testing options.',
+      title: 'Lipid Profile (Cholesterol)',
+      category: 'Cardiac & Lipid',
+      desc: 'Measures HDL, LDL, triglycerides, and overall cardiovascular risk markers.',
+      keywords: ['lipid', 'cholesterol', 'cardiac', 'hdl', 'ldl', 'triglycerides'],
       icon: Heart
     },
     {
       id: 'full-body-checkup',
-      title: 'Full Body Health Checkup',
-      desc: 'Explore comprehensive preventive health checkup options.',
+      title: 'Full Body Health Package',
+      category: 'Comprehensive',
+      desc: 'Comprehensive multi-parameter health screening including liver, kidney, and blood profiles.',
+      keywords: ['full body', 'checkup', 'package', 'screening', 'annual'],
       icon: UserCheck
     },
     {
-      id: 'health-screening',
-      title: 'Health Screening',
-      desc: 'Discover preventive screening services.',
+      id: 'liver-function',
+      title: 'Liver Function Test (LFT)',
+      category: 'Organ Function',
+      desc: 'Assesses bilirubin, enzymes, and proteins to evaluate liver health.',
+      keywords: ['liver', 'lft', 'sgot', 'sgpt', 'bilirubin'],
       icon: Shield
+    },
+    {
+      id: 'kidney-function',
+      title: 'Kidney Function Test (KFT)',
+      category: 'Organ Function',
+      desc: 'Measures creatinine, urea, and electrolytes for renal health assessment.',
+      keywords: ['kidney', 'kft', 'creatinine', 'urea', 'renal'],
+      icon: ShieldCheck
     }
   ];
 
-  const toggleTest = (id) => {
-    setSelectedTests(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+  const filteredTests = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return popularServices;
+    return popularServices.filter(s => 
+      s.title.toLowerCase().includes(q) ||
+      s.category.toLowerCase().includes(q) ||
+      s.desc.toLowerCase().includes(q) ||
+      s.keywords.some(k => k.includes(q))
     );
-  };
+  }, [searchQuery]);
 
-  const selectedTitles = popularServices
-    .filter(s => selectedTests.includes(s.id))
-    .map(s => s.title);
-
-  const handleBookPackage = () => {
-    if (selectedTitles.length === 0) {
-      openWhatsApp("Hello Health Express, I would like to inquire about popular diagnostic tests.");
-      return;
-    }
-    const message = `Hello Health Express, I would like to inquire about booking the following selected test package: ${selectedTitles.join(', ')}. Please provide available options & home sample collection details.`;
-    openWhatsApp(message);
+  const handleOpenAssistant = () => {
+    window.dispatchEvent(new CustomEvent('open-health-express-assistant', {
+      detail: { initialQuery: "Hello! I am looking for a specific diagnostic test or checkup package." }
+    }));
   };
 
   return (
-    <section className="py-16 md:py-24 bg-purple-50/20 border-t border-purple-100/40" id="tests">
+    <section className="py-20 md:py-28 bg-white border-t border-slate-100" id="tests">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700 flex items-center justify-center gap-1.5">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100 border border-purple-200 text-xs font-extrabold uppercase tracking-widest text-purple-700 shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>INTERACTIVE TEST PACKAGE ESTIMATOR</span>
+            <span>POPULAR DIAGNOSTIC TESTS</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Start with what you need.
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+            Looking for a specific test?
           </h2>
-          <p className="text-sm sm:text-base text-slate-600">
-            Select one or multiple tests below to customize your health checkup package and request instant partner lab coordination.
+          <p className="text-base sm:text-lg text-slate-600 font-medium max-w-xl mx-auto leading-relaxed">
+            Search diagnostic tests and checkup packages available across our verified partner laboratories in Bengaluru.
           </p>
         </div>
 
-        {/* Popular Test Link Cards (Interactive Grid) */}
+        {/* Search Bar & Suggestion Chips */}
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div className="relative">
+            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search CBC, thyroid, vitamin D, lipid, full body..."
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-purple-600 outline-none shadow-xs"
+            />
+          </div>
+
+          {/* Suggestion Chips */}
+          <div className="flex items-center justify-center gap-2 flex-wrap text-xs">
+            <span className="text-slate-400 font-bold">Quick suggestions:</span>
+            {['CBC', 'HbA1c', 'Vitamin D', 'Thyroid', 'Lipid Profile', 'Full Body'].map((chip) => (
+              <button
+                key={chip}
+                onClick={() => setSearchQuery(chip)}
+                className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-900 font-bold transition-colors"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Filtered Test Results Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {popularServices.map((service) => {
+          {filteredTests.map((service) => {
             const IconComp = service.icon;
-            const isSelected = selectedTests.includes(service.id);
             return (
               <div
                 key={service.id}
-                onClick={() => toggleTest(service.id)}
-                className={`group p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 text-left relative ${
-                  isSelected
-                    ? 'bg-purple-900 text-white border-purple-800 shadow-lg scale-[1.02]'
-                    : 'bg-white hover:bg-purple-50/80 border-purple-100/80 shadow-xs hover:shadow-md text-slate-900'
-                }`}
+                onClick={() => openWhatsApp(`Namaste Health Express! I would like to inquire about booking the ${service.title}.`)}
+                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group cursor-pointer flex flex-col justify-between space-y-4 text-left relative overflow-hidden"
               >
-                <div className="flex items-center justify-between">
-                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform ${
-                    isSelected ? 'bg-purple-800 text-white' : 'bg-purple-50 text-purple-700 group-hover:scale-110'
-                  }`}>
-                    <IconComp className="w-5 h-5" />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-colors shadow-2xs">
+                      <IconComp className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                      {service.category}
+                    </span>
                   </div>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    isSelected ? 'bg-emerald-400 text-slate-950' : 'bg-slate-100 text-slate-400 group-hover:bg-purple-200 group-hover:text-purple-900'
-                  }`}>
-                    {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : '+'}
+
+                  <div>
+                    <h4 className="text-base font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors">
+                      {service.title}
+                    </h4>
+                    <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
+                      {service.desc}
+                    </p>
                   </div>
                 </div>
-                
-                <div>
-                  <h4 className={`text-base font-bold transition-colors ${isSelected ? 'text-white' : 'group-hover:text-purple-800'}`}>
-                    {service.title}
-                  </h4>
-                  <p className={`text-xs mt-1 leading-relaxed ${isSelected ? 'text-purple-200' : 'text-slate-500'}`}>
-                    {service.desc}
-                  </p>
+
+                <div className="pt-2 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900">
+                  <span>Inquire & Book</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Selected Package Banner / Action bar */}
-        <div className="bg-white rounded-3xl p-6 border border-purple-200 shadow-md max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5">
-          <div className="space-y-1 text-center sm:text-left">
-            <div className="text-xs font-bold text-slate-900 flex items-center justify-center sm:justify-start gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-700 animate-pulse"></span>
-              <span>{selectedTests.length} {selectedTests.length === 1 ? 'Test' : 'Tests'} Selected</span>
+        {/* Contextual AI Assistant CTA */}
+        <div className="bg-slate-50 border border-purple-100/80 rounded-2xl p-5 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <Sparkles className="w-4 h-4" />
             </div>
-            <p className="text-xs text-slate-500">
-              {selectedTitles.length > 0
-                ? selectedTitles.join(' • ')
-                : 'Tap test cards above to build your custom package'}
-            </p>
+            <div>
+              <h4 className="text-xs font-extrabold text-slate-900">Not sure what test you need?</h4>
+              <p className="text-[11px] text-slate-600 font-medium">Ask Priya, your Health Express AI Assistant for instant service guidance.</p>
+            </div>
           </div>
 
           <button
-            onClick={handleBookPackage}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all hover:scale-[1.02]"
+            onClick={handleOpenAssistant}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shadow-2xs shrink-0"
           >
-            <MessageCircle className="w-4 h-4 fill-white text-purple-700" />
-            <span>Book Custom Package on WhatsApp</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Ask Health Express Assistant</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 

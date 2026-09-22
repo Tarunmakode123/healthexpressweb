@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { FlaskConical, HeartPulse, Camera, Home, Dna, Activity, ArrowRight } from 'lucide-react';
+import { FlaskConical, HeartPulse, Camera, Home, Dna, Activity, ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function ServicesSection() {
   const [activeTab, setActiveTab] = useState('all');
 
   const categories = [
-    { id: 'all', label: 'All Services' },
+    { id: 'all', label: 'All Categories' },
     { id: 'diagnostics', label: 'Diagnostics & Labs' },
     { id: 'home-care', label: 'Care at Home' },
     { id: 'specialty', label: 'Specialized Care' }
@@ -14,58 +14,65 @@ export default function ServicesSection() {
 
   const services = [
     {
+      id: 'home-nursing',
+      category: 'home-care',
+      title: 'Home Healthcare & Nursing',
+      desc: 'Professional nursing care, eldercare, and post-op recovery coordinated around your family by verified medical professionals in Bengaluru.',
+      cta: 'Explore Home Care',
+      icon: Home,
+      highlight: 'Featured Service',
+      badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+      isAnchor: true
+    },
+    {
       id: 'diagnostics',
       category: 'diagnostics',
-      title: 'Diagnostics',
-      desc: 'Tests without the usual back-and-forth. Compare diagnostic options, arrange home sample collection, and receive your reports digitally.',
+      title: 'Diagnostics & Blood Tests',
+      desc: 'Book diagnostic tests and packages with home sample collection and digital report delivery.',
       cta: 'Explore Diagnostics',
       icon: FlaskConical,
-      highlight: 'Home Sample Collection Available'
+      highlight: 'Home Collection',
+      badgeColor: 'bg-purple-100 text-purple-900 border-purple-200'
     },
     {
       id: 'preventive-health',
       category: 'diagnostics',
       title: 'Preventive Health Packages',
-      desc: 'Stay ahead with comprehensive health checkups, made simple. For every age. Every stage.',
+      desc: 'Stay ahead with comprehensive checkups for every age and family member.',
       cta: 'Explore Health Packages',
       icon: HeartPulse,
-      highlight: 'Full Body Profiles'
+      highlight: 'Full Body Checkups',
+      badgeColor: 'bg-amber-100 text-amber-900 border-amber-200'
     },
     {
       id: 'imaging',
       category: 'diagnostics',
-      title: 'Imaging',
-      desc: 'The right imaging, made easier to arrange. Convenient access to trusted diagnostic centres.',
+      title: 'Imaging & Scans',
+      desc: 'Convenient access and coordination for X-Ray, Ultrasound, MRI, and CT scans.',
       cta: 'Explore Imaging',
       icon: Camera,
-      highlight: 'X-Ray, Ultrasound, MRI & CT'
-    },
-    {
-      id: 'home-nursing',
-      category: 'home-care',
-      title: 'Home Nursing',
-      desc: 'Professional care, delivered at home. Find and coordinate nursing support for recovery, ongoing care and other healthcare needs at home.',
-      cta: 'Explore Home Nursing',
-      icon: Home,
-      highlight: 'Qualified Healthcare Professionals'
+      highlight: 'Partner Centres',
+      badgeColor: 'bg-sky-100 text-sky-900 border-sky-200'
     },
     {
       id: 'genetic-testing',
       category: 'specialty',
       title: 'Genetic Testing',
-      desc: 'Explore what your DNA can tell you about your health. Personalized insights. Better-informed decisions.',
+      desc: 'Personalized DNA and hereditary screening insights for better-informed care decisions.',
       cta: 'Explore Genomics',
       icon: Dna,
-      highlight: 'DNA & Hereditary Screening'
+      highlight: 'Hereditary Screening',
+      badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-200'
     },
     {
       id: 'surgical-care',
       category: 'specialty',
-      title: 'Surgical Care',
-      desc: 'Navigate surgery with trusted specialists and healthcare providers. Guidance, coordination and care when you need it.',
-      cta: 'Explore Surgical Care',
+      title: 'Specialist & Surgical Guidance',
+      desc: 'Navigate procedures with trusted specialists and care coordination support.',
+      cta: 'Explore Guidance',
       icon: Activity,
-      highlight: 'Specialist Guidance'
+      highlight: 'Specialist Support',
+      badgeColor: 'bg-rose-100 text-rose-900 border-rose-200'
     }
   ];
 
@@ -74,23 +81,28 @@ export default function ServicesSection() {
     : services.filter(s => s.category === activeTab);
 
   return (
-    <section className="py-16 md:py-24 bg-mesh-purple relative overflow-hidden" id="services">
+    <section className="py-20 md:py-28 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 relative overflow-hidden" id="services">
+      
+      {/* Subtle Glow Node */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-purple-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
-        {/* Header */}
+        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100 border border-purple-200 text-xs font-extrabold uppercase tracking-wider text-purple-700 shadow-2xs">
-            ONE HEALTHCARE PLATFORM
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/80 border border-purple-200/80 text-purple-900 text-xs font-extrabold uppercase tracking-widest shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-purple-700" />
+            <span>ONE CONNECTED PLATFORM</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
-            From everyday healthcare <span className="gradient-text-purple">to preventive care.</span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+            Healthcare for the <span className="text-purple-700">moments that matter.</span>
           </h2>
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            Whether you need a diagnostic blood test, care at home or a preventive health checkup, Health Express brings multiple healthcare services together in one connected place.
+          <p className="text-base sm:text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+            From diagnostics and home healthcare to preventive care and specialist support, Health Express brings your family's care together.
           </p>
         </div>
 
-        {/* Category Tabs */}
+        {/* Category Pills Bar */}
         <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 no-scrollbar">
           {categories.map((cat) => (
             <button
@@ -98,8 +110,8 @@ export default function ServicesSection() {
               onClick={() => setActiveTab(cat.id)}
               className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === cat.id
-                  ? 'bg-purple-700 text-white shadow-md shadow-purple-700/25 scale-105'
-                  : 'bg-white/80 hover:bg-purple-50 text-slate-600 hover:text-purple-800 border border-purple-100'
+                  ? 'bg-purple-700 text-white shadow-md shadow-purple-700/20 scale-[1.03]'
+                  : 'bg-white hover:bg-purple-50 text-slate-600 hover:text-purple-800 border border-slate-200/80'
               }`}
             >
               {cat.label}
@@ -107,36 +119,40 @@ export default function ServicesSection() {
           ))}
         </div>
 
-        {/* Bento Grid Services Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Bento Grid Services Composition */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
           {filteredServices.map((service, idx) => {
             const IconComponent = service.icon;
-            const isFeatured = idx === 0 && activeTab === 'all';
+            const isAnchor = service.isAnchor && activeTab === 'all';
+            const colSpan = isAnchor ? 'md:col-span-12 lg:col-span-7' : (activeTab !== 'all' ? 'md:col-span-6 lg:col-span-4' : 'md:col-span-6 lg:col-span-5');
+
             return (
               <div
                 key={service.id}
-                className={`bento-card rounded-3xl p-7 flex flex-col justify-between space-y-6 text-left group cursor-pointer ${
-                  isFeatured ? 'md:col-span-2 lg:col-span-2 bg-gradient-to-br from-white via-purple-50/50 to-white' : ''
-                }`}
+                className={`${colSpan} bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group cursor-pointer flex flex-col justify-between relative overflow-hidden`}
                 onClick={() => openWhatsApp(DEFAULT_MESSAGES.service(service.title))}
               >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="w-13 h-13 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md group-hover:scale-110 group-hover:bg-purple-800 transition-all duration-300">
+                <div className="space-y-5 relative z-10">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md shadow-purple-700/20 group-hover:scale-105 transition-transform">
                       <IconComponent className="w-6 h-6" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                    <span className={`text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border ${service.badgeColor}`}>
                       {service.highlight}
                     </span>
                   </div>
 
-                  <div>
-                    <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors">{service.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">{service.desc}</p>
+                  <div className="space-y-2">
+                    <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors">
+                      {service.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+                      {service.desc}
+                    </p>
                   </div>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-6 relative z-10">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -154,7 +170,7 @@ export default function ServicesSection() {
         </div>
 
         {/* Expansion notice */}
-        <div className="text-center pt-2 text-xs font-bold text-purple-800 bg-purple-100/60 py-2.5 px-6 rounded-full max-w-md mx-auto border border-purple-200">
+        <div className="text-center pt-2 text-xs font-bold text-purple-900 bg-purple-100/60 py-2.5 px-6 rounded-full max-w-md mx-auto border border-purple-200">
           ⚡ More healthcare verticals & partner labs being onboarded continuously across Bengaluru.
         </div>
 
