@@ -1,5 +1,6 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
+import JourneyVideoSection from '../components/sections/JourneyVideoSection';
 import ProblemSection from '../components/sections/ProblemSection';
 import SimplerHealthcareSection from '../components/sections/SimplerHealthcareSection';
 import HowItWorksSection from '../components/sections/HowItWorksSection';
@@ -22,6 +23,9 @@ export default function HomePage({ onOpenUploadModal }) {
     <div className="space-y-0 relative">
       {/* 1. WHO ARE YOU? -> Hero */}
       <HeroSection onOpenUploadModal={onOpenUploadModal} />
+
+      {/* 1.5. YOUR HEALTHCARE JOURNEY -> Video Section */}
+      <JourneyVideoSection onOpenUploadModal={onOpenUploadModal} />
 
       {/* 2. WHY DO I NEED YOU? -> Problem */}
       <ProblemSection />
