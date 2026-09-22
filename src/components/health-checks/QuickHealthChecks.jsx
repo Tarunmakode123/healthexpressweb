@@ -1,49 +1,19 @@
 import React, { useState } from 'react';
-import { Pill, HeartPulse, Thermometer, Droplet, Sparkles, MessageSquare, ShieldCheck, ArrowRight } from 'lucide-react';
-import HealthCheckCard from './HealthCheckCard';
-import HealthCheckModal from './HealthCheckModal';
+import { Pill, HeartPulse, Thermometer, Droplet, Sparkles, MessageSquare, ArrowRight } from 'lucide-react';
+import MedicineTimingTool from './MedicineTimingTool';
+import BloodPressureTool from './BloodPressureTool';
+import TemperatureTool from './TemperatureTool';
+import HydrationTool from './HydrationTool';
 import HealthCheckDisclaimer from './HealthCheckDisclaimer';
 
 export default function QuickHealthChecks({ onOpenUploadModal }) {
-  const [activeToolKey, setActiveToolKey] = useState(null);
+  const [activeTab, setActiveTab] = useState('medicine');
 
-  const tools = [
-    {
-      id: 'medicine',
-      title: 'When should I take my medicine?',
-      description: 'Organize your daily medication doses around breakfast, lunch, dinner and sleep routine.',
-      icon: Pill,
-      categoryBadge: 'MEDICINE TIMING',
-      badgeColor: 'bg-purple-50 text-purple-700 border-purple-100',
-      spanCol: 'md:col-span-7' // Anchor Card
-    },
-    {
-      id: 'bp',
-      title: 'What does my BP reading mean?',
-      description: 'Check if your blood pressure falls within standard adult reference ranges in seconds.',
-      icon: HeartPulse,
-      categoryBadge: 'BLOOD PRESSURE',
-      badgeColor: 'bg-rose-50 text-rose-700 border-rose-100',
-      spanCol: 'md:col-span-5'
-    },
-    {
-      id: 'temp',
-      title: 'Is my temperature concerning?',
-      description: 'Convert between °F and °C and review age-appropriate fever guidance.',
-      icon: Thermometer,
-      categoryBadge: 'TEMPERATURE CHECK',
-      badgeColor: 'bg-amber-50 text-amber-700 border-amber-100',
-      spanCol: 'md:col-span-6'
-    },
-    {
-      id: 'hydration',
-      title: 'Am I drinking enough water?',
-      description: 'Calculate your estimated daily fluid target based on weight, activity and climate.',
-      icon: Droplet,
-      categoryBadge: 'HYDRATION TARGET',
-      badgeColor: 'bg-sky-50 text-sky-700 border-sky-100',
-      spanCol: 'md:col-span-6'
-    }
+  const tabs = [
+    { id: 'medicine', label: 'Medicine Timing', icon: Pill, color: 'text-purple-700' },
+    { id: 'bp', label: 'BP Check', icon: HeartPulse, color: 'text-rose-600' },
+    { id: 'temp', label: 'Temperature', icon: Thermometer, color: 'text-amber-600' },
+    { id: 'hydration', label: 'Hydration', icon: Droplet, color: 'text-sky-600' }
   ];
 
   const handleOpenAssistant = (query) => {
@@ -52,19 +22,33 @@ export default function QuickHealthChecks({ onOpenUploadModal }) {
     }));
   };
 
-  return (
-    <section className="py-20 md:py-28 bg-white relative overflow-hidden">
-      
-      {/* Background Subtle Ambient Lighting */}
-      <div className="absolute top-1/4 right-0 w-96 h-96 bg-purple-50/60 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-emerald-50/50 rounded-full blur-3xl pointer-events-none -z-10" />
+  const renderActiveTool = () => {
+    switch (activeTab) {
+      case 'medicine':
+        return <MedicineTimingTool onOpenUploadModal={onOpenUploadModal} />;
+      case 'bp':
+        return <BloodPressureTool />;
+      case 'temp':
+        return <TemperatureTool />;
+      case 'hydration':
+        return <HydrationTool />;
+      default:
+        return null;
+    }
+  };
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+  return (
+    <section className="py-16 md:py-24 bg-white relative overflow-hidden">
+      
+      {/* Background Subtle Ambient Glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-purple-50/50 rounded-full blur-3xl pointer-events-none -z-10" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* ===================================================
             SECTION HEADER
            =================================================== */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
           
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100/80 border border-purple-200/80 text-purple-900 text-xs font-extrabold uppercase tracking-widest shadow-xs">
@@ -79,34 +63,50 @@ export default function QuickHealthChecks({ onOpenUploadModal }) {
 
           {/* Supporting Copy */}
           <p className="text-base sm:text-lg text-slate-600 font-medium max-w-xl mx-auto leading-relaxed">
-            Get a quick, practical health check for everyday questions. Small questions. Useful answers. In seconds.
+            Quick answers to everyday health questions.
           </p>
 
         </div>
 
         {/* ===================================================
-            4-TOOL ASYMMETRIC BENTO GRID
+            TAB NAVIGATION BAR (APPLE-LIKE PRODUCT SWITCHER)
            =================================================== */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-          {tools.map((tool) => (
-            <HealthCheckCard
-              key={tool.id}
-              id={tool.id}
-              title={tool.title}
-              description={tool.description}
-              icon={tool.icon}
-              categoryBadge={tool.categoryBadge}
-              badgeColor={tool.badgeColor}
-              spanCol={tool.spanCol}
-              onClick={() => setActiveToolKey(tool.id)}
-            />
-          ))}
+        <div className="flex items-center justify-center">
+          <div className="inline-flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-xs max-w-full overflow-x-auto no-scrollbar">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-white text-slate-900 shadow-md scale-[1.02]'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? tab.color : 'text-slate-500'}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ===================================================
+            FEATURED WORKSPACE: SINGLE ACTIVE TOOL SPOTLIGHT
+           =================================================== */}
+        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-xl shadow-slate-900/5 max-w-5xl mx-auto transition-all duration-300">
+          <div key={activeTab} className="animate-in fade-in zoom-in-98 duration-300">
+            {renderActiveTool()}
+          </div>
         </div>
 
         {/* ===================================================
             GLOBAL AI ASSISTANT BRIDGE & FOOTER DISCLAIMER
            =================================================== */}
-        <div className="pt-4 space-y-6">
+        <div className="pt-2 space-y-6">
           
           {/* AI Assistant Trigger Ribbon */}
           <div className="bg-slate-50 border border-purple-100/80 rounded-2xl p-4 sm:p-5 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs">
@@ -115,13 +115,13 @@ export default function QuickHealthChecks({ onOpenUploadModal }) {
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-xs font-extrabold text-slate-900">Have a different everyday health question?</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">Not sure what you need?</h4>
                 <p className="text-[11px] text-slate-600 font-medium">Ask Priya, your Health Express AI Assistant for instant service guidance.</p>
               </div>
             </div>
 
             <button
-              onClick={() => handleOpenAssistant("Hello! I have a question about my health services.")}
+              onClick={() => handleOpenAssistant("Hello! I have a question about my health needs.")}
               className="w-full sm:w-auto px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shadow-xs shrink-0"
             >
               <span>Ask AI Assistant</span>
@@ -137,14 +137,6 @@ export default function QuickHealthChecks({ onOpenUploadModal }) {
         </div>
 
       </div>
-
-      {/* Interactive Tool Modal */}
-      <HealthCheckModal
-        activeTool={activeToolKey}
-        onClose={() => setActiveToolKey(null)}
-        onOpenUploadModal={onOpenUploadModal}
-      />
-
     </section>
   );
 }
