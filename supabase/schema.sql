@@ -62,10 +62,11 @@ alter table public.patients enable row level security;
 alter table public.enquiries enable row level security;
 alter table public.prescriptions enable row level security;
 
--- Patients RLS: Authenticated users can view own profile, guest flow can access unlinked profiles
+-- Patients RLS: Authenticated users can view own profile.
+-- Guest patient creation is strictly handled by the SECURITY DEFINER function get_or_create_guest_patient to prevent PII harvesting.
 create policy "Users can view own patient profile" on public.patients
   for select using (
-    user_id is null or auth.uid() = user_id
+    auth.uid() is not null and auth.uid() = user_id
   );
 
 -- Enquiries RLS: Authenticated users can view their own enquiries
@@ -81,15 +82,16 @@ create policy "Users can view own prescriptions" on public.prescriptions
     patient_id in (select id from public.patients where user_id = auth.uid())
   );
 
--- Allow public insert for guest prescription submission flow (via anon or service role)
-create policy "Allow insert for guest prescription submissions" on public.patients
+-- Structured Insert RLS Policies for Guest Submission Flow
+-- Patients insert policy for authenticated / service role fallback
+create policy "Allow insert for patient records" on public.patients
   for insert with check (true);
 
 create policy "Allow insert for guest enquiry submissions" on public.enquiries
-  for insert with check (true);
+  for insert with check (patient_id is not null);
 
 create policy "Allow insert for guest prescription records" on public.prescriptions
-  for insert with check (true);
+  for insert with check (patient_id is not null and enquiry_id is not null);
 
 -- ============================================================
 -- PRIVATE STORAGE BUCKET CONFIGURATION
@@ -181,10 +183,13 @@ begin
   where phone_e164 = p_phone_e164
   limit 1;
 
-  -- 2. If not found, create new patient record
+  -- 2. If not found, create new patient record with conflict safety
   if v_patient_id is null then
     insert into public.patients (full_name, phone_e164, city, email)
-    values (p_full_name, p_phone_e164, p_city, p_email)
+    values (p_full_name, p_phone_e164, coalesce(p_city, 'Bengaluru'), p_email)
+    on conflict (phone_e164) do update set
+      full_name = coalesce(nullif(trim(p_full_name), ''), public.patients.full_name),
+      updated_at = now()
     returning id into v_patient_id;
   end if;
 
@@ -193,4 +198,5 @@ end;
 $$ language plpgsql security definer set search_path = public;
 
 -- Grant execute to anon and authenticated roles for guest uploads
+revoke execute on function public.get_or_create_guest_patient(text, text, text, text) from public;
 grant execute on function public.get_or_create_guest_patient(text, text, text, text) to anon, authenticated;
