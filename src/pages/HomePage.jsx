@@ -5,6 +5,7 @@ import SimplerHealthcareSection from '../components/sections/SimplerHealthcareSe
 import HowItWorksSection from '../components/sections/HowItWorksSection';
 import ServicesSection from '../components/sections/ServicesSection';
 import PreventiveHealthSection from '../components/sections/PreventiveHealthSection';
+import QuickHealthChecks from '../components/health-checks/QuickHealthChecks';
 import WhyHealthExpressSection from '../components/sections/WhyHealthExpressSection';
 import PopularTestsSection from '../components/sections/PopularTestsSection';
 import FamilySection from '../components/sections/FamilySection';
@@ -36,6 +37,9 @@ export default function HomePage({ onOpenUploadModal }) {
 
       {/* PREVENTIVE HEALTH -> Reactive to Proactive */}
       <PreventiveHealthSection />
+
+      {/* QUICK HEALTH CHECKS -> Interactive everyday health utilities */}
+      <QuickHealthChecks onOpenUploadModal={onOpenUploadModal} />
 
       {/* BUILT AROUND YOU -> Feature Cards */}
       <WhyHealthExpressSection />

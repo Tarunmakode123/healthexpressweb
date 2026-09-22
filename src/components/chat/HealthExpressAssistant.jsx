@@ -28,6 +28,21 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
     "⚡ Instant Care Manager Support"
   ];
 
+  // Custom Event Listener for Global Open Triggers
+  useEffect(() => {
+    const handleCustomOpen = (event) => {
+      setIsOpen(true);
+      if (event.detail?.initialQuery) {
+        setTimeout(() => {
+          handleSendMessage(event.detail.initialQuery);
+        }, 300);
+      }
+    };
+
+    window.addEventListener('open-health-express-assistant', handleCustomOpen);
+    return () => window.removeEventListener('open-health-express-assistant', handleCustomOpen);
+  }, []);
+
   // Rotate speech tooltip prompts every 6 seconds
   useEffect(() => {
     const timer = setInterval(() => {
