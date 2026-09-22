@@ -1,6 +1,6 @@
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { validateAndNormalizeInternationalPhone } from '../utils/phone';
-import { generateEnquiryCode } from '../utils/enquiryCode';
+import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
+import { validateAndNormalizeInternationalPhone } from '../utils/phone.js';
+import { generateEnquiryCode } from '../utils/enquiryCode.js';
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
@@ -133,20 +133,25 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
       if (!uploadErr) {
         uploadedFiles.push({ filePath, name: f.name, type: f.type, size: f.size });
       } else {
-        console.warn(`Storage Upload Warning for ${f.name}:`, uploadErr);
+        console.error(`Storage Upload Error for ${f.name}:`, uploadErr);
         uploadErrors.push(uploadErr);
       }
     }
 
     if (uploadedFiles.length === 0 && fileList.length > 0) {
-      console.error('Storage Upload Error:', uploadErrors);
-      throw new Error('Failed to securely store prescription files. Please try again.');
+      const firstErr = uploadErrors[0];
+      const errCode = firstErr?.statusCode || firstErr?.code || 'STORAGE_ERROR';
+      const errMsg = firstErr?.message || 'Storage upload failed.';
+      return {
+        success: false,
+        error: `[Error ${errCode}] Storage Upload Failed: ${errMsg}`
+      };
     }
 
-    // B. Find or Create Patient Record (Supports multiple uploads per phone number)
+    // B. Find or Create Patient Record via RPC or Direct DB Insert
     let patientId = null;
 
-    // Try RPC function first (handles RLS bypass for existing guest phone numbers)
+    // Try RPC function first (handles RLS bypass for guest phone numbers)
     try {
       const { data: rpcPatientId, error: rpcError } = await supabase.rpc('get_or_create_guest_patient', {
         p_full_name: fullName.trim(),
@@ -159,10 +164,10 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
         patientId = rpcPatientId;
       }
     } catch (rpcErr) {
-      console.warn('RPC lookup fallback:', rpcErr);
+      console.warn('RPC lookup catch:', rpcErr);
     }
 
-    // Fallback: Direct lookup & Upsert handling
+    // Fallback: Direct lookup & Insert handling
     if (!patientId) {
       try {
         const { data: existingPatients } = await supabase
@@ -175,16 +180,16 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
           patientId = existingPatients[0].id;
         }
       } catch (lookupErr) {
-        console.warn('Patient lookup warning:', lookupErr);
+        console.warn('Patient lookup catch:', lookupErr);
       }
     }
 
     if (!patientId) {
-      patientId = generateUUID();
+      const newPatientId = generateUUID();
       const { error: createPatientError } = await supabase
         .from('patients')
         .insert({
-          id: patientId,
+          id: newPatientId,
           full_name: fullName.trim(),
           phone_e164: phone_e164,
           city: city,
@@ -194,72 +199,73 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
         });
 
       if (createPatientError) {
-        const msg = createPatientError.message?.toLowerCase() || '';
-        // If error is duplicate phone number or RLS select policy warning, patient record exists or was inserted
-        if (msg.includes('duplicate') || createPatientError.code === '23505' || msg.includes('row-level security') || msg.includes('policy')) {
-          console.warn('Patient record insert notification (existing phone or RLS select policy):', createPatientError.message);
-        } else {
-          console.error('Create Patient Error:', createPatientError);
-          throw new Error('Failed to create patient record: ' + createPatientError.message);
-        }
+        console.error('Create Patient Error:', createPatientError);
+        const errCode = createPatientError.code || 'DB_ERROR';
+        const errMsg = createPatientError.message || 'Failed to create patient record.';
+        
+        return {
+          success: false,
+          error: `[Error ${errCode}] Patient Database Error: ${errMsg}. Please execute 'supabase/schema.sql' in your Supabase SQL Editor.`
+        };
       }
+      patientId = newPatientId;
     }
 
-    // C. Create Enquiry Record (Using Client-Side UUID)
+    // C. Create Enquiry Record in Database
     const enquiryId = generateUUID();
-    let enquirySuccess = false;
+    const { error: enquiryError } = await supabase
+      .from('enquiries')
+      .insert({
+        id: enquiryId,
+        enquiry_code: enquiryCode,
+        patient_id: patientId,
+        source: 'website',
+        status: 'pending_review',
+        notes: notes.trim() || null
+      });
 
-    try {
-      const { error: enquiryError } = await supabase
-        .from('enquiries')
+    if (enquiryError) {
+      console.error('Enquiry Insert Error:', enquiryError);
+      const errCode = enquiryError.code || 'DB_ERROR';
+      const errMsg = enquiryError.message || 'Failed to create enquiry record.';
+      return {
+        success: false,
+        error: `[Error ${errCode}] Enquiry Database Error: ${errMsg}. Please execute 'supabase/schema.sql' in your Supabase SQL Editor.`
+      };
+    }
+
+    // D. Create Prescription Records for each uploaded file
+    for (const item of uploadedFiles) {
+      const { error: prescriptionError } = await supabase
+        .from('prescriptions')
         .insert({
-          id: enquiryId,
-          enquiry_code: enquiryCode,
+          id: generateUUID(),
+          enquiry_id: enquiryId,
           patient_id: patientId,
-          source: 'website',
-          status: 'pending_review',
-          notes: notes.trim() || null
+          file_path: item.filePath,
+          file_name: item.name,
+          file_type: item.type || 'application/octet-stream',
+          file_size: item.size || 0,
+          user_id: null
         });
 
-      if (!enquiryError) {
-        enquirySuccess = true;
-      } else {
-        console.warn('Enquiry Insert Warning (RLS/FK check):', enquiryError.message);
+      if (prescriptionError) {
+        console.error(`Prescription Record Error for ${item.name}:`, prescriptionError);
+        const errCode = prescriptionError.code || 'DB_ERROR';
+        const errMsg = prescriptionError.message || 'Failed to create prescription record.';
+        return {
+          success: false,
+          error: `[Error ${errCode}] Prescription Metadata Database Error: ${errMsg}. Please execute 'supabase/schema.sql' in your Supabase SQL Editor.`
+        };
       }
-    } catch (eErr) {
-      console.warn('Enquiry Insert Catch:', eErr);
     }
 
-    // D. Create Prescription Records for each uploaded file (Using Client-Side UUIDs)
-    try {
-      const dbRecords = uploadedFiles.length > 0 ? uploadedFiles : [{ filePath: `guest/${enquiryCode}/${Date.now()}_file`, name: 'prescription_doc', type: 'application/octet-stream', size: 0 }];
-      
-      for (const item of dbRecords) {
-        const { error: prescriptionError } = await supabase
-          .from('prescriptions')
-          .insert({
-            id: generateUUID(),
-            enquiry_id: enquiryId,
-            patient_id: patientId,
-            file_path: item.filePath,
-            file_name: item.name,
-            file_type: item.type || 'application/octet-stream',
-            file_size: item.size || 0,
-            user_id: null
-          });
-
-        if (prescriptionError) {
-          console.warn(`Prescription Record Warning for ${item.name}:`, prescriptionError.message);
-        }
-      }
-    } catch (pErr) {
-      console.warn('Prescription Insert Catch:', pErr);
-    }
-
-    // Return successful Enquiry Registration (File stored in Storage + Enquiry ID generated)
+    // Return successful Enquiry Registration
     return {
       success: true,
       enquiry_code: enquiryCode,
+      enquiry_id: enquiryId,
+      patient_id: patientId,
       phone_e164: phone_e164,
       patient_name: fullName.trim(),
       file_count: uploadedFiles.length,
@@ -268,23 +274,9 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
 
   } catch (err) {
     console.error('Submission processing failure:', err);
-
-    // If at least one file was uploaded to storage, still generate Enquiry Code for patient
-    if (uploadedFiles && uploadedFiles.length > 0) {
-      return {
-        success: true,
-        enquiry_code: enquiryCode,
-        phone_e164: phone_e164,
-        patient_name: fullName.trim(),
-        file_count: uploadedFiles.length,
-        isDemoMode: false,
-        message: 'Prescription file uploaded to storage successfully.'
-      };
-    }
-
     return {
       success: false,
-      error: err.message || 'We couldn\'t submit your prescription right now. Please try again.'
+      error: `[Error EXCEPTION] ${err.message || 'We couldn\'t submit your prescription right now. Please try again.'}`
     };
   }
 }
