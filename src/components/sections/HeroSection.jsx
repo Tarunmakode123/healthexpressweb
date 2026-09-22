@@ -95,15 +95,13 @@ export default function HeroSection({ onOpenUploadModal }) {
             </span>
             <span className="font-extrabold text-amber-300 text-xs sm:text-sm">GET UP TO 70% DISCOUNT</span>
             <span className="hidden sm:inline text-purple-300/80">•</span>
-            <span className="hidden sm:inline text-slate-200">Talk to your Health Manager</span>
           </div>
 
           <button
             onClick={() => openWhatsApp("Hello Health Express! I would like to talk to my Health Manager regarding the up to 70% discount offer.")}
-            className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg transition-all text-xs shadow-2xs group cursor-pointer active:scale-95 ml-auto sm:ml-0"
+            className="inline-flex items-center gap-1.5 text-slate-200 hover:text-amber-300 font-bold text-xs group cursor-pointer transition-colors active:scale-95"
           >
-            <MessageSquare className="w-3.5 h-3.5 fill-current" />
-            <span>WhatsApp Us →</span>
+            <span>Talk to your Health Manager →</span>
           </button>
         </div>
 
