@@ -9,19 +9,19 @@ export const CHATBOT_KNOWLEDGE = {
     positioning: "Your personal health manager, for you and your family.",
     tagline: "Healthcare, without the hassle.",
     launchCity: "Bengaluru",
-    softLaunchNotice: "Health Express is currently operating in its soft-launch phase focused on Diagnostics, Home Healthcare Nursing, and Preventive Health in Bengaluru.",
-    whatsappNumber: "+91 81234 14120",
+    softLaunchNotice: "Health Express is currently operating in its soft-launch phase focused on Lab Tests, Home Healthcare Nursing, and Preventive Health in Bengaluru.",
+    whatsappNumber: "+91 80690 00000",
     email: "hello@healthexpress.care"
   },
 
   services: [
     {
-      id: "diagnostics",
-      name: "Diagnostics & Pathology",
+      id: "lab-tests",
+      name: "Lab Tests",
       route: "/services",
-      shortDesc: "Home sample collection and accredited diagnostic lab testing.",
-      details: "Comprehensive blood tests, pathology panels, and routine diagnostic checkups. Certified technicians collect samples directly from your home in Bengaluru.",
-      cta: "Explore Diagnostics"
+      shortDesc: "Home sample collection and accredited lab testing.",
+      details: "Comprehensive blood tests, pathology panels, and routine diagnostic checkups. Certified phlebotomists collect samples directly from your home in Bengaluru.",
+      cta: "Explore Lab Tests"
     },
     {
       id: "imaging",

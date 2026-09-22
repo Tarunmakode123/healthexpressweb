@@ -1,110 +1,79 @@
 import React, { useState } from 'react';
-import { SERVICES_DATA } from '../data/services';
+import { Link } from 'react-router-dom';
 import { 
-  FlaskConical, Camera, Home, Dna, HeartPulse, Search, Sparkles, 
-  Clock, ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, 
-  Upload, MessageSquare, ArrowRight, Activity, MapPin, Zap
+  ALL_SERVICES, CATEGORIES 
+} from '../data/services';
+import { 
+  FlaskConical, Scan, Dna, Home, Stethoscope, ShieldCheck, 
+  Search, Clock, ChevronRight, MessageSquare, PhoneCall, 
+  Upload, ArrowRight, Zap, AlertCircle, CheckCircle2
 } from 'lucide-react';
-import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import { openWhatsApp } from '../utils/whatsapp';
+import { HEALTH_MANAGER_PHONE } from '../config/constants';
 
-const iconMap = {
-  FlaskConical,
-  Camera,
-  Home,
-  Dna,
-  HeartPulse
+const categoryIconMap = {
+  'lab-tests': FlaskConical,
+  'imaging': Scan,
+  'genetics': Dna,
+  'home-care': Home,
+  'surgery': Stethoscope,
+  'health-packages': ShieldCheck
 };
 
 export default function ServicesPage({ onOpenUploadModal }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [expandedServiceId, setExpandedServiceId] = useState('diagnostics');
-  const [collectionModes, setCollectionModes] = useState({});
+  const [activeCategoryId, setActiveCategoryId] = useState('all');
 
-  const categories = [
-    { id: 'all', label: 'All Services' },
-    { id: 'diagnostics', label: 'Diagnostics & Labs' },
-    { id: 'imaging', label: 'Diagnostic Imaging' },
-    { id: 'home-care', label: 'Home Care & Nursing' },
-    { id: 'genomics', label: 'Precision Genomics' },
-    { id: 'preventive', label: 'Preventive Health' }
-  ];
+  // Filter logic across all 50 services
+  const filteredServices = ALL_SERVICES.filter((service) => {
+    const matchesCategory = activeCategoryId === 'all' || service.category_id === activeCategoryId;
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return matchesCategory;
 
-  const toggleExpand = (id) => {
-    setExpandedServiceId(prev => (prev === id ? null : id));
-  };
-
-  const toggleCollectionMode = (id, mode) => {
-    setCollectionModes(prev => ({ ...prev, [id]: mode }));
-  };
-
-  // Filter logic
-  const filteredServices = SERVICES_DATA.filter((service) => {
-    const matchesCategory = activeCategory === 'all' || service.category === activeCategory;
     const matchesSearch = 
-      service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.shortDesc.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.parameters.some(p => p.toLowerCase().includes(searchQuery.toLowerCase()));
+      service.name.toLowerCase().includes(q) ||
+      service.shortDesc.toLowerCase().includes(q) ||
+      service.description.toLowerCase().includes(q) ||
+      (service.parameters && service.parameters.some(p => p.toLowerCase().includes(q)));
+
     return matchesCategory && matchesSearch;
   });
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 relative overflow-hidden">
       
-      {/* Background ECG Waveform Accent */}
-      <div className="absolute top-20 left-0 right-0 h-48 opacity-10 pointer-events-none -z-10 flex items-center justify-center">
-        <svg viewBox="0 0 1200 120" className="w-full h-full text-purple-600 fill-none stroke-current stroke-[2] stroke-linecap-round">
-          <path d="M0,60 L250,60 L280,30 L300,90 L320,10 L340,110 L360,60 L390,60 L420,60 L1200,60" className="animate-ecg" />
-        </svg>
-      </div>
-
-      {/* Decorative Orbs */}
-      <div className="absolute top-0 right-1/3 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-glow" />
-      <div className="absolute bottom-20 left-10 w-80 h-80 bg-indigo-200/30 rounded-full blur-2xl pointer-events-none -z-10" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-12 relative z-10">
-        
-        {/* Animated Hero Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-200 text-xs font-extrabold text-slate-800 shadow-2xs backdrop-blur-md">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-purple-900 uppercase tracking-wider text-[11px] font-extrabold">LIVE HEALTHCARE DIRECTORY</span>
-            <span className="text-slate-300">|</span>
-            <span className="text-emerald-700 font-bold">100% NABL Accredited Partners</span>
+      {/* Header Banner */}
+      <div className="bg-gradient-to-b from-purple-50/80 via-white to-slate-50/50 py-12 md:py-16 border-b border-purple-100/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-center">
+          
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-xs font-extrabold text-purple-900 shadow-2xs">
+            ⚡ LIVE HEALTHCARE DIRECTORY
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Connected Healthcare,<br />
-            <span className="gradient-text-purple">Designed Around You.</span>
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-3xl mx-auto">
+            Comprehensive Healthcare Services,<br />
+            <span className="gradient-text-purple">Coordinated For You.</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            Explore diagnostic blood profiles, certified home nursing care, advanced radiology imaging, and precision genomics. Compare options and book instantly.
+          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Browse verified Lab Tests, Diagnostic Imaging, Precision Genetics, Home Care Nursing, and Full Body Packages.
           </p>
-        </div>
 
-        {/* Search & Category Filter Controls */}
-        <div className="max-w-4xl mx-auto space-y-6">
-          
-          {/* Interactive Search Bar */}
-          <div className="relative glass-card p-2 rounded-2xl border border-purple-200 shadow-lg">
-            <div className="relative flex items-center">
+          {/* Search Bar */}
+          <div className="max-w-2xl mx-auto relative pt-2">
+            <div className="relative flex items-center shadow-lg rounded-2xl overflow-hidden border border-purple-200 bg-white">
               <Search className="w-5 h-5 text-purple-600 absolute left-4" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search services, blood tests, MRI, home nursing, genetic profiles..."
-                className="w-full pl-12 pr-10 py-3.5 rounded-xl bg-white border-0 text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 shadow-inner"
+                placeholder="Search tests (e.g. CBC, HbA1c, Thyroid, MRI, Chest X-Ray, Home Care)..."
+                className="w-full pl-12 pr-10 py-4 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
               />
               {searchQuery && (
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-4 text-xs font-extrabold text-slate-400 hover:text-purple-700"
+                  className="absolute right-4 text-xs font-bold text-slate-400 hover:text-purple-700"
                 >
                   Clear
                 </button>
@@ -112,278 +81,183 @@ export default function ServicesPage({ onOpenUploadModal }) {
             </div>
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer ${
-                  activeCategory === cat.id
-                    ? 'bg-purple-700 text-white shadow-md shadow-purple-700/25 scale-105'
-                    : 'bg-white/90 hover:bg-purple-50 text-slate-600 hover:text-purple-900 border border-purple-100/80 shadow-2xs'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
         </div>
+      </div>
 
-        {/* Results Counter */}
-        <div className="flex items-center justify-between text-xs font-bold text-slate-500 max-w-7xl mx-auto border-b border-purple-100 pb-3">
-          <span>Showing <strong className="text-purple-900">{filteredServices.length}</strong> Healthcare Services</span>
-          <span className="flex items-center gap-1 text-emerald-700">
-            <Zap className="w-3.5 h-3.5 fill-emerald-600" />
-            30-Min Sample Collection Available
-          </span>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        
+        {/* Category Pill Filters (Requirement 7 & 18) */}
+        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+          <button
+            onClick={() => setActiveCategoryId('all')}
+            className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap ${
+              activeCategoryId === 'all'
+                ? 'bg-purple-700 text-white shadow-md scale-105'
+                : 'bg-white hover:bg-purple-50 text-slate-700 border border-slate-200'
+            }`}
+          >
+            All Services ({ALL_SERVICES.length})
+          </button>
 
-        {/* Services Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredServices.map((service, index) => {
-            const IconComp = iconMap[service.iconName] || FlaskConical;
-            const isExpanded = expandedServiceId === service.id;
-            const currentMode = collectionModes[service.id] || 'home';
+          {CATEGORIES.map((cat) => {
+            const IconComponent = categoryIconMap[cat.id] || FlaskConical;
+            const count = ALL_SERVICES.filter(s => s.category_id === cat.id).length;
 
             return (
-              <div 
-                key={service.id}
-                className="bento-card rounded-3xl p-7 md:p-8 flex flex-col justify-between space-y-6 group relative transition-all duration-300"
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategoryId(cat.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap ${
+                  activeCategoryId === cat.id
+                    ? 'bg-purple-700 text-white shadow-md scale-105'
+                    : 'bg-white hover:bg-purple-50 text-slate-700 border border-slate-200'
+                }`}
               >
-                <div className="space-y-5">
-                  
-                  {/* Card Header & Badge */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md group-hover:scale-110 group-hover:bg-purple-800 transition-all duration-300 shrink-0">
-                      <IconComp className="w-7 h-7" />
-                    </div>
-                    
-                    <span className="px-3.5 py-1.5 rounded-full bg-purple-100 text-purple-900 text-[11px] font-black uppercase tracking-wider border border-purple-200">
-                      {service.badge}
-                    </span>
-                  </div>
-
-                  {/* Title & Description */}
-                  <div>
-                    <h3 className="text-2xl font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors">
-                      {service.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
-                      {service.description}
-                    </p>
-                  </div>
-
-                  {/* Clinical Telemetry Bar */}
-                  <div className="grid grid-cols-2 gap-2 text-left pt-1">
-                    <div className="p-3 rounded-2xl bg-purple-50/70 border border-purple-100 flex items-center gap-2.5">
-                      <Clock className="w-4 h-4 text-purple-700 shrink-0" />
-                      <div>
-                        <div className="text-[10px] font-bold text-slate-500 uppercase">Turnaround Time</div>
-                        <div className="text-xs font-extrabold text-purple-950">{service.turnaround}</div>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center gap-2.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-                      <div>
-                        <div className="text-[10px] font-bold text-slate-500 uppercase">Sample Transport</div>
-                        <div className="text-xs font-extrabold text-emerald-950">{service.pickupTime}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Collection Mode Selector */}
-                  <div className="p-1 rounded-2xl bg-slate-100 border border-slate-200/70 flex items-center gap-1">
-                    <button
-                      onClick={() => toggleCollectionMode(service.id, 'home')}
-                      className={`flex-1 py-1.5 rounded-xl text-[11px] font-extrabold transition-all ${
-                        currentMode === 'home'
-                          ? 'bg-white text-purple-950 shadow-xs border border-purple-200'
-                          : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      🏡 Home Collection
-                    </button>
-                    <button
-                      onClick={() => toggleCollectionMode(service.id, 'center')}
-                      className={`flex-1 py-1.5 rounded-xl text-[11px] font-extrabold transition-all ${
-                        currentMode === 'center'
-                          ? 'bg-white text-purple-950 shadow-xs border border-purple-200'
-                          : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      🏥 Partner Lab Visit
-                    </button>
-                  </div>
-
-                  {/* Feature Checklist */}
-                  <div className="space-y-2 pt-2 border-t border-slate-100">
-                    <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">Key Inclusions:</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {service.features.map((feat, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                          <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Expandable Parameters Accordion */}
-                  <div className="pt-2">
-                    <button
-                      onClick={() => toggleExpand(service.id)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200/80 text-purple-900 text-xs font-extrabold flex items-center justify-between transition-colors"
-                    >
-                      <span>{isExpanded ? 'Hide Included Parameters & Prep' : 'View Included Parameters & Preparation'}</span>
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
-
-                    {isExpanded && (
-                      <div className="mt-3 p-4 rounded-2xl bg-white border border-purple-200 space-y-3 animate-fadeIn text-left">
-                        <div>
-                          <div className="text-xs font-extrabold text-slate-900">Included Parameters / Tests:</div>
-                          <ul className="mt-1.5 space-y-1">
-                            {service.parameters.map((param, pIdx) => (
-                              <li key={pIdx} className="text-xs text-slate-600 flex items-start gap-2">
-                                <span className="text-purple-600 font-bold">•</span>
-                                <span>{param}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 font-semibold">
-                          📌 <strong>Preparation Guideline:</strong> {service.prep}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-
-                {/* Card CTA Row */}
-                <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
-                  
-                  {/* Primary Upload Prescription CTA */}
-                  <button
-                    onClick={onOpenUploadModal}
-                    className="flex-1 py-3 px-5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
-                  >
-                    <Upload className="w-4 h-4 text-purple-200" />
-                    <span>Upload Order / Prescription</span>
-                  </button>
-
-                  {/* Secondary WhatsApp CTA */}
-                  <button
-                    onClick={() => openWhatsApp(DEFAULT_MESSAGES.service(service.title))}
-                    className="py-3 px-5 rounded-2xl bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95 cursor-pointer"
-                  >
-                    <MessageSquare className="w-4 h-4 text-emerald-600 fill-emerald-600/20" />
-                    <span>Inquire via WhatsApp</span>
-                  </button>
-
-                </div>
-              </div>
+                <IconComponent className="w-3.5 h-3.5" />
+                <span>{cat.name} ({count})</span>
+              </button>
             );
           })}
         </div>
 
-        {/* High-Tech Healthcare Comparison Section */}
-        <div className="max-w-5xl mx-auto glass-card p-8 md:p-10 rounded-3xl border border-purple-200 shadow-xl space-y-8 mt-16 text-left">
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-purple-100 text-purple-900 text-xs font-extrabold uppercase">
-              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-              <span>THE HEALTH EXPRESS DIFFERENCE</span>
-            </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900">
-              Why Patients Choose Health Express
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600">
-              Traditional diagnostic center experience vs. Health Express modern connected care.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Traditional Labs */}
-            <div className="p-6 rounded-2xl bg-slate-100/80 border border-slate-200 space-y-4">
-              <div className="text-sm font-extrabold text-slate-500 uppercase tracking-wider">Traditional Diagnostic Labs</div>
-              <ul className="space-y-3 text-xs text-slate-600 font-medium">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-500 font-bold">✕</span>
-                  <span>Long waiting times in crowded waiting rooms</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-500 font-bold">✕</span>
-                  <span>Manual paper reports & fragmented history</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-500 font-bold">✕</span>
-                  <span>Uncertain sample transport temperature</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Health Express */}
-            <div className="p-6 rounded-2xl bg-purple-900 text-white border border-purple-800 shadow-lg space-y-4">
-              <div className="text-sm font-extrabold text-emerald-400 uppercase tracking-wider flex items-center justify-between">
-                <span>Health Express Modern Care</span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">100% Certified</span>
-              </div>
-              <ul className="space-y-3 text-xs text-purple-100 font-medium">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span>Zero-wait 30-min home sample collection by certified phlebotomists</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span>Barcoded sample tubes & 100% temperature-monitored cold chain</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-emerald-400 font-bold">✓</span>
-                  <span>Auto-synced backend digital health record with post-report doctor chat</span>
-                </li>
-              </ul>
-            </div>
-
-          </div>
+        {/* Results Count Strip */}
+        <div className="flex items-center justify-between text-xs font-bold text-slate-500 border-b border-slate-200 pb-3">
+          <span>Showing <strong className="text-purple-900">{filteredServices.length}</strong> Healthcare Services</span>
+          <button onClick={onOpenUploadModal} className="text-purple-700 hover:underline flex items-center gap-1 font-extrabold">
+            <Upload className="w-3.5 h-3.5" />
+            <span>Have a prescription? Upload here</span>
+          </button>
         </div>
 
-        {/* Bottom Callout Banner */}
-        <div className="bg-gradient-to-r from-purple-900 via-purple-950 to-slate-950 rounded-3xl p-8 md:p-12 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 text-left">
-          <div className="space-y-3 max-w-xl">
-            <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-emerald-500 text-slate-950">
-              Need Custom Healthcare Advice?
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Have a doctor's prescription or custom test list?
-            </h3>
-            <p className="text-xs sm:text-sm text-purple-200 leading-relaxed">
-              Upload your prescription file in 30 seconds to receive instant partner lab quotes and free care manager guidance.
-            </p>
-          </div>
+        {/* SERVICE CARDS GRID */}
+        {filteredServices.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredServices.map((service) => {
+              const cat = CATEGORIES.find(c => c.id === service.category_id);
+              const IconComp = categoryIconMap[service.category_id] || FlaskConical;
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-            <button
-              onClick={onOpenUploadModal}
-              className="px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-xl flex items-center justify-center gap-2 transition-all hover:scale-105"
-            >
-              <Upload className="w-4 h-4 text-slate-950" />
-              <span>Upload Prescription Now</span>
-            </button>
+              return (
+                <div 
+                  key={service.id}
+                  className="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-purple-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left group"
+                >
+                  <div className="space-y-4">
+                    
+                    {/* Badge & Category */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] uppercase font-black px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
+                        <IconComp className="w-3 h-3" />
+                        {cat?.name || 'Healthcare'}
+                      </span>
 
-            <button
-              onClick={() => openWhatsApp(DEFAULT_MESSAGES.prescription)}
-              className="px-6 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs sm:text-sm border border-white/20 flex items-center justify-center gap-2 transition-all"
-            >
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
-              <span>Chat with Care Manager</span>
-            </button>
+                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                        service.centre_visit_required
+                          ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                          : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                      }`}>
+                        {service.centre_visit_required ? 'Centre Visit Required' : 'Home Collection'}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <div>
+                      <Link 
+                        to={`/services/${service.slug}`}
+                        className="text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors line-clamp-1"
+                      >
+                        {service.name}
+                      </Link>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                        {service.shortDesc}
+                      </p>
+                    </div>
+
+                    {/* Meta Info Pills */}
+                    <div className="flex items-center gap-3 text-[11px] text-slate-600 pt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-purple-700" />
+                        {service.turnaround_time}
+                      </span>
+                      {service.sample_type && (
+                        <span className="truncate max-w-[140px]">
+                          • {service.sample_type}
+                        </span>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Pricing & Footer Actions */}
+                  <div className="pt-5 border-t border-slate-100 mt-5 space-y-3">
+                    <div className="flex items-baseline justify-between">
+                      <div>
+                        <span className="text-xl font-extrabold text-slate-900">₹{service.discount_price}</span>
+                        {service.price && (
+                          <span className="text-xs text-slate-400 line-through ml-2">₹{service.price}</span>
+                        )}
+                      </div>
+                      {service.discount_percentage && (
+                        <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          {service.discount_percentage} OFF
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        to={`/services/${service.slug}`}
+                        className="py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-extrabold text-xs flex items-center justify-center gap-1 transition-colors"
+                      >
+                        <span>View Details</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+
+                      <button
+                        onClick={onOpenUploadModal}
+                        className="py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 transition-colors shadow-sm"
+                      >
+                        <span>Book Now</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })}
           </div>
-        </div>
+        ) : (
+          /* EMPTY SEARCH STATE (Requirement 11) */
+          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-purple-200 shadow-xl max-w-xl mx-auto text-center space-y-5 my-8">
+            <div className="w-16 h-16 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-inner">
+              <Search className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-2xl font-extrabold text-slate-900">Looking for something else?</h3>
+              <p className="text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
+                Your Health Manager is here to help you navigate it. We can arrange customized blood profiles, specialized radiology scans, or home nursing options tailored for you.
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a
+                href={`tel:${HEALTH_MANAGER_PHONE}`}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-950 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+              >
+                <PhoneCall className="w-4 h-4 text-purple-300" />
+                <span>Speak to Your Health Manager</span>
+              </a>
+
+              <button
+                onClick={() => openWhatsApp(`Hello Health Express!\n\nI searched for "${searchQuery}" on the website and would like assistance with booking.`)}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+              >
+                <MessageSquare className="w-4 h-4 fill-current" />
+                <span>Chat on WhatsApp</span>
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

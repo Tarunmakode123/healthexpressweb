@@ -33,7 +33,7 @@ export default function SimplerHealthcareSection() {
             WHAT HEALTH EXPRESS DOES
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
-            One place. <span className="gradient-text-purple">Less coordination.</span>
+            One Place, One Step. <span className="gradient-text-purple">We do the Rest.</span>
           </h2>
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
             Instead of navigating multiple websites, diagnostic centers, and clinics — let Health Express coordinate the journey for you.

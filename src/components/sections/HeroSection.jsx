@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Upload, CheckCircle, Activity, ShieldCheck, FlaskConical, Home, HeartHandshake, MessageSquare, ArrowRight } from 'lucide-react';
+import { Upload, CheckCircle, FlaskConical, Home, ArrowRight } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function HeroSection({ onOpenUploadModal }) {
@@ -51,7 +51,7 @@ export default function HeroSection({ onOpenUploadModal }) {
             {/* Primary & Secondary Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
               
-              {/* Single Clear Primary CTA: 3-Step Upload Prescription Modal */}
+              {/* Single Clear Primary CTA: Upload Prescription Modal */}
               <button
                 onClick={onOpenUploadModal}
                 className="group relative px-8 py-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-purple-700/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
@@ -61,14 +61,14 @@ export default function HeroSection({ onOpenUploadModal }) {
                 <ArrowRight className="w-4 h-4 text-purple-200 group-hover:translate-x-1 transition-transform" />
               </button>
 
-              {/* Distinct Secondary Action: Explore Lab Packages */}
-              <a
-                href="#tests"
+              {/* Secondary Action: Explore Lab Packages */}
+              <Link
+                to="/services"
                 className="px-6 py-4 rounded-2xl bg-white hover:bg-purple-50 border-2 border-purple-200 text-purple-900 font-extrabold text-sm sm:text-base shadow-xs transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 <FlaskConical className="w-4 h-4 text-purple-700" />
-                <span>Explore Lab Packages</span>
-              </a>
+                <span>Explore Healthcare Services</span>
+              </Link>
 
             </div>
 
@@ -78,14 +78,14 @@ export default function HeroSection({ onOpenUploadModal }) {
               <span>NABL Accredited Partner Labs • 100% Cold-Chain Sample Transport</span>
             </div>
 
-            {/* Service Strip: Diagnostics & Home Nursing */}
+            {/* Service Strip: Lab Tests & Home Nursing */}
             <div className="pt-6 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
               <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/90 backdrop-blur-md border border-purple-100 shadow-xs hover-glow group cursor-pointer" onClick={onOpenUploadModal}>
                 <div className="w-10 h-10 rounded-xl bg-purple-700 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                   <FlaskConical className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900 group-hover:text-purple-900 transition-colors">Diagnostics & Pathology</div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-purple-900 transition-colors">Lab Tests</div>
                   <div className="text-[11px] text-slate-500">NABL Labs · Home Sample Collection</div>
                 </div>
               </div>
@@ -103,7 +103,7 @@ export default function HeroSection({ onOpenUploadModal }) {
 
           </div>
 
-          {/* Right Hero Visual Card with High-End Healthcare Editorial Image */}
+          {/* Right Hero Visual Card */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative w-full max-w-md">
               
@@ -132,7 +132,7 @@ export default function HeroSection({ onOpenUploadModal }) {
               
               {/* Hero Image Container */}
               <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-white space-y-0 group">
-                <div className="relative h-64 sm:h-72 w-full overflow-hidden">
+                <div className="relative h-72 sm:h-80 w-full overflow-hidden">
                   <img
                     src="/hero_home_care.jpg"
                     alt="Health Express Care Manager assisting patient at home"
@@ -150,36 +150,15 @@ export default function HeroSection({ onOpenUploadModal }) {
                   </div>
                 </div>
 
-                {/* Streamlined Live Clinical Telemetry Showcase (Replaced redundant upload card) */}
-                <div className="p-5 bg-white space-y-3.5">
-                  <div className="flex items-center justify-between text-xs border-b border-slate-100 pb-2.5">
-                    <span className="font-extrabold text-slate-900 flex items-center gap-1.5">
-                      <Activity className="w-4 h-4 text-purple-700" />
-                      Live Care Telemetry
-                    </span>
-                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Active Coverage
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-left">
-                    <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 space-y-0.5">
-                      <div className="text-[10px] font-bold text-slate-500">Sample Pickup</div>
-                      <div className="text-xs font-extrabold text-purple-900">30-Min Arrival</div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-0.5">
-                      <div className="text-[10px] font-bold text-slate-500">Lab Reports</div>
-                      <div className="text-xs font-extrabold text-emerald-900">Same Day Result</div>
-                    </div>
-                  </div>
-
-                  <a
-                    href="#services"
+                {/* Direct Action Link Strip */}
+                <div className="p-4 bg-white">
+                  <Link
+                    to="/services"
                     className="w-full py-3 rounded-xl bg-slate-900 hover:bg-purple-900 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
                   >
                     <span>View All Healthcare Services</span>
                     <ArrowRight className="w-4 h-4 text-purple-300" />
-                  </a>
+                  </Link>
                 </div>
 
               </div>

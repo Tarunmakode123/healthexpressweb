@@ -97,7 +97,7 @@ export async function processUserMessageAsync(rawQuery, currentPath = '/', conve
     }
 
     return {
-      text: "🧪 **Diagnostics & Home Sample Collection**: Health Express coordinates blood tests, complete profiles, and routine pathology through NABL-accredited labs in Bengaluru.\n\nWhich test or service are you interested in?",
+      text: "🧪 **Lab Tests & Home Sample Collection**: Health Express coordinates blood tests, complete profiles, and routine pathology through NABL-accredited labs in Bengaluru.\n\nWhich test or service are you interested in?",
       quickReplies: [
         { label: "CBC Test", action: "test_cbc" },
         { label: "Thyroid Profile", action: "test_thyroid" },

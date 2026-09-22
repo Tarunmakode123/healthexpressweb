@@ -84,7 +84,7 @@ export default function Footer({ onOpenUploadModal }) {
               Services
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Diagnostics</Link></li>
+              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Lab Tests</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Preventive Health Packages</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Imaging</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Home Nursing</Link></li>
@@ -113,7 +113,7 @@ export default function Footer({ onOpenUploadModal }) {
               Health Library
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Diagnostics Guides</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Lab Tests Guides</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Health Tests</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Family Health</Link></li>
               <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Preventive Health</Link></li>

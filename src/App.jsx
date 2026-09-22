@@ -4,10 +4,12 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PrescriptionModal from './components/common/PrescriptionModal';
+import CareManagerCTA from './components/common/CareManagerCTA';
 import HealthExpressAssistant from './components/chat/HealthExpressAssistant';
 
 import HomePage from './pages/HomePage';
 import ServicesPage from './pages/ServicesPage';
+import ServiceDetailPage from './pages/ServiceDetailPage';
 import HealthLibraryPage from './pages/HealthLibraryPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
 import AboutPage from './pages/AboutPage';
@@ -47,6 +49,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} />} />
               <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
+              <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
               <Route path="/health-library" element={<HealthLibraryPage />} />
               <Route path="/health-library/:slug" element={<ArticleDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
               <Route path="/about" element={<AboutPage onOpenUploadModal={handleOpenUploadModal} />} />
@@ -61,6 +64,9 @@ export default function App() {
 
           {/* Footer */}
           <Footer onOpenUploadModal={handleOpenUploadModal} />
+
+          {/* Floating Care Manager Direct Phone CTA */}
+          <CareManagerCTA />
 
           {/* Global Upload Prescription WhatsApp Modal */}
           <PrescriptionModal 
