@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Award, Lock, Eye } from 'lucide-react';
+import { ShieldCheck, Award, Eye } from 'lucide-react';
 
 export default function TrustSection() {
   const trustItems = [
@@ -14,14 +14,9 @@ export default function TrustSection() {
       description: 'Access diagnostic services through trusted partner laboratories.'
     },
     {
-      icon: Lock,
-      title: 'Private & secure',
-      description: 'Your healthcare information is handled with appropriate privacy and security safeguards.'
-    },
-    {
       icon: Eye,
-      title: 'Transparent options',
-      description: 'See available options before you decide.'
+      title: 'Transparent options before you decide',
+      description: 'See clear pricing, service details, and provider options upfront.'
     }
   ];
 
@@ -39,20 +34,24 @@ export default function TrustSection() {
           </h2>
         </div>
 
-        {/* 4 Trust Items Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* 3 Trust Items Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {trustItems.map((item, idx) => {
             const IconComponent = item.icon;
             return (
               <div 
                 key={idx}
-                className="glass-card hover:bg-white p-6 rounded-3xl border border-purple-100/80 shadow-xs hover-glow space-y-4 text-left group"
+                className="glass-card hover:bg-white p-7 rounded-3xl border border-purple-100/80 shadow-xs hover-glow space-y-4 text-left group transition-all"
               >
                 <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:bg-purple-800 transition-all">
                   <IconComponent className="w-6 h-6" />
                 </div>
-                <h4 className="text-base font-bold text-slate-900 group-hover:text-purple-900 transition-colors">{item.title}</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
+                <h4 className="text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors">
+                  {item.title}
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                  {item.description}
+                </p>
               </div>
             );
           })}
