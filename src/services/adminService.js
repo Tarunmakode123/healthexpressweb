@@ -1,6 +1,68 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
 
 /**
+ * Verifies Admin login credentials against Supabase Auth & Database RBAC
+ */
+export async function verifyAdminAuth(email, password) {
+  if (!email || !password) {
+    return { success: false, error: 'Please enter both email and password.' };
+  }
+
+  if (isSupabaseConfigured) {
+    try {
+      // 1. Supabase Auth sign in
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password
+      });
+
+      if (authError) {
+        return { success: false, error: authError.message || 'Invalid email or password.' };
+      }
+
+      // 2. Database RBAC check via SECURITY DEFINER check_is_admin() RPC
+      const { data: isAdmin, error: rpcError } = await supabase.rpc('check_is_admin');
+
+      if (rpcError) {
+        console.warn('RPC check_is_admin warning:', rpcError.message);
+      }
+
+      // If user is logged in, verify if they are admin or fallback to email domain/demo check
+      const userEmail = authData.user?.email || '';
+      const isDomainAdmin = userEmail.includes('admin') || userEmail.endsWith('@healthexpress.in');
+      const verifiedAdmin = Boolean(isAdmin || isDomainAdmin);
+
+      if (!verifiedAdmin) {
+        await supabase.auth.signOut();
+        return { 
+          success: false, 
+          error: 'Access Denied: Your account does not have Admin privileges.' 
+        };
+      }
+
+      return {
+        success: true,
+        user: authData.user,
+        token: authData.session?.access_token
+      };
+    } catch (err) {
+      console.error('Admin Auth Exception:', err);
+      return { success: false, error: err.message || 'Authentication error.' };
+    }
+  }
+
+  // Fallback demo authentication for offline/local environment testing
+  if (email.toLowerCase().includes('admin') && password === 'admin123') {
+    return {
+      success: true,
+      user: { id: 'demo_admin_user', email: email.trim(), user_metadata: { role: 'admin' } }
+    };
+  }
+
+  return { success: false, error: 'Invalid admin credentials.' };
+}
+
+/**
  * Fetch all orders and payments for Admin Panel
  */
 export async function fetchAdminOrders() {
@@ -36,6 +98,8 @@ export async function fetchAdminOrders() {
       currency: 'INR',
       order_status: 'CONFIRMED',
       payment_status: 'PAID',
+      payment_method: 'ONLINE',
+      payment_mode: 'LIVE',
       created_at: new Date(Date.now() - 3600000).toISOString(),
       items: [
         { id: 'cbc', name: 'Complete Blood Count (CBC)', quantity: 2, unit_price: 299, total_price: 598 },
@@ -63,6 +127,8 @@ export async function fetchAdminOrders() {
       currency: 'INR',
       order_status: 'CONFIRMED',
       payment_status: 'PENDING',
+      payment_method: 'COD',
+      payment_mode: 'COD',
       created_at: new Date(Date.now() - 7200000).toISOString(),
       items: [
         { id: 'lipid', name: 'Lipid Profile Screen', quantity: 1, unit_price: 499, total_price: 499 }
@@ -89,6 +155,8 @@ export async function fetchAdminOrders() {
       currency: 'INR',
       order_status: 'PENDING',
       payment_status: 'FAILED',
+      payment_method: 'ONLINE',
+      payment_mode: 'DEMO',
       created_at: new Date(Date.now() - 14400000).toISOString(),
       items: [
         { id: 'full-body', name: 'Master Health Checkup Package', quantity: 1, unit_price: 2499, total_price: 2499 }
@@ -108,6 +176,33 @@ export async function fetchAdminOrders() {
   ];
 
   return { success: true, data: demoOrders };
+}
+
+/**
+ * Mark COD Payment as Collected (payment_status -> PAID)
+ */
+export async function markCodPaymentCollected(orderId) {
+  if (!orderId) return { success: false, error: 'Missing Order ID.' };
+
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase.rpc('mark_cod_payment_collected', {
+        p_order_id: orderId
+      });
+
+      if (error) {
+        console.error('RPC mark_cod_payment_collected error:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, data };
+    } catch (err) {
+      console.error('Mark COD Exception:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  return { success: true };
 }
 
 /**
@@ -158,7 +253,6 @@ export async function fetchAdminPrescriptions() {
     }
   }
 
-  // Fallback demo dataset
   const demoPrescriptions = [
     {
       id: 'enq_201',

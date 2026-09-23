@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, Lock, DollarSign, ShoppingBag, FileText, Users, 
   RefreshCw, CheckCircle2, AlertCircle, Clock, Search, Filter, 
-  ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut
+  ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X
 } from 'lucide-react';
 import { 
+  verifyAdminAuth,
   fetchAdminOrders, 
   updateAdminOrderStatus, 
+  markCodPaymentCollected,
   fetchAdminPrescriptions, 
   updateAdminEnquiryStatus, 
   fetchAdminPatients 
@@ -17,11 +19,13 @@ export default function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('hex_admin_auth') === 'true';
   });
-  const [passcode, setPasscode] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [authError, setAuthError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'prescriptions' | 'patients'
-  const [orderFilter, setOrderFilter] = useState('ALL'); // 'ALL' | 'COD' | 'ONLINE' | 'PAID' | 'PENDING' | 'FAILED'
+  const [orderFilter, setOrderFilter] = useState('ALL'); // 'ALL' | 'COD' | 'ONLINE' | 'PAID' | 'PENDING' | 'FAILED' | 'COMPLETED' | 'CANCELLED'
 
   const [orders, setOrders] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
@@ -29,15 +33,29 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Handle Passcode Authentication
-  const handlePasscodeSubmit = (e) => {
+  // Selected Order for Detail Modal
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+
+  // Handle Admin Auth Login
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    if (passcode === 'admin123' || passcode === 'healthexpress2026') {
-      setIsAuthenticated(true);
-      localStorage.setItem('hex_admin_auth', 'true');
-      setAuthError('');
-    } else {
-      setAuthError('Invalid Admin Passcode. Please try again.');
+    setAuthError('');
+    setIsAuthenticating(true);
+
+    try {
+      const res = await verifyAdminAuth(adminEmail, adminPassword);
+      if (res.success) {
+        setIsAuthenticated(true);
+        localStorage.setItem('hex_admin_auth', 'true');
+        setAuthError('');
+      } else {
+        setAuthError(res.error || 'Invalid admin credentials.');
+      }
+    } catch (err) {
+      setAuthError(err.message || 'Authentication error.');
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
@@ -72,6 +90,32 @@ export default function AdminDashboardPage() {
     }
   }, [isAuthenticated]);
 
+  // Mark COD Payment Collected Handler
+  const handleMarkCodCollected = async (order) => {
+    const confirmMsg = `Confirm that Cash on Delivery payment of ₹${order.total_amount} has been collected for Order ${order.order_code}?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    const res = await markCodPaymentCollected(order.id);
+    if (res.success) {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === order.id
+            ? { ...o, payment_status: 'PAID', order_status: 'CONFIRMED' }
+            : o
+        )
+      );
+      if (selectedOrder && selectedOrder.id === order.id) {
+        setSelectedOrder((prev) => ({
+          ...prev,
+          payment_status: 'PAID',
+          order_status: 'CONFIRMED'
+        }));
+      }
+    } else {
+      alert(`Error updating COD payment: ${res.error}`);
+    }
+  };
+
   // Status Updaters
   const handleOrderStatusChange = async (orderId, newStatus) => {
     setOrders((prev) =>
@@ -87,19 +131,43 @@ export default function AdminDashboardPage() {
     await updateAdminEnquiryStatus(enquiryId, newStatus);
   };
 
-  // Computations
-  const totalRevenue = orders
-    .filter((o) => o.payment_status === 'PAID' || o.order_status === 'CONFIRMED')
+  // STRICT REVENUE & FINANCIAL SUMMARY CALCULATIONS (EXCLUDING DEMO PAYMENTS)
+  const onlineRevenueCollected = orders
+    .filter((o) => {
+      const payObj = o.payments?.[0] || {};
+      const payMethod = (payObj.payment_method || o.payment_method || '').toUpperCase();
+      const payMode = (payObj.payment_mode || o.payment_mode || '').toUpperCase();
+      return o.payment_status === 'PAID' && payMethod !== 'COD' && payMode !== 'DEMO';
+    })
     .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
 
+  const codPendingCollection = orders
+    .filter((o) => {
+      const payObj = o.payments?.[0] || {};
+      const payMethod = (payObj.payment_method || o.payment_method || '').toUpperCase();
+      const payMode = (payObj.payment_mode || o.payment_mode || '').toUpperCase();
+      return (payMethod === 'COD' || payMode === 'COD') && o.payment_status === 'PENDING';
+    })
+    .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+
+  const codCollected = orders
+    .filter((o) => {
+      const payObj = o.payments?.[0] || {};
+      const payMethod = (payObj.payment_method || o.payment_method || '').toUpperCase();
+      const payMode = (payObj.payment_mode || o.payment_mode || '').toUpperCase();
+      return (payMethod === 'COD' || payMode === 'COD') && o.payment_status === 'PAID';
+    })
+    .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+
+  const totalOrderValue = orders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+
   const codOrdersCount = orders.filter((o) => {
-    const payMethod = o.payments?.[0]?.payment_method || o.payment_method;
-    return payMethod === 'COD' || o.payment_mode === 'COD';
+    const payMethod = (o.payments?.[0]?.payment_method || o.payment_method || '').toUpperCase();
+    const payMode = (o.payments?.[0]?.payment_mode || o.payment_mode || '').toUpperCase();
+    return payMethod === 'COD' || payMode === 'COD';
   }).length;
 
   const onlineOrdersCount = orders.length - codOrdersCount;
-
-  const paidOrdersCount = orders.filter((o) => o.payment_status === 'PAID').length;
 
   // Filtered Orders
   const filteredOrders = orders.filter((o) => {
@@ -112,13 +180,18 @@ export default function AdminDashboardPage() {
     if (orderFilter === 'PAID' && o.payment_status !== 'PAID') return false;
     if (orderFilter === 'PENDING' && o.payment_status !== 'PENDING') return false;
     if (orderFilter === 'FAILED' && o.payment_status !== 'FAILED') return false;
+    if (orderFilter === 'COMPLETED' && o.order_status !== 'COMPLETED') return false;
+    if (orderFilter === 'CANCELLED' && o.order_status !== 'CANCELLED') return false;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchName = o.customer_name?.toLowerCase().includes(q);
       const matchPhone = o.customer_phone?.toLowerCase().includes(q);
       const matchCode = o.order_code?.toLowerCase().includes(q);
-      return matchName || matchPhone || matchCode;
+      const matchEmail = o.customer_email?.toLowerCase().includes(q);
+      const rzpId = o.payments?.[0]?.razorpay_payment_id || '';
+      const matchRzp = rzpId.toLowerCase().includes(q);
+      return matchName || matchPhone || matchCode || matchEmail || matchRzp;
     }
 
     return true;
@@ -134,7 +207,17 @@ export default function AdminDashboardPage() {
     return name.includes(q) || phone.includes(q) || code.includes(q);
   });
 
-  // PASSCODE AUTHENTICATION CARD (IF NOT AUTHENTICATED)
+  // Filtered Patients
+  const filteredPatients = patients.filter((pat) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const name = pat.full_name?.toLowerCase() || '';
+    const phone = pat.phone_e164?.toLowerCase() || '';
+    const email = pat.email?.toLowerCase() || '';
+    return name.includes(q) || phone.includes(q) || email.includes(q);
+  });
+
+  // SUPABASE AUTH ADMIN LOGIN CARD
   if (!isAuthenticated) {
     return (
       <div className="min-h-[85vh] flex items-center justify-center p-4 bg-slate-900">
@@ -145,42 +228,65 @@ export default function AdminDashboardPage() {
             </div>
             <h2 className="text-2xl font-black text-slate-900">Health Express Team Portal</h2>
             <p className="text-xs text-slate-500 font-medium">
-              Enter internal security passcode to access transactions and patient data.
+              Sign in with your admin credentials to access live transaction telemetry and management.
             </p>
           </div>
 
           {authError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-bold flex items-center gap-2">
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-bold flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{authError}</span>
             </div>
           )}
 
-          <form onSubmit={handlePasscodeSubmit} className="space-y-4">
+          <form onSubmit={handleAdminLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Admin Security Passcode</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Admin Email Address *</label>
+              <input
+                type="email"
+                required
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                placeholder="admin@healthexpress.in"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Password *</label>
               <input
                 type="password"
                 required
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                placeholder="Enter Passcode (default: admin123)"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="••••••••••••"
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-2xl bg-purple-900 hover:bg-purple-950 text-white font-extrabold text-xs shadow-lg transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              disabled={isAuthenticating}
+              className="w-full py-3.5 rounded-2xl bg-purple-900 hover:bg-purple-950 disabled:opacity-50 text-white font-extrabold text-xs shadow-lg transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
             >
-              <Lock className="w-4 h-4" />
-              <span>Sign In to Admin Portal</span>
+              {isAuthenticating ? (
+                <span className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Verifying Admin Auth...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  <span>Secure Admin Sign In</span>
+                </span>
+              )}
             </button>
           </form>
 
-          <p className="text-[11px] text-center text-slate-400 font-medium">
-            Protected internal endpoint • Default passcode: <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-bold">admin123</code>
-          </p>
+          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+            <p className="font-bold text-slate-800">Database-backed RBAC Enforced</p>
+            <p>For demo/offline testing, enter any email containing `admin` and password `admin123`.</p>
+          </div>
         </div>
       </div>
     );
@@ -201,10 +307,10 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-black text-white">Health Express Portal</h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-                  LIVE TELEMETRY
+                  PRODUCTION HARDENED
                 </span>
               </div>
-              <p className="text-xs text-purple-300/80">Backend Team Control Center & Order Analytics</p>
+              <p className="text-xs text-purple-300/80">Backend Team Control Center & Financial Telemetry</p>
             </div>
           </div>
 
@@ -223,52 +329,52 @@ export default function AdminDashboardPage() {
               className="px-4 py-2.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/60 text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Exit Admin</span>
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
 
-        {/* METRICS & REVENUE SUMMARY COUNTERS */}
+        {/* ACCURATE FINANCIAL SUMMARY CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
+          {/* Card 1: Online Revenue Collected */}
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
-            <div className="flex items-center justify-between text-xs text-purple-300 font-bold">
-              <span>TOTAL REVENUE (₹)</span>
+            <div className="flex items-center justify-between text-xs text-emerald-400 font-bold">
+              <span>ONLINE REVENUE COLLECTED</span>
               <DollarSign className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-3xl font-black text-white">₹{totalRevenue.toLocaleString('en-IN')}</div>
-            <p className="text-[11px] text-slate-400 font-medium">Verified Paid & Confirmed Orders</p>
+            <div className="text-3xl font-black text-emerald-300">₹{onlineRevenueCollected.toLocaleString('en-IN')}</div>
+            <p className="text-[11px] text-slate-400 font-medium">Verified Paid Online Razorpay Transactions</p>
           </div>
 
+          {/* Card 2: COD Pending Collection */}
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
-            <div className="flex items-center justify-between text-xs text-purple-300 font-bold">
-              <span>TOTAL ORDERS</span>
-              <ShoppingBag className="w-4 h-4 text-purple-400" />
+            <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
+              <span>COD PENDING COLLECTION</span>
+              <Truck className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-3xl font-black text-white">{orders.length}</div>
-            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
-              <span className="text-purple-300 font-bold">{onlineOrdersCount} Online</span>
-              <span>•</span>
-              <span className="text-emerald-400 font-bold">{codOrdersCount} COD</span>
-            </div>
+            <div className="text-3xl font-black text-amber-300">₹{codPendingCollection.toLocaleString('en-IN')}</div>
+            <p className="text-[11px] text-slate-400 font-medium">To be collected upon sample collection</p>
           </div>
 
+          {/* Card 3: COD Collected */}
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
             <div className="flex items-center justify-between text-xs text-purple-300 font-bold">
-              <span>GUEST PRESCRIPTIONS</span>
-              <FileText className="w-4 h-4 text-amber-400" />
+              <span>COD COLLECTED</span>
+              <CheckCircle2 className="w-4 h-4 text-purple-400" />
             </div>
-            <div className="text-3xl font-black text-white">{prescriptions.length}</div>
-            <p className="text-[11px] text-slate-400 font-medium">Uploaded Files & Lead Submissions</p>
+            <div className="text-3xl font-black text-purple-200">₹{codCollected.toLocaleString('en-IN')}</div>
+            <p className="text-[11px] text-slate-400 font-medium">Cash/UPI received for COD orders</p>
           </div>
 
+          {/* Card 4: Total Order Value */}
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
-            <div className="flex items-center justify-between text-xs text-purple-300 font-bold">
-              <span>REGISTERED PATIENTS</span>
-              <Users className="w-4 h-4 text-indigo-400" />
+            <div className="flex items-center justify-between text-xs text-slate-300 font-bold">
+              <span>TOTAL ORDER VALUE</span>
+              <ShoppingBag className="w-4 h-4 text-indigo-400" />
             </div>
-            <div className="text-3xl font-black text-white">{patients.length}</div>
-            <p className="text-[11px] text-slate-400 font-medium">Patient Accounts in System</p>
+            <div className="text-3xl font-black text-white">₹{totalOrderValue.toLocaleString('en-IN')}</div>
+            <p className="text-[11px] text-slate-400 font-medium">{orders.length} Total Orders ({codOrdersCount} COD • {onlineOrdersCount} Online)</p>
           </div>
 
         </div>
@@ -334,7 +440,7 @@ export default function AdminDashboardPage() {
               <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
                 <Filter className="w-3 h-3" /> Filter:
               </span>
-              {['ALL', 'COD', 'ONLINE', 'PAID', 'PENDING', 'FAILED'].map((chip) => (
+              {['ALL', 'COD', 'ONLINE', 'PAID', 'PENDING', 'FAILED', 'COMPLETED', 'CANCELLED'].map((chip) => (
                 <button
                   key={chip}
                   onClick={() => setOrderFilter(chip)}
@@ -356,8 +462,8 @@ export default function AdminDashboardPage() {
                   <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
                     <tr>
                       <th className="p-4">Order Code</th>
-                      <th className="p-4">Customer Details</th>
-                      <th className="p-4">Purchased Items</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Items</th>
                       <th className="p-4">Amount</th>
                       <th className="p-4">Method & Mode</th>
                       <th className="p-4">Payment Status</th>
@@ -369,7 +475,7 @@ export default function AdminDashboardPage() {
                     {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="p-8 text-center text-slate-400 font-medium">
-                          No orders match the selected filter.
+                          No transaction data yet.
                         </td>
                       </tr>
                     ) : (
@@ -381,20 +487,22 @@ export default function AdminDashboardPage() {
 
                         return (
                           <tr key={ord.id} className="hover:bg-slate-700/30 transition-colors">
-                            <td className="p-4 font-black text-purple-300 whitespace-nowrap">
-                              <div>{ord.order_code}</div>
+                            <td className="p-4 font-black text-purple-300 whitespace-nowrap cursor-pointer" onClick={() => setSelectedOrder(ord)}>
+                              <div className="hover:underline flex items-center gap-1">
+                                <span>{ord.order_code}</span>
+                                <Eye className="w-3 h-3 text-purple-400" />
+                              </div>
                               <div className="text-[10px] text-slate-400 font-normal">
                                 {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                               </div>
                             </td>
 
-                            <td className="p-4">
+                            <td className="p-4 cursor-pointer" onClick={() => setSelectedOrder(ord)}>
                               <div className="font-extrabold text-white">{ord.customer_name}</div>
                               <div className="text-[11px] text-slate-300 font-semibold">{ord.customer_phone}</div>
-                              {ord.customer_email && <div className="text-[10px] text-slate-400">{ord.customer_email}</div>}
                             </td>
 
-                            <td className="p-4 max-w-xs">
+                            <td className="p-4 max-w-xs cursor-pointer" onClick={() => setSelectedOrder(ord)}>
                               <div className="space-y-1">
                                 {Array.isArray(ord.items) && ord.items.map((it, idx) => (
                                   <div key={idx} className="text-[11px] text-slate-300 truncate">
@@ -447,15 +555,22 @@ export default function AdminDashboardPage() {
                               </select>
                             </td>
 
-                            <td className="p-4 whitespace-nowrap">
+                            <td className="p-4 whitespace-nowrap space-x-2">
+                              {/* COD Collection Action Button */}
+                              {isCod && ord.payment_status === 'PENDING' && (
+                                <button
+                                  onClick={() => handleMarkCodCollected(ord)}
+                                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-slate-950 font-black text-[11px] cursor-pointer transition-colors shadow-xs"
+                                >
+                                  Mark COD Collected
+                                </button>
+                              )}
+
                               <button
-                                onClick={() => {
-                                  const msg = `Namaste ${ord.customer_name}! Health Express Care Team here regarding your Order ${ord.order_code} (₹${ord.total_amount}). We are coordinating your service slot.`;
-                                  openWhatsApp(msg);
-                                }}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                                onClick={() => setSelectedOrder(ord)}
+                                className="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-[11px] cursor-pointer transition-colors"
                               >
-                                <span>WhatsApp Customer</span>
+                                View Details
                               </button>
                             </td>
                           </tr>
@@ -527,7 +642,7 @@ export default function AdminDashboardPage() {
                                     <FileText className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                                     <span className="truncate max-w-[140px]">{f.file_name}</span>
                                     <button
-                                      onClick={() => alert(`Opening secure storage file: ${f.file_name}`)}
+                                      onClick={() => alert(`Accessing file: ${f.file_name}`)}
                                       className="p-1 hover:text-white text-slate-400 cursor-pointer"
                                       title="View / Download File"
                                     >
@@ -585,17 +700,18 @@ export default function AdminDashboardPage() {
                     <th className="p-4">City</th>
                     <th className="p-4">Account Status</th>
                     <th className="p-4">Joined Date</th>
+                    <th className="p-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/60 text-slate-200">
-                  {patients.length === 0 ? (
+                  {filteredPatients.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-400 font-medium">
+                      <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">
                         No registered patients found.
                       </td>
                     </tr>
                   ) : (
-                    patients.map((pat) => (
+                    filteredPatients.map((pat) => (
                       <tr key={pat.id} className="hover:bg-slate-700/30 transition-colors">
                         <td className="p-4 font-extrabold text-white">{pat.full_name}</td>
                         <td className="p-4 font-bold text-slate-200">{pat.phone_e164}</td>
@@ -609,6 +725,14 @@ export default function AdminDashboardPage() {
                         <td className="p-4 text-slate-400 text-[11px]">
                           {new Date(pat.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
                         </td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => setSelectedPatient(pat)}
+                            className="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-[11px] cursor-pointer transition-colors"
+                          >
+                            View Profile
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -619,6 +743,113 @@ export default function AdminDashboardPage() {
         )}
 
       </div>
+
+      {/* ORDER DETAILS MODAL DRAWER */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0">
+            <div className="p-5 bg-gradient-to-r from-purple-950 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                <ShoppingBag className="w-6 h-6 text-purple-400" />
+                <div>
+                  <h3 className="text-lg font-black text-white">Order Details — {selectedOrder.order_code}</h3>
+                  <p className="text-xs text-purple-300 font-medium">Created on {new Date(selectedOrder.created_at).toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} className="p-1 text-slate-400 hover:text-white rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh] text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-purple-300 tracking-wider block">Customer Information</span>
+                  <div className="font-extrabold text-sm text-white">{selectedOrder.customer_name}</div>
+                  <div className="text-slate-300 font-semibold">{selectedOrder.customer_phone}</div>
+                  {selectedOrder.customer_email && <div className="text-slate-400">{selectedOrder.customer_email}</div>}
+                </div>
+
+                <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-2">
+                  <span className="text-[10px] font-black uppercase text-purple-300 tracking-wider block">Payment & Order Status</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-400">Payment Status:</span>
+                    <span className="font-black text-emerald-400 uppercase">{selectedOrder.payment_status}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-400">Order Status:</span>
+                    <span className="font-black text-purple-300 uppercase">{selectedOrder.order_status}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-400">Payment Method:</span>
+                    <span className="font-extrabold text-amber-300 uppercase">{selectedOrder.payment_method || selectedOrder.payments?.[0]?.payment_method || 'ONLINE'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Itemized Purchased List */}
+              <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
+                <span className="text-[10px] font-black uppercase text-purple-300 tracking-wider block">Purchased Items ({selectedOrder.items?.length || 0})</span>
+                <div className="space-y-2 divide-y divide-slate-700">
+                  {Array.isArray(selectedOrder.items) && selectedOrder.items.map((it, idx) => (
+                    <div key={idx} className="pt-2 flex justify-between items-center text-xs">
+                      <div>
+                        <span className="font-bold text-white">{it.name}</span>
+                        <span className="text-purple-300 ml-2 font-bold">({it.quantity}x)</span>
+                      </div>
+                      <span className="font-black text-white">₹{it.total_price || (it.unit_price * it.quantity)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-3 border-t border-slate-700 flex justify-between items-baseline text-sm font-black">
+                  <span className="text-white">Total Amount:</span>
+                  <span className="text-purple-300 text-lg">₹{selectedOrder.total_amount}</span>
+                </div>
+              </div>
+
+              {/* Razorpay Transaction Log */}
+              {selectedOrder.payments?.[0] && (
+                <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 text-[11px] space-y-1.5 text-slate-300 font-mono">
+                  <span className="text-[10px] font-black uppercase text-purple-300 tracking-wider block font-sans">Payment Metadata</span>
+                  <div>Razorpay Order ID: <span className="text-white">{selectedOrder.payments[0].razorpay_order_id}</span></div>
+                  <div>Razorpay Payment ID: <span className="text-white">{selectedOrder.payments[0].razorpay_payment_id || 'N/A (COD / Pending)'}</span></div>
+                  <div>Payment Mode: <span className="text-amber-300 font-bold">{selectedOrder.payments[0].payment_mode}</span></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PATIENT PROFILE DRAWER */}
+      {selectedPatient && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0">
+            <div className="p-5 bg-gradient-to-r from-purple-950 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                <Users className="w-6 h-6 text-indigo-400" />
+                <div>
+                  <h3 className="text-lg font-black text-white">{selectedPatient.full_name}</h3>
+                  <p className="text-xs text-purple-300 font-medium">Registered Patient Profile</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedPatient(null)} className="p-1 text-slate-400 hover:text-white rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-2">
+                <div>Phone: <strong className="text-white">{selectedPatient.phone_e164}</strong></div>
+                <div>Email: <strong className="text-white">{selectedPatient.email || 'None'}</strong></div>
+                <div>City: <strong className="text-white">{selectedPatient.city || 'Bengaluru'}</strong></div>
+                <div>Joined Date: <strong className="text-white">{new Date(selectedPatient.created_at).toLocaleDateString('en-IN')}</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
