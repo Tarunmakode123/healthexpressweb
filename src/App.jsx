@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import CartDrawer from './components/cart/CartDrawer';
+import CalculatorModal from './components/common/CalculatorModal';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PrescriptionModal from './components/common/PrescriptionModal';
@@ -15,6 +16,8 @@ import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import HealthLibraryPage from './pages/HealthLibraryPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
+import HealthCalculatorsPage from './pages/HealthCalculatorsPage';
+import CalculatorDetailPage from './pages/CalculatorDetailPage';
 import AboutPage from './pages/AboutPage';
 import ProvidersPage from './pages/ProvidersPage';
 import ContactPage from './pages/ContactPage';
@@ -34,9 +37,27 @@ function ScrollToTop() {
 
 export default function App() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
+  const [activeCalcSlug, setActiveCalcSlug] = useState('bmi-calculator');
 
   const handleOpenUploadModal = () => setIsUploadModalOpen(true);
   const handleCloseUploadModal = () => setIsUploadModalOpen(false);
+
+  const handleOpenCalcModal = (slug = 'bmi-calculator') => {
+    setActiveCalcSlug(slug);
+    setIsCalcModalOpen(true);
+  };
+  const handleCloseCalcModal = () => setIsCalcModalOpen(false);
+
+  useEffect(() => {
+    const handleGlobalCalcModal = (e) => {
+      const slug = e.detail?.slug || 'bmi-calculator';
+      handleOpenCalcModal(slug);
+    };
+
+    window.addEventListener('open-calculator-modal', handleGlobalCalcModal);
+    return () => window.removeEventListener('open-calculator-modal', handleGlobalCalcModal);
+  }, []);
 
   return (
     <AuthProvider>
@@ -47,16 +68,18 @@ export default function App() {
           <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 antialiased">
             
             {/* Responsive Header Navbar */}
-            <Navbar onOpenUploadModal={handleOpenUploadModal} />
+            <Navbar onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />
 
             {/* Main Content Area */}
             <main className="flex-1">
               <Routes>
-                <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />} />
                 <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
                 <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
                 <Route path="/health-library" element={<HealthLibraryPage />} />
                 <Route path="/health-library/:slug" element={<ArticleDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/health-calculators" element={<HealthCalculatorsPage onOpenCalculatorModal={handleOpenCalcModal} />} />
+                <Route path="/health-calculators/:slug" element={<CalculatorDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
                 <Route path="/about" element={<AboutPage onOpenUploadModal={handleOpenUploadModal} />} />
                 <Route path="/providers" element={<ProvidersPage />} />
                 <Route path="/contact" element={<ContactPage />} />
@@ -75,6 +98,13 @@ export default function App() {
 
             {/* Slide-over Health Basket Cart Drawer */}
             <CartDrawer />
+
+            {/* Global Interactive Health Calculator Popup Modal */}
+            <CalculatorModal 
+              isOpen={isCalcModalOpen}
+              calculatorSlug={activeCalcSlug}
+              onClose={handleCloseCalcModal}
+            />
 
             {/* Global Upload Prescription WhatsApp Modal */}
             <PrescriptionModal 

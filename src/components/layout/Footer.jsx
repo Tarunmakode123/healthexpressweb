@@ -107,17 +107,18 @@ export default function Footer({ onOpenUploadModal }) {
             </ul>
           </div>
 
-          {/* Column 3: Health Library */}
+          {/* Column 3: Health Library & Tools */}
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">
-              Health Library
+              Library & Calculators
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Lab Tests Guides</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Health Tests</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Family Health</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Preventive Health</Link></li>
-              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Home Care</Link></li>
+              <li><Link to="/health-calculators" className="hover:text-purple-400 transition-colors font-bold text-purple-300">Free Health Calculators</Link></li>
+              <li><Link to="/health-calculators/bmi-calculator" className="hover:text-purple-400 transition-colors">BMI Calculator</Link></li>
+              <li><Link to="/health-calculators/calorie-calculator" className="hover:text-purple-400 transition-colors">Daily Calorie Calculator</Link></li>
+              <li><Link to="/health-calculators/due-date-calculator" className="hover:text-purple-400 transition-colors">Pregnancy Due Date</Link></li>
+              <li><Link to="/health-calculators/blood-pressure-checker" className="hover:text-purple-400 transition-colors">Blood Pressure Checker</Link></li>
+              <li><Link to="/health-library" className="hover:text-purple-400 transition-colors">Evidence Articles</Link></li>
             </ul>
           </div>
 

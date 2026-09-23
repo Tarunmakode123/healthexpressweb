@@ -7,6 +7,7 @@ import PreventiveHealthSection from '../components/sections/PreventiveHealthSect
 import QuickHealthChecks from '../components/health-checks/QuickHealthChecks';
 import WhyHealthExpressSection from '../components/sections/WhyHealthExpressSection';
 import PopularTestsSection from '../components/sections/PopularTestsSection';
+import CalculatorsCarouselSection from '../components/sections/CalculatorsCarouselSection';
 import TrustSection from '../components/sections/TrustSection';
 import HealthRecordsSection from '../components/sections/HealthRecordsSection';
 import CitiesSection from '../components/sections/CitiesSection';
@@ -14,7 +15,7 @@ import HealthLibrarySection from '../components/sections/HealthLibrarySection';
 import FAQSection from '../components/sections/FAQSection';
 import StickyMobileCTA from '../components/layout/StickyMobileCTA';
 
-export default function HomePage({ onOpenUploadModal }) {
+export default function HomePage({ onOpenUploadModal, onOpenCalculatorModal }) {
   return (
     <div className="space-y-0 relative">
       {/* 1. WHO ARE YOU? -> Hero */}
@@ -37,6 +38,9 @@ export default function HomePage({ onOpenUploadModal }) {
 
       {/* POPULAR SERVICES -> High intent tests */}
       <PopularTestsSection />
+
+      {/* FREE HEALTH CALCULATORS & CLINICAL TOOLS CAROUSEL */}
+      <CalculatorsCarouselSection onOpenCalculatorModal={onOpenCalculatorModal} />
 
       {/* BUILT AROUND YOU -> Care Commitment & Benefits */}
       <WhyHealthExpressSection />
