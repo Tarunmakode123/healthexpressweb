@@ -80,6 +80,36 @@ export async function fetchAdminOrders() {
 }
 
 /**
+ * Fetch all payment records for dedicated Admin Payments module
+ */
+export async function fetchAdminPayments() {
+  if (!isSupabaseConfigured) {
+    return { success: false, error: 'Supabase configuration is missing.' };
+  }
+
+  try {
+    const { data: payments, error } = await supabase
+      .from('payments')
+      .select(`
+        *,
+        orders (*),
+        patients (*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Fetch admin payments database error:', error.message);
+      return { success: false, error: `Failed to load payments: ${error.message}` };
+    }
+
+    return { success: true, data: payments || [] };
+  } catch (err) {
+    console.error('Fetch admin payments exception:', err);
+    return { success: false, error: err.message || 'Database connection error.' };
+  }
+}
+
+/**
  * Mark COD Payment as Collected via secure SECURITY DEFINER RPC
  */
 export async function markCodPaymentCollected(orderId) {

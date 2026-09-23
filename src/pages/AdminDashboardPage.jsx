@@ -3,12 +3,14 @@ import {
   ShieldCheck, Lock, DollarSign, ShoppingBag, FileText, Users, 
   RefreshCw, CheckCircle2, AlertCircle, Clock, Search, Filter, 
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X,
-  BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck
+  BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck, Menu, Settings,
+  CreditCard as PaymentIcon, Bell
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
   verifyAdminAuth,
   fetchAdminOrders, 
+  fetchAdminPayments,
   updateAdminOrderStatus, 
   markCodPaymentCollected,
   fetchAdminPrescriptions, 
@@ -29,15 +31,21 @@ export default function AdminDashboardPage() {
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  // NAVIGATION TABS: 'dashboard' | 'orders' | 'customers' | 'prescriptions' | 'analytics' | 'events'
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // NAVIGATION & SIDEBAR: 'overview' | 'orders' | 'customers' | 'prescriptions' | 'payments' | 'analytics' | 'activity' | 'settings'
+  const [activeNav, setActiveNav] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // FILTERS
+  // FILTERS & PAGINATION
   const [orderFilter, setOrderFilter] = useState('ALL'); // 'ALL' | 'COD' | 'ONLINE' | 'PAID' | 'PENDING' | 'FAILED' | 'COMPLETED' | 'CANCELLED'
   const [customerTypeFilter, setCustomerTypeFilter] = useState('ALL'); // 'ALL' | 'REGISTERED' | 'GUEST'
+  const [paymentFilter, setPaymentFilter] = useState('ALL'); // 'ALL' | 'PAID' | 'PENDING' | 'FAILED' | 'COD' | 'ONLINE'
   const [dateRangeFilter, setDateRangeFilter] = useState('ALL'); // 'ALL' | 'TODAY' | 'YESTERDAY' | 'LAST_7' | 'LAST_30' | 'THIS_MONTH'
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
+  // DATASETS
   const [orders, setOrders] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [patients, setPatients] = useState([]);
   const [analyticsEvents, setAnalyticsEvents] = useState([]);
@@ -45,11 +53,16 @@ export default function AdminDashboardPage() {
   const [dataError, setDataError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modals & Detail Drawers
+  // Toast & Modals
+  const [toastMessage, setToastMessage] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [customer360Data, setCustomer360Data] = useState(null);
   const [isLoadingCustomer, setIsLoadingCustomer] = useState(false);
+  
+  // Confirmation Modal for COD Collection
+  const [codConfirmOrder, setCodConfirmOrder] = useState(null);
+  const [isCollectingCod, setIsCollectingCod] = useState(false);
 
   // ROUTE PROTECTION: Check active Supabase Auth session and check_is_admin() RPC on mount
   useEffect(() => {
@@ -106,6 +119,11 @@ export default function AdminDashboardPage() {
     };
   }, []);
 
+  const showToast = (msg, type = 'success') => {
+    setToastMessage({ text: msg, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
   // Handle Admin Login Form Submission
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -117,6 +135,7 @@ export default function AdminDashboardPage() {
       if (res.success) {
         setIsAuthenticated(true);
         setAuthError('');
+        showToast('Welcome to Health Express Operations Control Center.');
       } else {
         setAuthError(res.error || 'Invalid email or password.');
       }
@@ -147,8 +166,9 @@ export default function AdminDashboardPage() {
     setDataError(null);
 
     try {
-      const [ordRes, presRes, patRes, evtRes] = await Promise.all([
+      const [ordRes, payRes, presRes, patRes, evtRes] = await Promise.all([
         fetchAdminOrders(),
+        fetchAdminPayments(),
         fetchAdminPrescriptions(),
         fetchAdminPatients(),
         fetchAnalyticsEvents(100)
@@ -157,6 +177,9 @@ export default function AdminDashboardPage() {
       const errors = [];
       if (ordRes.success) setOrders(ordRes.data || []);
       else errors.push(ordRes.error || 'Unable to fetch orders.');
+
+      if (payRes.success) setPayments(payRes.data || []);
+      else errors.push(payRes.error || 'Unable to fetch payments.');
 
       if (presRes.success) setPrescriptions(presRes.data || []);
       else errors.push(presRes.error || 'Unable to fetch guest prescriptions.');
@@ -194,7 +217,7 @@ export default function AdminDashboardPage() {
       if (res.success) {
         setCustomer360Data(res.data);
       } else {
-        alert(`Error loading customer profile: ${res.error}`);
+        showToast(`Error loading customer profile: ${res.error}`, 'error');
       }
     } catch (err) {
       console.error('Customer 360 load exception:', err);
@@ -203,23 +226,31 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Mark COD Payment Collected Handler
-  const handleMarkCodCollected = async (order) => {
-    const confirmMsg = `Confirm that Cash on Delivery payment of ₹${order.total_amount} has been collected for Order ${order.order_code}?`;
-    if (!window.confirm(confirmMsg)) return;
+  // Confirm and Execute COD Payment Collection via RPC
+  const executeMarkCodCollected = async () => {
+    if (!codConfirmOrder) return;
+    setIsCollectingCod(true);
 
-    const res = await markCodPaymentCollected(order.id);
-    if (res.success) {
-      await loadAdminData();
-      if (selectedOrder && selectedOrder.id === order.id) {
-        setSelectedOrder((prev) => ({
-          ...prev,
-          payment_status: 'PAID',
-          order_status: 'CONFIRMED'
-        }));
+    try {
+      const res = await markCodPaymentCollected(codConfirmOrder.id);
+      if (res.success) {
+        showToast(`COD payment collected for ${codConfirmOrder.order_code}. Status: PAID.`);
+        await loadAdminData();
+        if (selectedOrder && selectedOrder.id === codConfirmOrder.id) {
+          setSelectedOrder((prev) => ({
+            ...prev,
+            payment_status: 'PAID',
+            order_status: 'CONFIRMED'
+          }));
+        }
+      } else {
+        showToast(`Error updating COD payment: ${res.error}`, 'error');
       }
-    } else {
-      alert(`Error updating COD payment: ${res.error}`);
+    } catch (err) {
+      showToast(`COD Collection exception: ${err.message}`, 'error');
+    } finally {
+      setIsCollectingCod(false);
+      setCodConfirmOrder(null);
     }
   };
 
@@ -228,21 +259,25 @@ export default function AdminDashboardPage() {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, order_status: newStatus } : o))
     );
-    await updateAdminOrderStatus(orderId, newStatus);
+    const res = await updateAdminOrderStatus(orderId, newStatus);
+    if (res.success) showToast(`Order status updated to ${newStatus}.`);
+    else showToast(`Failed to update status: ${res.error}`, 'error');
   };
 
   const handleEnquiryStatusChange = async (enquiryId, newStatus) => {
     setPrescriptions((prev) =>
       prev.map((p) => (p.id === enquiryId ? { ...p, status: newStatus } : p))
     );
-    await updateAdminEnquiryStatus(enquiryId, newStatus);
+    const res = await updateAdminEnquiryStatus(enquiryId, newStatus);
+    if (res.success) showToast(`Prescription review status updated to ${newStatus}.`);
+    else showToast(`Failed to update enquiry status: ${res.error}`, 'error');
   };
 
   // Secure Prescription File View Handler
   const handleViewPrescriptionFile = async (fileObj) => {
     const filePath = fileObj?.file_path || fileObj?.filePath;
     if (!filePath) {
-      alert('File path is unavailable for this prescription.');
+      showToast('File path is unavailable for this prescription.', 'error');
       return;
     }
 
@@ -251,15 +286,15 @@ export default function AdminDashboardPage() {
       if (res.success && res.signedUrl) {
         window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
       } else {
-        alert(`Unable to open prescription file: ${res.error}`);
+        showToast(`Unable to preview file: ${res.error}`, 'error');
       }
     } catch (err) {
       console.error('Prescription file view exception:', err);
-      alert(`Error accessing prescription file: ${err.message}`);
+      showToast(`Error accessing prescription file: ${err.message}`, 'error');
     }
   };
 
-  // Helper for Date Filtering
+  // Date Filter Logic
   const isDateInFilter = (dateString, filter) => {
     if (filter === 'ALL') return true;
     if (!dateString) return false;
@@ -268,9 +303,7 @@ export default function AdminDashboardPage() {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    if (filter === 'TODAY') {
-      return date >= todayStart;
-    }
+    if (filter === 'TODAY') return date >= todayStart;
     if (filter === 'YESTERDAY') {
       const yestStart = new Date(todayStart);
       yestStart.setDate(yestStart.getDate() - 1);
@@ -294,7 +327,7 @@ export default function AdminDashboardPage() {
     return true;
   };
 
-  // Filtered Orders Dataset
+  // Filtered Orders
   const dateFilteredOrders = orders.filter((o) => isDateInFilter(o.created_at, dateRangeFilter));
 
   const filteredOrders = dateFilteredOrders.filter((o) => {
@@ -325,7 +358,29 @@ export default function AdminDashboardPage() {
     return true;
   });
 
-  // Filtered Prescriptions Dataset
+  // Filtered Payments
+  const filteredPayments = payments.filter((pay) => {
+    if (!isDateInFilter(pay.created_at, dateRangeFilter)) return false;
+    const method = (pay.payment_method || '').toUpperCase();
+    const mode = (pay.payment_mode || '').toUpperCase();
+
+    if (paymentFilter === 'PAID' && pay.payment_status !== 'PAID') return false;
+    if (paymentFilter === 'PENDING' && pay.payment_status !== 'PENDING') return false;
+    if (paymentFilter === 'FAILED' && pay.payment_status !== 'FAILED') return false;
+    if (paymentFilter === 'COD' && method !== 'COD' && mode !== 'COD') return false;
+    if (paymentFilter === 'ONLINE' && (method === 'COD' || mode === 'COD')) return false;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchRzpOrd = pay.razorpay_order_id?.toLowerCase().includes(q);
+      const matchRzpPay = pay.razorpay_payment_id?.toLowerCase().includes(q);
+      const matchCust = pay.patients?.full_name?.toLowerCase().includes(q);
+      return matchRzpOrd || matchRzpPay || matchCust;
+    }
+    return true;
+  });
+
+  // Filtered Prescriptions
   const filteredPrescriptions = prescriptions.filter((p) => {
     if (!isDateInFilter(p.created_at, dateRangeFilter)) return false;
     if (!searchQuery.trim()) return true;
@@ -336,7 +391,7 @@ export default function AdminDashboardPage() {
     return name.includes(q) || phone.includes(q) || code.includes(q);
   });
 
-  // Filtered Patients Dataset
+  // Filtered Patients
   const filteredPatients = patients.filter((pat) => {
     if (customerTypeFilter === 'REGISTERED' && !pat.user_id) return false;
     if (customerTypeFilter === 'GUEST' && pat.user_id) return false;
@@ -349,7 +404,11 @@ export default function AdminDashboardPage() {
     return name.includes(q) || phone.includes(q) || email.includes(q);
   });
 
-  // FINANCIAL & OPERATIONAL KPI CALCULATIONS
+  // Pagination Slice
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const totalOrderPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1;
+
+  // KPI STATS
   const totalRevenue = dateFilteredOrders
     .filter((o) => o.payment_status === 'PAID')
     .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
@@ -364,7 +423,8 @@ export default function AdminDashboardPage() {
     .filter((o) => {
       const payObj = o.payments?.[0] || {};
       const payMethod = (payObj.payment_method || o.payment_method || '').toUpperCase();
-      return o.payment_status === 'PAID' && payMethod !== 'COD';
+      const payMode = (payObj.payment_mode || o.payment_mode || '').toUpperCase();
+      return o.payment_status === 'PAID' && payMethod !== 'COD' && payMode !== 'DEMO';
     })
     .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
 
@@ -386,10 +446,6 @@ export default function AdminDashboardPage() {
     })
     .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
 
-  const failedAmount = dateFilteredOrders
-    .filter((o) => o.payment_status === 'FAILED')
-    .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
-
   const successfulPaymentsCount = dateFilteredOrders.filter((o) => o.payment_status === 'PAID').length;
   const pendingPaymentsCount = dateFilteredOrders.filter((o) => o.payment_status === 'PENDING').length;
   const failedPaymentsCount = dateFilteredOrders.filter((o) => o.payment_status === 'FAILED').length;
@@ -398,7 +454,6 @@ export default function AdminDashboardPage() {
   const registeredPatientsCount = patients.filter((p) => p.user_id).length;
   const guestEnquiriesCount = prescriptions.length;
   const pendingReviewsCount = prescriptions.filter((p) => p.status === 'pending_review').length;
-  const totalPrescriptionFilesCount = prescriptions.reduce((acc, p) => acc + (p.prescriptions?.length || 0), 0);
 
   // SESSION CHECK SPINNER
   if (isCheckingSession) {
@@ -490,35 +545,123 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // MAIN ADMIN OPERATIONS DASHBOARD UI (AUTHENTICATED)
+  // MAIN ADMIN OPERATIONS DASHBOARD UI WITH LEFT SIDEBAR LAYOUT
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 py-8 px-4 sm:px-6 lg:px-8 text-left">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* TELEMETRY HEADER & ACTIONS BAR */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/80 p-6 rounded-3xl border border-slate-700/80 shadow-xl">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-900/60 border border-purple-500/40 flex items-center justify-center text-purple-300 shrink-0">
-              <ShieldCheck className="w-7 h-7" />
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col md:flex-row text-left font-sans">
+      
+      {/* TOAST NOTIFICATION CALLOUT */}
+      {toastMessage && (
+        <div className={`fixed top-5 right-5 z-[200000] p-4 rounded-2xl shadow-2xl text-xs font-bold border flex items-center gap-3 animate-in slide-in-from-top-4 duration-300 ${
+          toastMessage.type === 'error' ? 'bg-rose-950 text-rose-100 border-rose-800' : 'bg-emerald-950 text-emerald-100 border-emerald-800'
+        }`}>
+          {toastMessage.type === 'error' ? <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+          <span>{toastMessage.text}</span>
+        </div>
+      )}
+
+      {/* LEFT SIDEBAR NAVIGATION */}
+      <aside className={`w-full md:w-64 bg-slate-950 border-r border-slate-800 flex flex-col shrink-0 transition-all ${isSidebarOpen ? 'block' : 'hidden md:flex'}`}>
+        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-900/80 border border-purple-500/40 p-1.5 overflow-hidden flex items-center justify-center shrink-0">
+              <img src="/logo.png" alt="Health Express" className="w-full h-full object-contain" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-white">Health Express Control Center</h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-                  LIVE OPERATIONS
-                </span>
-              </div>
-              <p className="text-xs text-purple-300/80">Backend Operations, Financial Telemetry & Patient Management</p>
+              <h2 className="text-sm font-black text-white tracking-tight">HEALTH EXPRESS</h2>
+              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">OPS CONTROL</span>
+            </div>
+          </div>
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden text-slate-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <nav className="p-4 space-y-1 flex-1">
+          {[
+            { id: 'overview', label: 'Overview', icon: Activity },
+            { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: orders.length },
+            { id: 'customers', label: 'Customers', icon: Users, badge: patients.length },
+            { id: 'prescriptions', label: 'Prescriptions', icon: FileText, badge: pendingReviewsCount > 0 ? pendingReviewsCount : null },
+            { id: 'payments', label: 'Payments', icon: PaymentIcon },
+            { id: 'analytics', label: 'Revenue Analytics', icon: BarChart2 },
+            { id: 'activity', label: 'Activity Logs', icon: Layers },
+            { id: 'settings', label: 'System Settings', icon: Settings },
+          ].map((item) => {
+            const IconComponent = item.icon;
+            const isActive = activeNav === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => { setActiveNav(item.id); setCurrentPage(1); }}
+                className={`w-full px-3.5 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                  isActive 
+                    ? 'bg-purple-900/60 text-white border border-purple-700/60 shadow-md font-black' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <IconComponent className={`w-4 h-4 ${isActive ? 'text-purple-400' : 'text-slate-400'}`} />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge !== undefined && item.badge !== null && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                    item.id === 'prescriptions' && pendingReviewsCount > 0 
+                      ? 'bg-amber-500 text-slate-950 font-black animate-pulse' 
+                      : 'bg-slate-800 text-purple-300 border border-slate-700'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-slate-800/80 space-y-3">
+          <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-[11px] space-y-1 text-slate-400">
+            <div className="font-bold text-slate-200">Admin Account</div>
+            <div className="truncate text-purple-300 font-semibold">{adminEmail || 'admin@healthexpress.in'}</div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full py-2.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/60 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        
+        {/* TOP APP BAR & GLOBAL CONTROLS */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-800/80 p-5 rounded-3xl border border-slate-700/80 shadow-xl">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-slate-300 hover:text-white bg-slate-900 rounded-xl">
+              <Menu className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-black text-white tracking-tight uppercase">
+                {activeNav === 'overview' && 'Operational Overview'}
+                {activeNav === 'orders' && 'Orders & Transactions'}
+                {activeNav === 'customers' && 'Customer Directory (360°)'}
+                {activeNav === 'prescriptions' && 'Guest Prescriptions'}
+                {activeNav === 'payments' && 'Payment Gateway Transactions'}
+                {activeNav === 'analytics' && 'Revenue & Order Analytics'}
+                {activeNav === 'activity' && 'Event Logs'}
+                {activeNav === 'settings' && 'System Configuration'}
+              </h1>
+              <p className="text-xs text-purple-300/80 font-medium">Real-time Supabase Production Data</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Global Date Filter */}
             <div className="flex items-center gap-1.5 bg-slate-900 px-3 py-2 rounded-xl border border-slate-700 text-xs font-bold text-slate-300">
               <Calendar className="w-3.5 h-3.5 text-purple-400" />
               <select
                 value={dateRangeFilter}
-                onChange={(e) => setDateRangeFilter(e.target.value)}
+                onChange={(e) => { setDateRangeFilter(e.target.value); setCurrentPage(1); }}
                 className="bg-transparent focus:outline-none cursor-pointer text-white font-bold"
               >
                 <option value="ALL" className="bg-slate-900 text-white">All Time</option>
@@ -530,26 +673,29 @@ export default function AdminDashboardPage() {
               </select>
             </div>
 
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                placeholder="Search name, phone, order code..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              />
+            </div>
+
             <button
               onClick={loadAdminData}
               disabled={isLoading}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-200 border border-slate-700 text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-200 border border-slate-700 text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>Refresh Data</span>
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/60 text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Logout</span>
+              <span>Refresh</span>
             </button>
           </div>
         </div>
 
-        {/* DATABASE ERROR CALLOUT BANNER */}
+        {/* DATABASE ERROR BANNER */}
         {dataError && (
           <div className="p-4 bg-rose-950/80 border border-rose-800/80 rounded-2xl text-xs text-rose-200 font-bold flex items-center justify-between gap-4 animate-in fade-in">
             <div className="flex items-center gap-3">
@@ -565,7 +711,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TOP OPERATIONAL KPI METRIC CARDS */}
+        {/* TOP KPI SUMMARY CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
             <div className="flex items-center justify-between text-xs text-emerald-400 font-bold">
@@ -573,9 +719,7 @@ export default function AdminDashboardPage() {
               <DollarSign className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-3xl font-black text-emerald-300">₹{totalRevenue.toLocaleString('en-IN')}</div>
-            <div className="text-[11px] text-slate-400 font-medium flex items-center gap-2">
-              <span>Today: <strong className="text-emerald-400">₹{todayRevenue.toLocaleString('en-IN')}</strong></span>
-            </div>
+            <div className="text-[11px] text-slate-400 font-medium">Today: <strong className="text-emerald-400">₹{todayRevenue.toLocaleString('en-IN')}</strong></div>
           </div>
 
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
@@ -584,9 +728,7 @@ export default function AdminDashboardPage() {
               <Truck className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-3xl font-black text-amber-300">₹{codPendingCollection.toLocaleString('en-IN')}</div>
-            <div className="text-[11px] text-slate-400 font-medium">
-              Collected COD: <strong className="text-purple-300">₹{codCollected.toLocaleString('en-IN')}</strong>
-            </div>
+            <div className="text-[11px] text-slate-400 font-medium">COD Collected: <strong className="text-purple-300">₹{codCollected.toLocaleString('en-IN')}</strong></div>
           </div>
 
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
@@ -610,194 +752,115 @@ export default function AdminDashboardPage() {
             <div className="text-3xl font-black text-white">{guestEnquiriesCount}</div>
             <div className="text-[11px] text-slate-400 font-medium flex items-center justify-between">
               <span>Pending Review: <strong className="text-amber-400">{pendingReviewsCount}</strong></span>
-              <span>Files: {totalPrescriptionFilesCount}</span>
+              <span>Registered Users: {registeredPatientsCount}</span>
             </div>
           </div>
         </div>
 
-        {/* PRIMARY NAVIGATION TABS */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-800/60 p-2.5 rounded-2xl border border-slate-800">
-          <div className="flex items-center gap-2 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'dashboard'
-                  ? 'bg-purple-700 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>Dashboard Overview</span>
-            </button>
+        {/* NAV SECTION 1: OVERVIEW */}
+        {activeNav === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5 text-purple-400" />
+                  <h3 className="text-base font-black text-white">Recent Orders Stream</h3>
+                </div>
+                <button onClick={() => setActiveNav('orders')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
+                  <span>View All Orders</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'orders'
-                  ? 'bg-purple-700 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Orders & Transactions ({dateFilteredOrders.length})</span>
-            </button>
+              {dateFilteredOrders.length === 0 ? (
+                <p className="text-xs text-slate-400 py-8 text-center">No transactions recorded for selected period.</p>
+              ) : (
+                <div className="space-y-3">
+                  {dateFilteredOrders.slice(0, 5).map((ord) => {
+                    const isCod = ord.payment_method === 'COD' || ord.payments?.[0]?.payment_method === 'COD';
+                    return (
+                      <div key={ord.id} className="p-3.5 bg-slate-900/60 rounded-2xl border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-xs text-purple-300">{ord.order_code}</span>
+                            <span className="text-xs font-bold text-white">{ord.customer_name}</span>
+                            {isCod && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black">COD</span>}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-medium">
+                            {ord.customer_phone} • {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                          </div>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <div className="font-black text-sm text-white">₹{ord.total_amount}</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                            ord.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          }`}>
+                            {ord.payment_status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-            <button
-              onClick={() => setActiveTab('customers')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'customers'
-                  ? 'bg-purple-700 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Customers / Patients ({patients.length})</span>
-            </button>
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex items-center gap-2 border-b border-slate-700/80 pb-3">
+                <CheckSquare className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-black text-white">Pending Queue</h3>
+              </div>
 
-            <button
-              onClick={() => setActiveTab('prescriptions')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'prescriptions'
-                  ? 'bg-purple-700 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Guest Prescriptions ({prescriptions.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'analytics'
-                  ? 'bg-purple-700 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
-            >
-              <BarChart2 className="w-3.5 h-3.5" />
-              <span>Revenue Analytics</span>
-            </button>
-          </div>
-
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search name, phone, order code..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-            />
-          </div>
-        </div>
-
-        {/* TAB 1: OPERATIONAL DASHBOARD OVERVIEW */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Recent Orders Overview Card */}
-              <div className="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl text-left">
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                  <div className="flex items-center gap-2">
-                    <ShoppingBag className="w-5 h-5 text-purple-400" />
-                    <h3 className="text-base font-black text-white">Recent Orders & Transactions</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-amber-300 font-bold">
+                    <span>COD Pending Collection</span>
+                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded-full text-[10px] font-extrabold">{orders.filter(o => o.payment_method === 'COD' && o.payment_status === 'PENDING').length} Orders</span>
                   </div>
-                  <button onClick={() => setActiveTab('orders')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1">
-                    <span>View All ({orders.length})</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                  <p className="text-[11px] text-slate-400">Cash/UPI collection pending upon home sample pickup.</p>
+                  <button onClick={() => { setActiveNav('orders'); setOrderFilter('COD'); }} className="w-full py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold text-xs rounded-xl transition-colors cursor-pointer">
+                    View COD Orders
                   </button>
                 </div>
 
-                {dateFilteredOrders.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-8 text-center">No transactions recorded for selected period.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {dateFilteredOrders.slice(0, 5).map((ord) => {
-                      const isCod = ord.payment_method === 'COD' || ord.payments?.[0]?.payment_method === 'COD';
-                      return (
-                        <div key={ord.id} className="p-3.5 bg-slate-900/60 rounded-2xl border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-xs text-purple-300">{ord.order_code}</span>
-                              <span className="text-xs font-bold text-white">{ord.customer_name}</span>
-                              {isCod && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black">COD</span>}
-                            </div>
-                            <div className="text-[11px] text-slate-400 font-medium">
-                              {ord.customer_phone} • {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
-                            </div>
-                          </div>
-                          <div className="text-right space-y-1">
-                            <div className="font-black text-sm text-white">₹{ord.total_amount}</div>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                              ord.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                            }`}>
-                              {ord.payment_status}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-indigo-300 font-bold">
+                    <span>Prescriptions Pending Review</span>
+                    <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full text-[10px] font-extrabold">{pendingReviewsCount} Uploads</span>
                   </div>
-                )}
-              </div>
-
-              {/* Pending Action Items Sidebar */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl text-left">
-                <div className="flex items-center gap-2 border-b border-slate-700/80 pb-3">
-                  <CheckSquare className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-base font-black text-white">Pending Operations Queue</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-amber-300 font-bold">
-                      <span>COD Collection Pending</span>
-                      <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded-full text-[10px] font-extrabold">{orders.filter(o => o.payment_method === 'COD' && o.payment_status === 'PENDING').length} Orders</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400">Total COD collection balance waiting to be marked collected upon home sample pickup.</p>
-                    <button onClick={() => { setActiveTab('orders'); setOrderFilter('COD'); }} className="w-full py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold text-xs rounded-xl transition-colors cursor-pointer">
-                      Filter Pending COD Orders
-                    </button>
-                  </div>
-
-                  <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-indigo-300 font-bold">
-                      <span>Prescriptions Pending Review</span>
-                      <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full text-[10px] font-extrabold">{pendingReviewsCount} Uploads</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400">Guest prescription uploads submitted by patients awaiting team price quotation & callback.</p>
-                    <button onClick={() => setActiveTab('prescriptions')} className="w-full py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-extrabold text-xs rounded-xl transition-colors cursor-pointer">
-                      Review Pending Prescriptions
-                    </button>
-                  </div>
+                  <p className="text-[11px] text-slate-400">Guest prescription uploads awaiting price quote and patient contact.</p>
+                  <button onClick={() => setActiveNav('prescriptions')} className="w-full py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-extrabold text-xs rounded-xl transition-colors cursor-pointer">
+                    Review Prescriptions
+                  </button>
                 </div>
               </div>
-
             </div>
           </div>
         )}
 
-        {/* TAB 2: ORDERS & TRANSACTIONS TABLE */}
-        {activeTab === 'orders' && (
+        {/* NAV SECTION 2: ORDERS PAGE */}
+        {activeNav === 'orders' && (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-              <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
-                <Filter className="w-3 h-3" /> Filter:
-              </span>
-              {['ALL', 'COD', 'ONLINE', 'PAID', 'PENDING', 'FAILED', 'COMPLETED', 'CANCELLED'].map((chip) => (
-                <button
-                  key={chip}
-                  onClick={() => setOrderFilter(chip)}
-                  className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-[11px] ${
-                    orderFilter === chip
-                      ? 'bg-purple-600 border-purple-500 text-white font-black'
-                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  {chip}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
+                  <Filter className="w-3 h-3" /> Filter:
+                </span>
+                {['ALL', 'COD', 'ONLINE', 'PAID', 'PENDING', 'FAILED', 'COMPLETED', 'CANCELLED'].map((chip) => (
+                  <button
+                    key={chip}
+                    onClick={() => { setOrderFilter(chip); setCurrentPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-[11px] ${
+                      orderFilter === chip
+                        ? 'bg-purple-600 border-purple-500 text-white font-black'
+                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+              <span className="text-slate-400 text-[11px]">Showing {paginatedOrders.length} of {filteredOrders.length} orders</span>
             </div>
 
             <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
@@ -816,14 +879,14 @@ export default function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/60 text-slate-200">
-                    {filteredOrders.length === 0 ? (
+                    {paginatedOrders.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="p-8 text-center text-slate-400 font-medium">
                           {orders.length === 0 ? 'No orders yet.' : 'No transaction records found matching filter criteria.'}
                         </td>
                       </tr>
                     ) : (
-                      filteredOrders.map((ord) => {
+                      paginatedOrders.map((ord) => {
                         const payObj = ord.payments?.[0] || {};
                         const payMethod = (payObj.payment_method || ord.payment_method || 'ONLINE').toUpperCase();
                         const payMode = (payObj.payment_mode || ord.payment_mode || 'LIVE').toUpperCase();
@@ -903,7 +966,7 @@ export default function AdminDashboardPage() {
                             <td className="p-4 whitespace-nowrap space-x-2">
                               {isCod && ord.payment_status === 'PENDING' && (
                                 <button
-                                  onClick={() => handleMarkCodCollected(ord)}
+                                  onClick={() => setCodConfirmOrder(ord)}
                                   className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-slate-950 font-black text-[11px] cursor-pointer transition-colors shadow-xs"
                                 >
                                   Mark COD Collected
@@ -924,12 +987,35 @@ export default function AdminDashboardPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination controls */}
+              {totalOrderPages > 1 && (
+                <div className="p-4 bg-slate-900 border-t border-slate-700 flex items-center justify-between text-xs text-slate-400">
+                  <div>Page <strong>{currentPage}</strong> of <strong>{totalOrderPages}</strong></div>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      className="px-3 py-1 rounded bg-slate-800 disabled:opacity-50 hover:bg-slate-700 font-bold cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      disabled={currentPage === totalOrderPages}
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalOrderPages))}
+                      className="px-3 py-1 rounded bg-slate-800 disabled:opacity-50 hover:bg-slate-700 font-bold cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* TAB 3: CUSTOMERS & PATIENTS DIRECTORY */}
-        {activeTab === 'customers' && (
+        {/* NAV SECTION 3: CUSTOMERS PAGE */}
+        {activeNav === 'customers' && (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
               <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
@@ -1009,8 +1095,8 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 4: GUEST PRESCRIPTIONS & ENQUIRIES TABLE */}
-        {activeTab === 'prescriptions' && (
+        {/* NAV SECTION 4: PRESCRIPTIONS PAGE */}
+        {activeNav === 'prescriptions' && (
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -1113,25 +1199,99 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 5: REVENUE ANALYTICS VIEW */}
-        {activeTab === 'analytics' && (
+        {/* NAV SECTION 5: PAYMENTS PAGE */}
+        {activeNav === 'payments' && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
+                <Filter className="w-3 h-3" /> Payment Filter:
+              </span>
+              {['ALL', 'PAID', 'PENDING', 'FAILED', 'COD', 'ONLINE'].map((chip) => (
+                <button
+                  key={chip}
+                  onClick={() => setPaymentFilter(chip)}
+                  className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-[11px] ${
+                    paymentFilter === chip
+                      ? 'bg-purple-600 border-purple-500 text-white font-black'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Payment ID</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Amount</th>
+                      <th className="p-4">Method & Mode</th>
+                      <th className="p-4">Payment Status</th>
+                      <th className="p-4">Razorpay Identifiers</th>
+                      <th className="p-4">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 text-slate-200">
+                    {filteredPayments.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">
+                          {payments.length === 0 ? 'No payments yet.' : 'No payment records found matching filter.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPayments.map((pay) => (
+                        <tr key={pay.id} className="hover:bg-slate-700/30 transition-colors">
+                          <td className="p-4 font-mono font-bold text-purple-300">{pay.id.substring(0, 8)}...</td>
+                          <td className="p-4 font-bold text-white">{pay.patients?.full_name || pay.orders?.customer_name || 'Customer'}</td>
+                          <td className="p-4 font-black text-white text-sm">₹{pay.amount}</td>
+                          <td className="p-4 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px] font-extrabold text-slate-200">
+                              {pay.payment_method} ({pay.payment_mode})
+                            </span>
+                          </td>
+                          <td className="p-4 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                              pay.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            }`}>
+                              {pay.payment_status}
+                            </span>
+                          </td>
+                          <td className="p-4 font-mono text-[11px] text-slate-300">
+                            <div>Order: {pay.razorpay_order_id}</div>
+                            {pay.razorpay_payment_id && <div>Pay: {pay.razorpay_payment_id}</div>}
+                          </td>
+                          <td className="p-4 text-slate-400 text-[11px]">
+                            {new Date(pay.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* NAV SECTION 6: ANALYTICS PAGE */}
+        {activeNav === 'analytics' && (
           <div className="space-y-6">
             <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-6 shadow-xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/80 pb-4">
-                <div>
-                  <h3 className="text-lg font-black text-white flex items-center gap-2">
-                    <BarChart2 className="w-5 h-5 text-purple-400" />
-                    <span>Revenue & Payment Method Breakdown</span>
-                  </h3>
-                  <p className="text-xs text-slate-400">Calculated telemetry for period: <strong className="text-purple-300">{dateRangeFilter}</strong></p>
-                </div>
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <BarChart2 className="w-5 h-5 text-purple-400" />
+                  <span>Revenue & Order Conversion Analytics</span>
+                </h3>
+                <p className="text-xs text-slate-400">Calculated database telemetry for range: <strong className="text-purple-300">{dateRangeFilter}</strong></p>
               </div>
 
-              {/* Progress bars / Telemetry distribution */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                  <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider">Revenue Distribution</h4>
-                  
+                  <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider">Revenue Breakdown</h4>
                   <div className="space-y-3">
                     <div>
                       <div className="flex justify-between text-xs font-bold mb-1">
@@ -1139,10 +1299,7 @@ export default function AdminDashboardPage() {
                         <span className="text-emerald-300">₹{onlineRevenueCollected.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-emerald-500" 
-                          style={{ width: `${totalRevenue > 0 ? (onlineRevenueCollected / totalRevenue) * 100 : 0}%` }}
-                        />
+                        <div className="h-full bg-emerald-500" style={{ width: `${totalRevenue > 0 ? (onlineRevenueCollected / totalRevenue) * 100 : 0}%` }} />
                       </div>
                     </div>
 
@@ -1152,30 +1309,24 @@ export default function AdminDashboardPage() {
                         <span className="text-purple-300">₹{codCollected.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-purple-500" 
-                          style={{ width: `${totalRevenue > 0 ? (codCollected / totalRevenue) * 100 : 0}%` }}
-                        />
+                        <div className="h-full bg-purple-500" style={{ width: `${totalRevenue > 0 ? (codCollected / totalRevenue) * 100 : 0}%` }} />
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-xs font-bold mb-1">
-                        <span className="text-slate-300">COD Pending Collection</span>
+                        <span className="text-slate-300">COD Pending Balance</span>
                         <span className="text-amber-300">₹{codPendingCollection.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-amber-500" 
-                          style={{ width: `${(codPendingCollection / (totalRevenue + codPendingCollection || 1)) * 100}%` }}
-                        />
+                        <div className="h-full bg-amber-500" style={{ width: `${(codPendingCollection / (totalRevenue + codPendingCollection || 1)) * 100}%` }} />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                  <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider">Order Status Volume</h4>
+                  <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider">Order Status Volumes</h4>
                   <div className="grid grid-cols-2 gap-3 text-center">
                     <div className="bg-slate-800 p-3 rounded-xl border border-slate-700">
                       <div className="text-xl font-black text-emerald-400">{successfulPaymentsCount}</div>
@@ -1200,7 +1351,111 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-      </div>
+        {/* NAV SECTION 7: ACTIVITY LOGS */}
+        {activeNav === 'activity' && (
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-4 shadow-xl">
+            <div className="border-b border-slate-700/80 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Layers className="w-5 h-5 text-purple-400" />
+                <span>System Activity Logs</span>
+              </h3>
+              <p className="text-xs text-slate-400">Non-PII Telemetry & User Event Logs</p>
+            </div>
+
+            {analyticsEvents.length === 0 ? (
+              <p className="text-xs text-slate-400 py-8 text-center">No system events logged yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {analyticsEvents.map((evt) => (
+                  <div key={evt.id} className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-extrabold text-purple-300">{evt.event_type}</span>
+                      <div className="text-[10px] text-slate-400">Path: {evt.page_path || '/'} • Session: {evt.session_id}</div>
+                    </div>
+                    <div className="text-right text-[11px] text-slate-400">
+                      {new Date(evt.created_at).toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* NAV SECTION 8: SYSTEM SETTINGS */}
+        {activeNav === 'settings' && (
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-6 shadow-xl">
+            <div className="border-b border-slate-700/80 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Settings className="w-5 h-5 text-purple-400" />
+                <span>System & Security Configuration</span>
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+                <div className="font-extrabold text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Database RBAC Active</span>
+                </div>
+                <p className="text-slate-400 text-[11px]">Enforced via public.check_is_admin() SECURITY DEFINER function.</p>
+              </div>
+
+              <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+                <div className="font-extrabold text-purple-300 flex items-center gap-1.5">
+                  <Lock className="w-4 h-4" />
+                  <span>Storage Bucket Protection</span>
+                </div>
+                <p className="text-slate-400 text-[11px]">Private prescriptions storage bucket using 300s signed URLs.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* CONFIRMATION MODAL FOR COD COLLECTION */}
+      {codConfirmOrder && (
+        <div className="fixed inset-0 z-[200000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-slate-900 border border-amber-500/40 rounded-3xl p-6 shadow-2xl space-y-5 text-left">
+            <div className="flex items-center gap-3 text-amber-400">
+              <AlertCircle className="w-7 h-7 shrink-0" />
+              <div>
+                <h3 className="text-lg font-black text-white">Confirm COD Payment Collection</h3>
+                <p className="text-xs text-amber-300/80">Order Reference: {codConfirmOrder.order_code}</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
+              <div>Customer: <strong className="text-white">{codConfirmOrder.customer_name}</strong></div>
+              <div>Phone: <strong className="text-slate-200">{codConfirmOrder.customer_phone}</strong></div>
+              <div>Amount Collected: <strong className="text-emerald-400 text-sm">₹{codConfirmOrder.total_amount}</strong></div>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              This action will invoke the server-side RPC function <code className="text-amber-300 font-mono">mark_cod_payment_collected()</code> to update the database state to PAID and CONFIRMED.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                disabled={isCollectingCod}
+                onClick={() => setCodConfirmOrder(null)}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isCollectingCod}
+                onClick={executeMarkCodCollected}
+                className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-slate-950 font-black text-xs cursor-pointer transition-colors flex items-center gap-2"
+              >
+                {isCollectingCod ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                <span>Confirm Collection</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ORDER DETAILS MODAL DRAWER */}
       {selectedOrder && (
@@ -1305,7 +1560,6 @@ export default function AdminDashboardPage() {
                 </div>
               ) : customer360Data ? (
                 <>
-                  {/* Profile Summary Card */}
                   <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
                       <div className="text-[10px] text-slate-400 font-bold uppercase">Customer Name</div>
@@ -1325,7 +1579,6 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Customer Orders */}
                   <div className="space-y-2">
                     <h4 className="font-black text-white uppercase text-xs tracking-wider">Customer Orders ({customer360Data.orders.length})</h4>
                     {customer360Data.orders.length === 0 ? (
@@ -1345,7 +1598,6 @@ export default function AdminDashboardPage() {
                     )}
                   </div>
 
-                  {/* Customer Prescriptions */}
                   <div className="space-y-2">
                     <h4 className="font-black text-white uppercase text-xs tracking-wider">Prescriptions Uploaded ({customer360Data.enquiries.length})</h4>
                     {customer360Data.enquiries.length === 0 ? (
