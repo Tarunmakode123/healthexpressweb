@@ -20,6 +20,12 @@
 }
 
 @theme {
+  --color-purple-400: #a44fd4;
+  --color-purple-500: #8425c0;
+  --color-purple-600: #8425c0;
+  --color-purple-700: #8425c0;
+  --color-purple-800: #6c1da0;
+  --color-purple-900: #54167e;
   --color-brand-purple: #8425c0;
   --color-brand-purple-hover: #721ea8;
   --color-brand-purple-dark: #5c168b;
