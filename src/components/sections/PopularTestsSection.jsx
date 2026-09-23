@@ -186,26 +186,7 @@ export default function PopularTestsSection() {
           })}
         </div>
 
-        {/* Contextual AI Assistant CTA */}
-        <div className="bg-slate-50 border border-purple-100/80 rounded-2xl p-5 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="text-xs font-extrabold text-slate-900">Not sure what test you need?</h4>
-              <p className="text-[11px] text-slate-600 font-medium">Ask Priya, your Health Express AI Assistant for instant service guidance.</p>
-            </div>
-          </div>
 
-          <button
-            onClick={handleOpenAssistant}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shadow-2xs shrink-0"
-          >
-            <span>Ask Health Express Assistant</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
 
       </div>
     </section>
