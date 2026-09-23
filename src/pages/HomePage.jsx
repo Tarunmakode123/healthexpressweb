@@ -8,7 +8,6 @@ import PreventiveHealthSection from '../components/sections/PreventiveHealthSect
 import QuickHealthChecks from '../components/health-checks/QuickHealthChecks';
 import WhyHealthExpressSection from '../components/sections/WhyHealthExpressSection';
 import PopularTestsSection from '../components/sections/PopularTestsSection';
-import FamilySection from '../components/sections/FamilySection';
 import TrustSection from '../components/sections/TrustSection';
 import HealthRecordsSection from '../components/sections/HealthRecordsSection';
 import CitiesSection from '../components/sections/CitiesSection';
@@ -41,16 +40,13 @@ export default function HomePage({ onOpenUploadModal }) {
       {/* QUICK HEALTH CHECKS -> Interactive everyday health utilities */}
       <QuickHealthChecks onOpenUploadModal={onOpenUploadModal} />
 
-      {/* BUILT AROUND YOU -> Feature Cards */}
-      <WhyHealthExpressSection />
-
       {/* POPULAR SERVICES -> High intent tests */}
       <PopularTestsSection />
 
-      {/* 5. WHY FOR MY FAMILY? -> Family Health Manager */}
-      <FamilySection onOpenUploadModal={onOpenUploadModal} />
+      {/* BUILT AROUND YOU -> Care Commitment & Benefits */}
+      <WhyHealthExpressSection />
 
-      {/* 5.5. HEALTH RECORDS AND REPORTS */}
+      {/* HEALTH RECORDS AND REPORTS */}
       <HealthRecordsSection />
 
       {/* 6. WHY TRUST YOU? -> Verified partners & Privacy */}

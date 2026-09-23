@@ -1,41 +1,35 @@
 import React from 'react';
-import { Target, Home, HeartHandshake, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Users, Home, HeartHandshake, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export default function WhyHealthExpressSection() {
-  const principles = [
+  const benefits = [
     {
       num: '01',
-      title: 'One place for your family\'s healthcare needs',
-      description: 'Access diagnostics, home healthcare nursing, imaging, and preventive checkups through one unified platform instead of juggling separate app providers.',
-      icon: Target
+      title: 'Family profiles and shared care coordination',
+      description: 'Manage healthcare needs across your household — from diagnostics to home nursing — with unified care coordination.',
+      icon: Users
     },
     {
       num: '02',
-      title: 'Home-based care coordination',
-      description: 'From certified phlebotomists for home blood sample collection to home nursing support, receive healthcare where it is most comfortable for your family.',
+      title: 'Home-based diagnostics and nursing support',
+      description: 'Receive certified phlebotomists for home sample collection and professional nursing care where it is most comfortable.',
       icon: Home
     },
     {
       num: '03',
-      title: 'Human care team support',
-      description: 'A dedicated Health Manager team assists you with partner slot verification, prescription coordination, and clear next steps.',
+      title: 'A dedicated care team for updates, follow-ups, and next steps',
+      description: 'A human care manager assists you with partner slot verification, prescription coordination, and clear next steps.',
       icon: HeartHandshake
-    },
-    {
-      num: '04',
-      title: 'Simple digital access & privacy',
-      description: 'Upload prescriptions easily without account creation friction and access digital reports safely stored in your private patient vault.',
-      icon: ShieldCheck
     }
   ];
 
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-purple-50/30 via-white to-slate-50 border-t border-purple-100/60 relative overflow-hidden">
+    <section className="py-20 md:py-28 bg-gradient-to-b from-purple-50/30 via-white to-slate-50 border-t border-purple-100/60 relative overflow-hidden" id="care-commitment">
       
       {/* Background Subtle Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[400px] bg-purple-100/25 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
         {/* Editorial Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -51,14 +45,14 @@ export default function WhyHealthExpressSection() {
           </p>
         </div>
 
-        {/* 4 Trust Principles Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-          {principles.map((item) => {
+        {/* 3 Card Strip Benefits Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          {benefits.map((item) => {
             const IconComp = item.icon;
             return (
               <div 
                 key={item.num}
-                className="bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group text-left flex flex-col justify-between space-y-5 relative overflow-hidden"
+                className="bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group text-left flex flex-col justify-between space-y-5 relative overflow-hidden"
               >
                 <div className="space-y-4 relative z-10">
                   <div className="flex items-center justify-between">
@@ -66,12 +60,12 @@ export default function WhyHealthExpressSection() {
                       <IconComp className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-mono font-extrabold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
-                      PRINCIPLE {item.num}
+                      BENEFIT {item.num}
                     </span>
                   </div>
 
                   <div className="space-y-2">
-                    <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors">
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors leading-snug">
                       {item.title}
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
@@ -80,9 +74,9 @@ export default function WhyHealthExpressSection() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <div className="pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Verified Platform Process</span>
+                  <span>Coordinated Care Standard</span>
                 </div>
               </div>
             );
