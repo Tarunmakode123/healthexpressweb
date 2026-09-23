@@ -12,7 +12,6 @@ import HealthRecordsSection from '../components/sections/HealthRecordsSection';
 import CitiesSection from '../components/sections/CitiesSection';
 import HealthLibrarySection from '../components/sections/HealthLibrarySection';
 import FAQSection from '../components/sections/FAQSection';
-import FinalCTASection from '../components/sections/FinalCTASection';
 import StickyMobileCTA from '../components/layout/StickyMobileCTA';
 
 export default function HomePage({ onOpenUploadModal }) {
@@ -27,8 +26,8 @@ export default function HomePage({ onOpenUploadModal }) {
       {/* HOW IT WORKS -> Request to Care */}
       <HowItWorksSection onOpenUploadModal={onOpenUploadModal} />
 
-      {/* 4. WHAT CAN I USE TODAY? -> Current Launch Services */}
-      <ServicesSection />
+      {/* 4. WHAT CAN I USE TODAY? -> Unified Connected Healthcare Platform */}
+      <ServicesSection onOpenUploadModal={onOpenUploadModal} />
 
       {/* PREVENTIVE HEALTH -> Reactive to Proactive */}
       <PreventiveHealthSection />
@@ -56,9 +55,6 @@ export default function HomePage({ onOpenUploadModal }) {
 
       {/* FAQ -> Frequently Asked Questions */}
       <FAQSection />
-
-      {/* FINAL CTA -> Healthcare for your family */}
-      <FinalCTASection onOpenUploadModal={onOpenUploadModal} />
 
       {/* Floating Sticky Mobile WhatsApp CTA */}
       <StickyMobileCTA onOpenUploadModal={onOpenUploadModal} />

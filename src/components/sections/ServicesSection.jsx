@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { FlaskConical, HeartPulse, Camera, Home, Dna, Activity, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { FlaskConical, HeartPulse, Camera, Home, Dna, Activity, Pill, ArrowRight, Sparkles, Upload, MessageSquare } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
-export default function ServicesSection() {
+export default function ServicesSection({ onOpenUploadModal }) {
   const [activeTab, setActiveTab] = useState('all');
 
   const categories = [
@@ -49,6 +49,17 @@ export default function ServicesSection() {
       badgeColor: 'bg-amber-100 text-amber-900 border-amber-200'
     },
     {
+      id: 'medicines',
+      category: 'home-care',
+      title: 'Medicines & Health Products',
+      desc: 'Prescribed medicines and health essentials delivered.',
+      fullDesc: 'Order prescribed medicines and health essentials delivered directly to your doorstep.',
+      cta: 'Order Medicines',
+      icon: Pill,
+      highlight: 'Doorstep Delivery',
+      badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200'
+    },
+    {
       id: 'imaging',
       category: 'diagnostics',
       title: 'Imaging & Scans',
@@ -85,7 +96,7 @@ export default function ServicesSection() {
 
   const featuredService = services[0];
   const rightColumnServices = [services[1], services[2]];
-  const bottomRowServices = [services[3], services[4], services[5]];
+  const bottomRowServices = [services[3], services[4], services[5], services[6]];
 
   const filteredServices = activeTab === 'all' 
     ? services 
@@ -113,8 +124,26 @@ export default function ServicesSection() {
             One Platform. <span className="text-purple-700">Every Healthcare Need.</span>
           </h2>
           <p className="text-base sm:text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
-            From diagnostics and home healthcare to preventive care and specialist support — Health Express brings your connected healthcare journey together.
+            From diagnostics and home healthcare to medicines, preventive care and specialist support — Health Express brings your connected healthcare journey together in one single platform.
           </p>
+
+          {/* Quick Action CTAs */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => onOpenUploadModal && onOpenUploadModal()}
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-purple-700/20 transition-all hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Upload Prescription</span>
+            </button>
+            <button
+              onClick={() => openWhatsApp("Hello Health Express, I would like to talk to a Personal Care Manager.")}
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white hover:bg-purple-50 border border-slate-200 text-slate-800 font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4 text-emerald-600" />
+              <span>Talk to Health Manager</span>
+            </button>
+          </div>
         </div>
 
         {/* Category Segmented Control Pills */}
@@ -233,8 +262,8 @@ export default function ServicesSection() {
 
             </div>
 
-            {/* Bottom Row: 3 Equal Supporting Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Bottom Row: 4 Supporting Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {bottomRowServices.map((service) => {
                 const IconComp = service.icon;
                 return (
@@ -254,10 +283,10 @@ export default function ServicesSection() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors">
+                        <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors">
                           {service.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
                           {service.desc}
                         </p>
                       </div>
