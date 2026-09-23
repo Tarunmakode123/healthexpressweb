@@ -287,6 +287,18 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
       }
     }
 
+    // Log non-PII analytics event for admin operations tracking
+    try {
+      const { logAnalyticsEvent } = await import('../utils/analytics.js');
+      logAnalyticsEvent('PRESCRIPTION_UPLOADED', {
+        pagePath: '/services',
+        metadata: { enquiry_code: enquiryCode, file_count: uploadedFiles.length },
+        patientId: patientId
+      });
+    } catch (anErr) {
+      console.warn('Analytics event warning:', anErr);
+    }
+
     // Return successful Enquiry Registration
     return {
       success: true,

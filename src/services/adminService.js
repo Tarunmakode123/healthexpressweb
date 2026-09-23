@@ -238,3 +238,60 @@ export async function getPrescriptionSignedUrl(filePath, expiresInSeconds = 300)
     return { success: false, error: err.message || 'Error generating file download URL.' };
   }
 }
+
+/**
+ * Fetch 360-degree Customer Profile Details (Orders, Prescriptions, Payments, Event Logs)
+ */
+export async function fetchCustomerDetails(patientId) {
+  if (!patientId) return { success: false, error: 'Patient ID is required.' };
+  if (!isSupabaseConfigured) return { success: false, error: 'Supabase is not configured.' };
+
+  try {
+    const [patRes, ordRes, enqRes, payRes, evtRes] = await Promise.all([
+      supabase.from('patients').select('*').eq('id', patientId).single(),
+      supabase.from('orders').select('*, payments(*)').eq('patient_id', patientId).order('created_at', { ascending: false }),
+      supabase.from('enquiries').select('*, prescriptions(*)').eq('patient_id', patientId).order('created_at', { ascending: false }),
+      supabase.from('payments').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }),
+      supabase.from('analytics_events').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }).limit(50)
+    ]);
+
+    return {
+      success: true,
+      data: {
+        profile: patRes.data || null,
+        orders: ordRes.data || [],
+        enquiries: enqRes.data || [],
+        payments: payRes.data || [],
+        events: evtRes.data || []
+      }
+    };
+  } catch (err) {
+    console.error('Fetch customer details exception:', err);
+    return { success: false, error: err.message || 'Error fetching customer profile.' };
+  }
+}
+
+/**
+ * Fetch user interaction analytics events for Admin Event Viewer
+ */
+export async function fetchAnalyticsEvents(limit = 100) {
+  if (!isSupabaseConfigured) return { success: true, data: [] };
+
+  try {
+    const { data: events, error } = await supabase
+      .from('analytics_events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.warn('Fetch analytics events warning:', error.message);
+      return { success: true, data: [] };
+    }
+
+    return { success: true, data: events || [] };
+  } catch (err) {
+    console.warn('Fetch analytics events exception:', err);
+    return { success: true, data: [] };
+  }
+}
