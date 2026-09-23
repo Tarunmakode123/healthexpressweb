@@ -41,6 +41,7 @@ export default function Navbar({ onOpenUploadModal }) {
 
   const navLinks = [
     { label: 'Services', href: '/services' },
+    { label: 'Surgeries', href: '/surgeries' },
     { label: 'Health Library', href: '/health-library' },
     { label: 'Calculators', href: '/health-calculators' },
     { label: 'For Providers', href: '/providers' },

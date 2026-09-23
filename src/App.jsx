@@ -18,6 +18,8 @@ import HealthLibraryPage from './pages/HealthLibraryPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
 import HealthCalculatorsPage from './pages/HealthCalculatorsPage';
 import CalculatorDetailPage from './pages/CalculatorDetailPage';
+import SurgeriesPage from './pages/SurgeriesPage';
+import SurgeryDetailPage from './pages/SurgeryDetailPage';
 import AboutPage from './pages/AboutPage';
 import ProvidersPage from './pages/ProvidersPage';
 import ContactPage from './pages/ContactPage';
@@ -76,6 +78,8 @@ export default function App() {
                 <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />} />
                 <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
                 <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/surgeries" element={<SurgeriesPage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/surgeries/:slug" element={<SurgeryDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
                 <Route path="/health-library" element={<HealthLibraryPage />} />
                 <Route path="/health-library/:slug" element={<ArticleDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
                 <Route path="/health-calculators" element={<HealthCalculatorsPage onOpenCalculatorModal={handleOpenCalcModal} />} />

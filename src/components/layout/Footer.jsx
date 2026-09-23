@@ -84,12 +84,11 @@ export default function Footer({ onOpenUploadModal }) {
               Services
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
+              <li><Link to="/surgeries" className="hover:text-purple-400 transition-colors font-bold text-purple-300">Surgeries & Treatment Options</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Lab Tests</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Preventive Health Packages</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Imaging</Link></li>
+              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Imaging Scans</Link></li>
               <li><Link to="/services" className="hover:text-purple-400 transition-colors">Home Nursing</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Genetic Testing</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Surgical Care</Link></li>
             </ul>
           </div>
 
