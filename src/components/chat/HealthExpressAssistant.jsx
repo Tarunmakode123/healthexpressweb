@@ -156,7 +156,7 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
   };
 
   return (
-    <div className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end">
+    <div className="fixed z-50 bottom-20 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end">
       
       {/* Dynamic Floating Speech Teaser Tooltip */}
       {!isOpen && !isTooltipDismissed && (
