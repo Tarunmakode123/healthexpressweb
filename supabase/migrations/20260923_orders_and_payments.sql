@@ -1,211 +1,9 @@
 -- ============================================================
--- HEALTH EXPRESS — SUPABASE PRODUCTION SQL MIGRATION
--- SYSTEM OF RECORD FOR PATIENTS, ENQUIRIES & PRESCRIPTIONS
+-- HEALTH EXPRESS — SUPABASE MIGRATION
+-- ORDERS & PAYMENTS TRANSACTION TABLES + RPC PROCEDURES
 -- ============================================================
 
--- 1. TABLE: patients
-create table if not exists public.patients (
-  id uuid default gen_random_uuid() primary key,
-  full_name text not null,
-  phone_e164 text not null unique,
-  email text null,
-  city text null default 'Bengaluru',
-  user_id uuid null references auth.users(id) on delete set null,
-  is_verified boolean default false,
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
-);
-
--- Index for fast phone lookup
-create index if not exists idx_patients_phone_e164 on public.patients(phone_e164);
-create index if not exists idx_patients_user_id on public.patients(user_id);
-
--- 2. TABLE: enquiries
-create table if not exists public.enquiries (
-  id uuid default gen_random_uuid() primary key,
-  enquiry_code text not null unique,
-  patient_id uuid not null references public.patients(id) on delete cascade,
-  source text default 'website' not null,
-  status text default 'pending_review' not null,
-  notes text null,
-  created_at timestamptz default now() not null,
-  updated_at timestamptz default now() not null
-);
-
--- Index for enquiry code and patient FK
-create index if not exists idx_enquiries_code on public.enquiries(enquiry_code);
-create index if not exists idx_enquiries_patient_id on public.enquiries(patient_id);
-
--- 3. TABLE: prescriptions
-create table if not exists public.prescriptions (
-  id uuid default gen_random_uuid() primary key,
-  enquiry_id uuid not null references public.enquiries(id) on delete cascade,
-  patient_id uuid not null references public.patients(id) on delete cascade,
-  file_path text not null,
-  file_name text not null,
-  file_type text not null,
-  file_size bigint not null,
-  user_id uuid null references auth.users(id) on delete set null,
-  created_at timestamptz default now() not null
-);
-
--- Index for prescription relationships
-create index if not exists idx_prescriptions_enquiry_id on public.prescriptions(enquiry_id);
-create index if not exists idx_prescriptions_patient_id on public.prescriptions(patient_id);
-create index if not exists idx_prescriptions_user_id on public.prescriptions(user_id);
-
--- ============================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
--- ============================================================
-
-alter table public.patients enable row level security;
-alter table public.enquiries enable row level security;
-alter table public.prescriptions enable row level security;
-
--- Patients RLS: Authenticated users can view own profile.
--- Guest patient creation is strictly handled by the SECURITY DEFINER function get_or_create_guest_patient to prevent PII harvesting.
-create policy "Users can view own patient profile" on public.patients
-  for select using (
-    auth.uid() is not null and auth.uid() = user_id
-  );
-
--- Enquiries RLS: Authenticated users can view their own enquiries
-create policy "Users can view own enquiries" on public.enquiries
-  for select using (
-    patient_id in (select id from public.patients where user_id = auth.uid())
-  );
-
--- Prescriptions RLS: Authenticated users can view their own prescriptions
-create policy "Users can view own prescriptions" on public.prescriptions
-  for select using (
-    auth.uid() = user_id or
-    patient_id in (select id from public.patients where user_id = auth.uid())
-  );
-
--- Structured Insert RLS Policies for Guest Submission Flow
--- Patients insert policy for authenticated / service role fallback
-create policy "Allow insert for patient records" on public.patients
-  for insert with check (true);
-
-create policy "Allow insert for guest enquiry submissions" on public.enquiries
-  for insert with check (patient_id is not null);
-
-create policy "Allow insert for guest prescription records" on public.prescriptions
-  for insert with check (patient_id is not null and enquiry_id is not null);
-
--- ============================================================
--- PRIVATE STORAGE BUCKET CONFIGURATION
--- ============================================================
-
--- Create Private Storage Bucket for Prescriptions (public = false)
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values (
-  'prescriptions',
-  'prescriptions',
-  false,
-  10485760, -- 10MB
-  array[
-    'application/pdf',
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ]
-) on conflict (id) do update set public = false;
-
--- Storage Policy: Allow guest uploads to private prescriptions bucket
-create policy "Allow guest upload to prescriptions bucket" on storage.objects
-  for insert with check (bucket_id = 'prescriptions');
-
--- Storage Policy: Authenticated users can view their own files
-create policy "Allow authorized user access to prescriptions" on storage.objects
-  for select using (
-    bucket_id = 'prescriptions' and
-    (auth.role() = 'service_role' or auth.uid() is not null)
-  );
-
--- ============================================================
--- HARDENED POST-OTP ACCOUNT LINKING SECURITY DEFINER FUNCTION
--- ============================================================
-
-create or replace function public.link_guest_records_on_otp_login(
-  verified_phone_e164 text
-) returns void as $$
-declare
-  current_user_id uuid := auth.uid();
-begin
-  if current_user_id is null then
-    raise exception 'Unauthorized: Must be an authenticated Supabase user to link records.';
-  end if;
-
-  if verified_phone_e164 is null or length(verified_phone_e164) < 10 then
-    raise exception 'Invalid phone number provided for account linking.';
-  end if;
-
-  -- 1. Link patient record to authenticated user ID
-  update public.patients
-  set user_id = current_user_id,
-      is_verified = true,
-      updated_at = now()
-  where phone_e164 = verified_phone_e164;
-
-  -- 2. Link prescription records belonging to this patient
-  update public.prescriptions
-  set user_id = current_user_id
-  where patient_id in (
-    select id from public.patients where phone_e164 = verified_phone_e164
-  );
-end;
-$$ language plpgsql security definer set search_path = public;
-
--- Revoke execute from public; grant only to authenticated role
-revoke execute on function public.link_guest_records_on_otp_login(text) from public;
-grant execute on function public.link_guest_records_on_otp_login(text) to authenticated;
-
--- ============================================================
--- GUEST PATIENT ATOMIC LOOKUP/CREATION SECURITY DEFINER FUNCTION
--- (Supports multiple prescription uploads per phone number)
--- ============================================================
-
-create or replace function public.get_or_create_guest_patient(
-  p_full_name text,
-  p_phone_e164 text,
-  p_city text default 'Bengaluru',
-  p_email text default null
-) returns uuid as $$
-declare
-  v_patient_id uuid;
-begin
-  -- 1. Check if patient record with this phone number already exists
-  select id into v_patient_id
-  from public.patients
-  where phone_e164 = p_phone_e164
-  limit 1;
-
-  -- 2. If not found, create new patient record with conflict safety
-  if v_patient_id is null then
-    insert into public.patients (full_name, phone_e164, city, email)
-    values (p_full_name, p_phone_e164, coalesce(p_city, 'Bengaluru'), p_email)
-    on conflict (phone_e164) do update set
-      full_name = coalesce(nullif(trim(p_full_name), ''), public.patients.full_name),
-      updated_at = now()
-    returning id into v_patient_id;
-  end if;
-
-  return v_patient_id;
-end;
-$$ language plpgsql security definer set search_path = public;
-
--- Grant execute to anon and authenticated roles for guest uploads
-revoke execute on function public.get_or_create_guest_patient(text, text, text, text) from public;
-grant execute on function public.get_or_create_guest_patient(text, text, text, text) to anon, authenticated;
-
--- ============================================================
--- HEALTH EXPRESS — ORDERS & PAYMENTS TRANSACTION TABLES
--- ============================================================
-
--- 4. TABLE: orders
+-- 1. TABLE: orders
 create table if not exists public.orders (
   id uuid default gen_random_uuid() primary key,
   order_code text not null unique,
@@ -228,7 +26,7 @@ create index if not exists idx_orders_patient_id on public.orders(patient_id);
 create index if not exists idx_orders_user_id on public.orders(user_id);
 create index if not exists idx_orders_status on public.orders(order_status, payment_status);
 
--- 5. TABLE: payments
+-- 2. TABLE: payments
 create table if not exists public.payments (
   id uuid default gen_random_uuid() primary key,
   order_id uuid not null references public.orders(id) on delete cascade,
@@ -252,10 +50,14 @@ create index if not exists idx_payments_patient_id on public.payments(patient_id
 create index if not exists idx_payments_razorpay_order on public.payments(razorpay_order_id);
 create index if not exists idx_payments_razorpay_payment on public.payments(razorpay_payment_id);
 
--- RLS POLICIES FOR ORDERS & PAYMENTS
+-- ============================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- ============================================================
+
 alter table public.orders enable row level security;
 alter table public.payments enable row level security;
 
+-- Orders RLS
 drop policy if exists "Users can view own orders" on public.orders;
 create policy "Users can view own orders" on public.orders
   for select using (
@@ -271,6 +73,7 @@ drop policy if exists "Allow update for order verification" on public.orders;
 create policy "Allow update for order verification" on public.orders
   for update using (true);
 
+-- Payments RLS
 drop policy if exists "Users can view own payments" on public.payments;
 create policy "Users can view own payments" on public.payments
   for select using (
@@ -285,7 +88,10 @@ drop policy if exists "Allow update for payments" on public.payments;
 create policy "Allow update for payments" on public.payments
   for update using (true);
 
+-- ============================================================
 -- SECURITY DEFINER RPC: ATOMIC ORDER & PAYMENT CREATION
+-- ============================================================
+
 create or replace function public.create_checkout_order(
   p_customer_name text,
   p_customer_phone text,
@@ -314,6 +120,7 @@ begin
     v_mode := 'DEMO';
   end if;
 
+  -- 1. Re-use or create patient record using existing get_or_create_guest_patient
   v_patient_id := public.get_or_create_guest_patient(
     p_customer_name,
     p_customer_phone,
@@ -321,6 +128,7 @@ begin
     p_customer_email
   );
 
+  -- Link user_id to patient if authenticated and not yet linked
   if v_actual_user_id is not null then
     update public.patients
     set user_id = v_actual_user_id,
@@ -329,8 +137,10 @@ begin
     where id = v_patient_id and user_id is null;
   end if;
 
+  -- 2. Generate unique order code
   v_order_code := 'HEX-ORD-' || floor(random() * 8999 + 1000)::text;
 
+  -- 3. Insert order record
   insert into public.orders (
     id,
     order_code,
@@ -359,6 +169,7 @@ begin
     'PENDING'
   );
 
+  -- 4. Insert payment record
   insert into public.payments (
     id,
     order_id,
@@ -397,7 +208,10 @@ $$ language plpgsql security definer set search_path = public;
 revoke execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid) from public;
 grant execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid) to anon, authenticated;
 
+-- ============================================================
 -- SECURITY DEFINER RPC: VERIFY AND CONFIRM PAYMENT (IDEMPOTENT)
+-- ============================================================
+
 create or replace function public.verify_and_confirm_order_payment(
   p_order_id uuid,
   p_razorpay_order_id text,
@@ -418,6 +232,7 @@ begin
     raise exception 'Order with ID % was not found.', p_order_id;
   end if;
 
+  -- Idempotency check: If already confirmed and paid, return success immediately
   if v_existing_order.payment_status = 'PAID' and v_existing_order.order_status = 'CONFIRMED' then
     return jsonb_build_object(
       'success', true,
@@ -429,6 +244,7 @@ begin
     );
   end if;
 
+  -- 1. Update Payment record
   update public.payments
   set razorpay_payment_id = p_razorpay_payment_id,
       razorpay_signature = p_razorpay_signature,
@@ -438,6 +254,7 @@ begin
       updated_at = now()
   where order_id = p_order_id;
 
+  -- 2. Update Order record
   update public.orders
   set payment_status = 'PAID',
       order_status = 'CONFIRMED',
@@ -461,4 +278,3 @@ $$ language plpgsql security definer set search_path = public;
 
 revoke execute on function public.verify_and_confirm_order_payment(uuid, text, text, text, text, text) from public;
 grant execute on function public.verify_and_confirm_order_payment(uuid, text, text, text, text, text) to anon, authenticated;
-
