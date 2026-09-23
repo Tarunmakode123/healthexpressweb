@@ -25,6 +25,7 @@ import ProvidersPage from './pages/ProvidersPage';
 import ContactPage from './pages/ContactPage';
 import LegalPage from './pages/LegalPage';
 import AuthPage from './pages/AuthPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 // Helper component to scroll window to top on route navigation
 function ScrollToTop() {
@@ -91,6 +92,7 @@ export default function App() {
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/signup" element={<AuthPage />} />
+                <Route path="/admin" element={<AdminDashboardPage />} />
               </Routes>
             </main>
 

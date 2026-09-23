@@ -150,6 +150,7 @@ export default function Footer({ onOpenUploadModal }) {
                 <li><Link to="/about" className="hover:text-purple-400 transition-colors">Trust & Quality</Link></li>
                 <li><Link to="/contact" className="hover:text-purple-400 transition-colors">Contact Us</Link></li>
                 <li><Link to="/providers" className="hover:text-purple-400 transition-colors">For Providers</Link></li>
+                <li><Link to="/admin" className="hover:text-purple-400 transition-colors font-bold text-purple-400">Team Admin Portal 🔒</Link></li>
               </ul>
             </div>
           </div>
