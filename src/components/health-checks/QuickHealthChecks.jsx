@@ -110,10 +110,7 @@ export default function QuickHealthChecks({ onOpenUploadModal }) {
           
 
 
-          {/* Section Footer Disclaimer */}
-          <div className="max-w-2xl mx-auto text-center">
-            <HealthCheckDisclaimer compact />
-          </div>
+
 
         </div>
 
