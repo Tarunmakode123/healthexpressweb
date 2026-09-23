@@ -12,6 +12,7 @@ import { openWhatsApp } from '../utils/whatsapp';
 import { HEALTH_MANAGER_PHONE } from '../config/constants';
 
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+import PrescriptionHeroBanner from '../components/common/PrescriptionHeroBanner';
 
 const categoryIconMap = {
   'lab-tests': FlaskConical,
@@ -26,7 +27,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState('all');
 
-  // Filter logic across all 50 services
+  // Filter logic across all services
   const filteredServices = ALL_SERVICES.filter((service) => {
     const matchesCategory = activeCategoryId === 'all' || service.category_id === activeCategoryId;
     const q = searchQuery.toLowerCase().trim();
@@ -41,8 +42,13 @@ export default function ServicesPage({ onOpenUploadModal }) {
     return matchesCategory && matchesSearch;
   });
 
+  const handleBookNowService = (service) => {
+    const message = `Hello Health Express!\n\nI would like to book the following service:\n• Service: ${service.name}\n• Category: ${service.category_name || 'Healthcare'}\n• Special Price: ₹${service.discount_price} (Original: ₹${service.price})\n• Turnaround Time: ${service.turnaround_time}\n\nPlease confirm availability and help me schedule this service.`;
+    openWhatsApp(message);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50/50 pb-20 relative overflow-hidden text-left">
       
       {/* Header Banner */}
       <div className="bg-gradient-to-b from-purple-50/80 via-white to-slate-50/50 py-12 md:py-16 border-b border-purple-100/60">
@@ -90,11 +96,14 @@ export default function ServicesPage({ onOpenUploadModal }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
         
-        {/* Category Pill Filters (Requirement 7 & 18) */}
+        {/* PROMINENT HERO PRESCRIPTION UPLOAD BANNER */}
+        <PrescriptionHeroBanner onOpenUploadModal={onOpenUploadModal} />
+
+        {/* Category Pill Filters */}
         <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 no-scrollbar">
           <button
             onClick={() => setActiveCategoryId('all')}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer ${
               activeCategoryId === 'all'
                 ? 'bg-purple-700 text-white shadow-md scale-105'
                 : 'bg-white hover:bg-purple-50 text-slate-700 border border-slate-200'
@@ -111,7 +120,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategoryId(cat.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer ${
                   activeCategoryId === cat.id
                     ? 'bg-purple-700 text-white shadow-md scale-105'
                     : 'bg-white hover:bg-purple-50 text-slate-700 border border-slate-200'
@@ -127,10 +136,10 @@ export default function ServicesPage({ onOpenUploadModal }) {
         {/* Results Count Strip */}
         <div className="flex items-center justify-between text-xs font-bold text-slate-500 border-b border-slate-200 pb-3">
           <span>Showing <strong className="text-purple-900">{filteredServices.length}</strong> Healthcare Services</span>
-          <button onClick={onOpenUploadModal} className="text-purple-700 hover:underline flex items-center gap-1 font-extrabold">
-            <Upload className="w-3.5 h-3.5" />
-            <span>Have a prescription? Upload here</span>
-          </button>
+          <span className="text-purple-700 flex items-center gap-1 font-extrabold">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>NABL Accredited & Home Collection Services</span>
+          </span>
         </div>
 
         {/* SERVICE CARDS GRID */}
@@ -217,8 +226,8 @@ export default function ServicesPage({ onOpenUploadModal }) {
                       </Link>
 
                       <button
-                        onClick={onOpenUploadModal}
-                        className="py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 transition-colors shadow-sm"
+                        onClick={() => handleBookNowService(service)}
+                        className="py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 transition-colors shadow-sm cursor-pointer"
                       >
                         <span>Book Now</span>
                       </button>
@@ -230,7 +239,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
             })}
           </div>
         ) : (
-          /* EMPTY SEARCH STATE (Requirement 11) */
+          /* EMPTY SEARCH STATE */
           <div className="bg-white rounded-3xl p-8 sm:p-12 border border-purple-200 shadow-xl max-w-xl mx-auto text-center space-y-5 my-8">
             <div className="w-16 h-16 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-inner">
               <Search className="w-8 h-8" />
