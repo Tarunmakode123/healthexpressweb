@@ -57,7 +57,7 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
       const initialGreeting = {
         id: 1,
         sender: 'assistant',
-        text: `Namaste${user?.name ? ' ' + user.name.split(' ')[0] : ''}! 👋 I'm **Priya**, your Health Express Care Assistant.\n\nI can help you find diagnostic tests, explain home nursing care, verify Bengaluru locality availability, or send your prescription to our team on WhatsApp.`,
+        text: `Namaste${user?.name ? ' ' + user.name.split(' ')[0] : ''}! 👋 I'm **HEX**, your Health Express Care Assistant.\n\nI can help you find diagnostic tests, explain home nursing care, verify Bengaluru locality availability, or send your prescription to our team on WhatsApp.`,
         quickReplies: [
           { label: "📄 Upload Prescription File", action: "open_upload_modal" },
           { label: "💬 Send Prescription on WhatsApp", action: "whatsapp_prescription" },
@@ -187,7 +187,7 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
         >
           <img 
             src="/assistant_avatar.jpg" 
-            alt="Priya - Health Express Care Assistant Avatar"
+            alt="HEX - Health Express Care Assistant Avatar"
             className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300" 
           />
           <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white"></span>
@@ -202,7 +202,7 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
           <div className="bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 p-4 text-white flex items-center justify-between shadow-md shrink-0">
             <div className="flex items-center gap-3">
               <div className="relative w-11 h-11 rounded-full overflow-hidden border-2 border-white/90 shadow-md shrink-0">
-                <img src="/assistant_avatar.jpg" alt="Priya Care Assistant" className="w-full h-full object-cover" />
+                <img src="/assistant_avatar.jpg" alt="HEX Care Assistant" className="w-full h-full object-cover" />
                 <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-purple-900"></span>
               </div>
 
@@ -215,7 +215,7 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
                   </span>
                 </div>
                 <div className="text-[10px] text-purple-200">
-                  Care Coordinator · Priya
+                  Care Coordinator · HEX
                 </div>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce [animation-delay:0.2s]"></span>
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-bounce [animation-delay:0.4s]"></span>
                 </div>
-                <span>Priya is typing...</span>
+                <span>HEX is typing...</span>
               </div>
             )}
 
