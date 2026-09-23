@@ -50,11 +50,11 @@ export default function HomePage({ onOpenUploadModal }) {
       {/* 5. WHY FOR MY FAMILY? -> Family Health Manager */}
       <FamilySection onOpenUploadModal={onOpenUploadModal} />
 
+      {/* 5.5. HEALTH RECORDS AND REPORTS */}
+      <HealthRecordsSection />
+
       {/* 6. WHY TRUST YOU? -> Verified partners & Privacy */}
       <TrustSection />
-
-      {/* 7. WHAT ELSE? -> Health Records */}
-      <HealthRecordsSection />
 
       {/* LOCATION -> Starting with Bengaluru */}
       <CitiesSection />
