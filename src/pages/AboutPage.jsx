@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Heart, Shield, Sparkles, Users, ArrowRight, CheckCircle2, MessageSquare, 
-  Upload, Activity, Zap, Compass, Award, ShieldCheck, Clock, Layers
+  Upload, Activity, Zap, Compass, Award, ShieldCheck, Clock, Layers, Mail
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 
@@ -90,6 +90,13 @@ export default function AboutPage({ onOpenUploadModal }) {
                   </span>
                   <div className="text-lg font-black text-white mt-1">Neha Bhansali</div>
                   <div className="text-xs text-purple-200 font-medium">Health Express Leadership</div>
+                  <a 
+                    href="mailto:neha@healthexpress.care" 
+                    className="inline-flex items-center gap-1.5 text-xs text-purple-200 hover:text-white transition-colors mt-1 font-semibold"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-purple-300" />
+                    <span>neha@healthexpress.care</span>
+                  </a>
                 </div>
               </div>
 
@@ -121,9 +128,18 @@ export default function AboutPage({ onOpenUploadModal }) {
                 <p>
                   "We built Health Express to combine high-precision clinical logistics — certified home sample collection, barcoded cold-chain transport, and NABL partner labs — with a human care coordination manager who is always one WhatsApp message away."
                 </p>
-                <p className="font-extrabold text-purple-950 pt-1">
-                  — Neha Bhansali, Founder
-                </p>
+                <div className="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-purple-100/80">
+                  <p className="font-extrabold text-purple-950">
+                    — Neha Bhansali, Founder
+                  </p>
+                  <a 
+                    href="mailto:neha@healthexpress.care" 
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-900 hover:underline transition-colors"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-purple-700" />
+                    <span>neha@healthexpress.care</span>
+                  </a>
+                </div>
               </div>
 
               <div className="pt-3 flex flex-wrap items-center gap-3">
