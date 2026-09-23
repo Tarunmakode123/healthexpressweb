@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — SUPABASE MIGRATION
--- ORDERS & PAYMENTS TRANSACTION TABLES + RPC PROCEDURES
+-- ORDERS & PAYMENTS TRANSACTION TABLES + RPC PROCEDURES (COD + ONLINE)
 -- ============================================================
 
 -- 1. TABLE: orders
@@ -38,7 +38,7 @@ create table if not exists public.payments (
   currency text default 'INR' not null,
   payment_status text default 'PENDING' not null check (payment_status in ('PENDING', 'PAID', 'FAILED', 'REFUNDED')),
   payment_method text default 'unknown' not null,
-  payment_mode text default 'DEMO' not null check (payment_mode in ('DEMO', 'LIVE')),
+  payment_mode text default 'DEMO' not null check (payment_mode in ('DEMO', 'LIVE', 'COD')),
   error_message text null,
   raw_payload jsonb null,
   created_at timestamptz default now() not null,
@@ -50,14 +50,10 @@ create index if not exists idx_payments_patient_id on public.payments(patient_id
 create index if not exists idx_payments_razorpay_order on public.payments(razorpay_order_id);
 create index if not exists idx_payments_razorpay_payment on public.payments(razorpay_payment_id);
 
--- ============================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
--- ============================================================
-
 alter table public.orders enable row level security;
 alter table public.payments enable row level security;
 
--- Orders RLS
 drop policy if exists "Users can view own orders" on public.orders;
 create policy "Users can view own orders" on public.orders
   for select using (
@@ -73,7 +69,6 @@ drop policy if exists "Allow update for order verification" on public.orders;
 create policy "Allow update for order verification" on public.orders
   for update using (true);
 
--- Payments RLS
 drop policy if exists "Users can view own payments" on public.payments;
 create policy "Users can view own payments" on public.payments
   for select using (
@@ -89,7 +84,7 @@ create policy "Allow update for payments" on public.payments
   for update using (true);
 
 -- ============================================================
--- SECURITY DEFINER RPC: ATOMIC ORDER & PAYMENT CREATION
+-- SECURITY DEFINER RPC: ATOMIC ORDER & PAYMENT CREATION (COD + ONLINE)
 -- ============================================================
 
 create or replace function public.create_checkout_order(
@@ -101,7 +96,8 @@ create or replace function public.create_checkout_order(
   p_total_amount numeric default 0,
   p_razorpay_order_id text default null,
   p_payment_mode text default 'DEMO',
-  p_user_id uuid default null
+  p_user_id uuid default null,
+  p_payment_method text default 'ONLINE'
 ) returns jsonb as $$
 declare
   v_patient_id uuid;
@@ -109,18 +105,29 @@ declare
   v_payment_id uuid := gen_random_uuid();
   v_order_code text;
   v_actual_user_id uuid := coalesce(p_user_id, auth.uid());
+  v_method text := upper(coalesce(p_payment_method, 'ONLINE'));
   v_mode text := upper(coalesce(p_payment_mode, 'DEMO'));
-  v_rzp_order_id text := coalesce(p_razorpay_order_id, 'demo_rzp_ord_' || floor(random() * 899999 + 100000)::text);
+  v_order_status text := 'PENDING';
+  v_payment_status text := 'PENDING';
+  v_rzp_order_id text;
 begin
   if p_total_amount <= 0 then
     raise exception 'Order total amount must be greater than zero.';
   end if;
 
-  if v_mode not in ('DEMO', 'LIVE') then
-    v_mode := 'DEMO';
+  if v_method = 'COD' then
+    v_mode := 'COD';
+    v_order_status := 'CONFIRMED';
+    v_payment_status := 'PENDING';
+    v_rzp_order_id := 'cod_ord_' || floor(random() * 899999 + 100000)::text;
+  else
+    if v_mode not in ('DEMO', 'LIVE') then
+      v_mode := 'DEMO';
+    end if;
+    v_rzp_order_id := coalesce(p_razorpay_order_id, 'demo_rzp_ord_' || floor(random() * 899999 + 100000)::text);
   end if;
 
-  -- 1. Re-use or create patient record using existing get_or_create_guest_patient
+  -- 1. Re-use or create patient record
   v_patient_id := public.get_or_create_guest_patient(
     p_customer_name,
     p_customer_phone,
@@ -128,7 +135,6 @@ begin
     p_customer_email
   );
 
-  -- Link user_id to patient if authenticated and not yet linked
   if v_actual_user_id is not null then
     update public.patients
     set user_id = v_actual_user_id,
@@ -165,8 +171,8 @@ begin
     p_items,
     p_total_amount,
     'INR',
-    'PENDING',
-    'PENDING'
+    v_order_status,
+    v_payment_status
   );
 
   -- 4. Insert payment record
@@ -187,8 +193,8 @@ begin
     v_rzp_order_id,
     p_total_amount,
     'INR',
-    'PENDING',
-    'unknown',
+    v_payment_status,
+    v_method,
     v_mode
   );
 
@@ -199,19 +205,18 @@ begin
     'razorpay_order_id', v_rzp_order_id,
     'total_amount', p_total_amount,
     'currency', 'INR',
+    'payment_method', v_method,
     'payment_mode', v_mode,
-    'payment_status', 'PENDING'
+    'payment_status', v_payment_status,
+    'order_status', v_order_status
   );
 end;
 $$ language plpgsql security definer set search_path = public;
 
-revoke execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid) from public;
-grant execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid) to anon, authenticated;
+revoke execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid, text) from public;
+grant execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid, text) to anon, authenticated;
 
--- ============================================================
 -- SECURITY DEFINER RPC: VERIFY AND CONFIRM PAYMENT (IDEMPOTENT)
--- ============================================================
-
 create or replace function public.verify_and_confirm_order_payment(
   p_order_id uuid,
   p_razorpay_order_id text,
@@ -232,7 +237,6 @@ begin
     raise exception 'Order with ID % was not found.', p_order_id;
   end if;
 
-  -- Idempotency check: If already confirmed and paid, return success immediately
   if v_existing_order.payment_status = 'PAID' and v_existing_order.order_status = 'CONFIRMED' then
     return jsonb_build_object(
       'success', true,
@@ -244,7 +248,6 @@ begin
     );
   end if;
 
-  -- 1. Update Payment record
   update public.payments
   set razorpay_payment_id = p_razorpay_payment_id,
       razorpay_signature = p_razorpay_signature,
@@ -254,7 +257,6 @@ begin
       updated_at = now()
   where order_id = p_order_id;
 
-  -- 2. Update Order record
   update public.orders
   set payment_status = 'PAID',
       order_status = 'CONFIRMED',

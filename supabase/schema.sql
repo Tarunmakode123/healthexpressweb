@@ -240,7 +240,7 @@ create table if not exists public.payments (
   currency text default 'INR' not null,
   payment_status text default 'PENDING' not null check (payment_status in ('PENDING', 'PAID', 'FAILED', 'REFUNDED')),
   payment_method text default 'unknown' not null,
-  payment_mode text default 'DEMO' not null check (payment_mode in ('DEMO', 'LIVE')),
+  payment_mode text default 'DEMO' not null check (payment_mode in ('DEMO', 'LIVE', 'COD')),
   error_message text null,
   raw_payload jsonb null,
   created_at timestamptz default now() not null,
@@ -285,7 +285,7 @@ drop policy if exists "Allow update for payments" on public.payments;
 create policy "Allow update for payments" on public.payments
   for update using (true);
 
--- SECURITY DEFINER RPC: ATOMIC ORDER & PAYMENT CREATION
+-- SECURITY DEFINER RPC: ATOMIC ORDER & PAYMENT CREATION (COD + ONLINE)
 create or replace function public.create_checkout_order(
   p_customer_name text,
   p_customer_phone text,
@@ -295,7 +295,8 @@ create or replace function public.create_checkout_order(
   p_total_amount numeric default 0,
   p_razorpay_order_id text default null,
   p_payment_mode text default 'DEMO',
-  p_user_id uuid default null
+  p_user_id uuid default null,
+  p_payment_method text default 'ONLINE'
 ) returns jsonb as $$
 declare
   v_patient_id uuid;
@@ -303,15 +304,26 @@ declare
   v_payment_id uuid := gen_random_uuid();
   v_order_code text;
   v_actual_user_id uuid := coalesce(p_user_id, auth.uid());
+  v_method text := upper(coalesce(p_payment_method, 'ONLINE'));
   v_mode text := upper(coalesce(p_payment_mode, 'DEMO'));
-  v_rzp_order_id text := coalesce(p_razorpay_order_id, 'demo_rzp_ord_' || floor(random() * 899999 + 100000)::text);
+  v_order_status text := 'PENDING';
+  v_payment_status text := 'PENDING';
+  v_rzp_order_id text;
 begin
   if p_total_amount <= 0 then
     raise exception 'Order total amount must be greater than zero.';
   end if;
 
-  if v_mode not in ('DEMO', 'LIVE') then
-    v_mode := 'DEMO';
+  if v_method = 'COD' then
+    v_mode := 'COD';
+    v_order_status := 'CONFIRMED';
+    v_payment_status := 'PENDING';
+    v_rzp_order_id := 'cod_ord_' || floor(random() * 899999 + 100000)::text;
+  else
+    if v_mode not in ('DEMO', 'LIVE') then
+      v_mode := 'DEMO';
+    end if;
+    v_rzp_order_id := coalesce(p_razorpay_order_id, 'demo_rzp_ord_' || floor(random() * 899999 + 100000)::text);
   end if;
 
   v_patient_id := public.get_or_create_guest_patient(
@@ -355,8 +367,8 @@ begin
     p_items,
     p_total_amount,
     'INR',
-    'PENDING',
-    'PENDING'
+    v_order_status,
+    v_payment_status
   );
 
   insert into public.payments (
@@ -376,8 +388,8 @@ begin
     v_rzp_order_id,
     p_total_amount,
     'INR',
-    'PENDING',
-    'unknown',
+    v_payment_status,
+    v_method,
     v_mode
   );
 
@@ -388,14 +400,16 @@ begin
     'razorpay_order_id', v_rzp_order_id,
     'total_amount', p_total_amount,
     'currency', 'INR',
+    'payment_method', v_method,
     'payment_mode', v_mode,
-    'payment_status', 'PENDING'
+    'payment_status', v_payment_status,
+    'order_status', v_order_status
   );
 end;
 $$ language plpgsql security definer set search_path = public;
 
-revoke execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid) from public;
-grant execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid) to anon, authenticated;
+revoke execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid, text) from public;
+grant execute on function public.create_checkout_order(text, text, text, text, jsonb, numeric, text, text, uuid, text) to anon, authenticated;
 
 -- SECURITY DEFINER RPC: VERIFY AND CONFIRM PAYMENT (IDEMPOTENT)
 create or replace function public.verify_and_confirm_order_payment(
@@ -461,4 +475,5 @@ $$ language plpgsql security definer set search_path = public;
 
 revoke execute on function public.verify_and_confirm_order_payment(uuid, text, text, text, text, text) from public;
 grant execute on function public.verify_and_confirm_order_payment(uuid, text, text, text, text, text) to anon, authenticated;
+
 

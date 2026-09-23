@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, 
-  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw
+  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw, Truck
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -32,7 +32,7 @@ export default function CartDrawer() {
   const { user, isLoggedIn } = useAuth();
 
   const [checkoutStep, setCheckoutStep] = useState('cart'); // 'cart' | 'checkout' | 'success'
-  const [paymentMethodChoice, setPaymentMethodChoice] = useState('online'); // 'online' or 'whatsapp'
+  const [paymentMethodChoice, setPaymentMethodChoice] = useState('online'); // 'online' | 'cod'
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [confirmedOrder, setConfirmedOrder] = useState(null);
@@ -60,8 +60,8 @@ export default function CartDrawer() {
 
   if (!isCartOpen) return null;
 
-  // Handle Online Payment (Razorpay Live or Demo Mode)
-  const handleRazorpayCheckout = async (e) => {
+  // Handle Order Submit (COD or Online Payment)
+  const handleSubmitCheckout = async (e) => {
     if (e) e.preventDefault();
     setErrorMessage(null);
 
@@ -83,23 +83,58 @@ export default function CartDrawer() {
     setIsProcessingPayment(true);
 
     try {
-      // 1. Create Internal Order in Database with Server-Validated Cart Amount
+      // ----------------------------------------------------
+      // COD (CASH ON DELIVERY / PAY ON COLLECTION) FLOW
+      // ----------------------------------------------------
+      if (paymentMethodChoice === 'cod') {
+        const codOrderRes = await createInternalOrder({
+          customerName: patientData.name,
+          customerPhone: patientData.phone,
+          customerEmail: patientData.email,
+          city: patientData.address,
+          items: cartItems,
+          userId: user?.id || null,
+          paymentMethod: 'COD'
+        });
+
+        if (!codOrderRes.success) {
+          setErrorMessage(codOrderRes.error || 'Failed to place Cash on Delivery order.');
+          setIsProcessingPayment(false);
+          return;
+        }
+
+        setConfirmedOrder({
+          ...codOrderRes,
+          payment_status: 'PENDING',
+          order_status: 'CONFIRMED',
+          payment_method: 'COD',
+          payment_mode: 'COD'
+        });
+        clearCart();
+        setIsProcessingPayment(false);
+        setCheckoutStep('success');
+        return;
+      }
+
+      // ----------------------------------------------------
+      // ONLINE PAYMENT FLOW (RAZORPAY LIVE OR DEMO MODE)
+      // ----------------------------------------------------
       const orderRes = await createInternalOrder({
         customerName: patientData.name,
         customerPhone: patientData.phone,
         customerEmail: patientData.email,
         city: patientData.address,
         items: cartItems,
-        userId: user?.id || null
+        userId: user?.id || null,
+        paymentMethod: 'ONLINE'
       });
 
       if (!orderRes.success) {
-        setErrorMessage(orderRes.error || 'Failed to initialize order.');
+        setErrorMessage(orderRes.error || 'Failed to initialize online order.');
         setIsProcessingPayment(false);
         return;
       }
 
-      // 2. Determine Payment Mode (LIVE Razorpay SDK vs DEMO Mode)
       if (isRazorpayLiveConfigured()) {
         const sdkLoaded = await loadRazorpaySDK();
         if (!sdkLoaded) {
@@ -123,7 +158,7 @@ export default function CartDrawer() {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
-              paymentMethod: response.razorpay_payment_method || 'card_or_upi',
+              paymentMethod: response.razorpay_payment_method || 'online',
               paymentMode: 'LIVE'
             });
 
@@ -132,6 +167,7 @@ export default function CartDrawer() {
                 ...orderRes,
                 payment_status: 'PAID',
                 order_status: 'CONFIRMED',
+                payment_method: 'ONLINE',
                 razorpay_payment_id: response.razorpay_payment_id,
                 payment_mode: 'LIVE'
               });
@@ -147,13 +183,11 @@ export default function CartDrawer() {
             email: patientData.email || '',
             contact: patientData.phone
           },
-          theme: {
-            color: '#7e22ce'
-          },
+          theme: { color: '#7e22ce' },
           modal: {
             ondismiss: function () {
               setIsProcessingPayment(false);
-              setErrorMessage('Payment cancelled by user.');
+              setErrorMessage('Payment process was cancelled by user. No money was charged.');
             }
           }
         };
@@ -192,7 +226,7 @@ export default function CartDrawer() {
       razorpayOrderId: demoPayload.razorpay_order_id,
       razorpayPaymentId: demoPayload.razorpay_payment_id,
       razorpaySignature: demoPayload.razorpay_signature,
-      paymentMethod: demoPayload.payment_method,
+      paymentMethod: 'online_demo',
       paymentMode: 'DEMO'
     });
 
@@ -201,6 +235,7 @@ export default function CartDrawer() {
         ...pendingDemoOrder,
         payment_status: 'PAID',
         order_status: 'CONFIRMED',
+        payment_method: 'ONLINE',
         razorpay_payment_id: demoPayload.razorpay_payment_id,
         payment_mode: 'DEMO'
       });
@@ -211,27 +246,6 @@ export default function CartDrawer() {
     }
 
     setIsProcessingPayment(false);
-  };
-
-  // WhatsApp Booking Flow
-  const handleWhatsAppCheckout = () => {
-    if (cartItems.length === 0) return;
-
-    const itemListText = cartItems
-      .map((item, idx) => `${idx + 1}. ${item.name} (${item.quantity}x) - ₹${item.price * item.quantity}`)
-      .join('\n');
-
-    const message = 
-      `Hello Health Express!\n\nI would like to schedule my Health Basket Order:\n\n` +
-      `*SERVICES ORDERED:*\n${itemListText}\n\n` +
-      `*TOTAL PAYABLE:* ₹${subtotal} (Saved ₹${totalSavings})\n` +
-      (patientData.name ? `*PATIENT NAME:* ${patientData.name}\n` : '') +
-      (patientData.phone ? `*PHONE:* ${patientData.phone}\n` : '') +
-      (patientData.address ? `*CITY/ADDRESS:* ${patientData.address}\n` : '') +
-      `\nPlease help me confirm slot booking and phlebotomist / nurse dispatch.`;
-
-    openWhatsApp(message);
-    setCheckoutStep('success');
   };
 
   return (
@@ -295,30 +309,33 @@ export default function CartDrawer() {
                   </div>
                   
                   <div className="text-center space-y-1">
-                    <h4 className="text-xl font-extrabold text-slate-900">Payment & Order Confirmed!</h4>
+                    <h4 className="text-xl font-extrabold text-slate-900">
+                      {confirmedOrder?.payment_method === 'COD' ? 'Order Confirmed (Cash on Delivery)' : 'Payment & Order Confirmed!'}
+                    </h4>
                     <p className="text-xs text-slate-500 font-medium">
-                      Order Reference: <strong className="text-purple-900 font-black">{confirmedOrder?.order_code || 'HEX-ORD-CONFIRMED'}</strong>
+                      Order Code: <strong className="text-purple-900 font-black">{confirmedOrder?.order_code || 'HEX-ORD-CONFIRMED'}</strong>
                     </p>
                   </div>
 
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2.5">
                     <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                      <span className="text-slate-500 font-semibold">Payment Status:</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                        PAID & CONFIRMED
+                      <span className="text-slate-500 font-semibold">Payment Method:</span>
+                      <span className="font-extrabold text-purple-950 uppercase">
+                        {confirmedOrder?.payment_method === 'COD' ? 'Cash on Delivery (COD)' : 'Online Payment (Razorpay)'}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 font-semibold">Payment Mode:</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${confirmedOrder?.payment_mode === 'LIVE' ? 'bg-purple-100 text-purple-900' : 'bg-amber-100 text-amber-900'}`}>
-                        {confirmedOrder?.payment_mode === 'LIVE' ? 'LIVE RAZORPAY' : 'DEMO MODE'}
+                      <span className="text-slate-500 font-semibold">Payment Status:</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        confirmedOrder?.payment_status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {confirmedOrder?.payment_status === 'PAID' ? 'PAID & CONFIRMED' : 'PENDING (PAY ON COLLECTION)'}
                       </span>
                     </div>
 
                     <div className="flex justify-between text-slate-700 font-semibold">
-                      <span>Customer:</span>
+                      <span>Customer Name:</span>
                       <span className="font-bold">{confirmedOrder?.customer_name || patientData.name}</span>
                     </div>
 
@@ -328,7 +345,7 @@ export default function CartDrawer() {
                     </div>
 
                     <div className="flex justify-between items-baseline pt-2 border-t border-slate-200">
-                      <span className="font-extrabold text-slate-900">Total Paid:</span>
+                      <span className="font-extrabold text-slate-900">Total Amount:</span>
                       <span className="text-xl font-black text-purple-950">₹{confirmedOrder?.total_amount || subtotal}</span>
                     </div>
                   </div>
@@ -336,13 +353,13 @@ export default function CartDrawer() {
                   <div className="pt-2 flex flex-col gap-2">
                     <button
                       onClick={() => {
-                        const msg = `Hello Health Express! My payment is verified for Order *${confirmedOrder?.order_code || 'HEX-ORD'}* (₹${confirmedOrder?.total_amount || subtotal}). Please send phlebotomist slot details.`;
+                        const msg = `Hello Health Express! I placed Order *${confirmedOrder?.order_code || 'HEX-ORD'}* (${confirmedOrder?.payment_method === 'COD' ? 'Cash on Delivery' : 'Paid Online'}) for ₹${confirmedOrder?.total_amount || subtotal}. Please confirm phlebotomist/nurse slot details.`;
                         openWhatsApp(msg);
                       }}
                       className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
                     >
                       <MessageSquare className="w-4 h-4 fill-current" />
-                      <span>Send Receipt to Care Manager on WhatsApp</span>
+                      <span>Send Order Receipt to Care Manager on WhatsApp</span>
                     </button>
 
                     <button
@@ -378,7 +395,7 @@ export default function CartDrawer() {
                 </div>
               ) : checkoutStep === 'checkout' ? (
                 /* Checkout Form Step */
-                <form onSubmit={handleRazorpayCheckout} className="space-y-5 text-left">
+                <form onSubmit={handleSubmitCheckout} className="space-y-5 text-left">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <span className="text-xs font-extrabold text-purple-900 uppercase tracking-wider">
                       STEP 2 OF 2 • PATIENT & PAYMENT DETAILS
@@ -439,6 +456,56 @@ export default function CartDrawer() {
                     />
                   </div>
 
+                  {/* CHOOSE PAYMENT METHOD */}
+                  <div className="space-y-1.5 pt-1">
+                    <label className="block text-xs font-bold text-slate-800">Choose Payment Method *</label>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      
+                      {/* Option 1: Cash on Delivery / Pay on Collection */}
+                      <div
+                        onClick={() => setPaymentMethodChoice('cod')}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
+                          paymentMethodChoice === 'cod'
+                            ? 'bg-purple-50/90 border-purple-600 ring-2 ring-purple-600/30 text-purple-950'
+                            : 'bg-white border-slate-200 hover:border-purple-200 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold flex items-center gap-1.5">
+                            <Truck className="w-4 h-4 text-purple-700" />
+                            <span>Cash on Delivery</span>
+                          </span>
+                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethodChoice === 'cod' ? 'border-purple-700 bg-purple-700' : 'border-slate-300'}`}>
+                            {paymentMethodChoice === 'cod' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 font-medium leading-tight">Pay Cash / UPI at sample collection</p>
+                      </div>
+
+                      {/* Option 2: Pay Online via Razorpay */}
+                      <div
+                        onClick={() => setPaymentMethodChoice('online')}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
+                          paymentMethodChoice === 'online'
+                            ? 'bg-purple-50/90 border-purple-600 ring-2 ring-purple-600/30 text-purple-950'
+                            : 'bg-white border-slate-200 hover:border-purple-200 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold flex items-center gap-1.5">
+                            <CreditCard className="w-4 h-4 text-purple-700" />
+                            <span>Pay Online</span>
+                          </span>
+                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethodChoice === 'online' ? 'border-purple-700 bg-purple-700' : 'border-slate-300'}`}>
+                            {paymentMethodChoice === 'online' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 font-medium leading-tight">UPI, GPay, PhonePe, Cards, Net Banking</p>
+                      </div>
+
+                    </div>
+                  </div>
+
                   {/* Summary Mini Box */}
                   <div className="bg-purple-50/80 p-4 rounded-2xl border border-purple-100 text-xs space-y-2">
                     <div className="flex justify-between font-bold text-slate-700">
@@ -466,23 +533,19 @@ export default function CartDrawer() {
                       {isProcessingPayment ? (
                         <span className="flex items-center gap-2">
                           <RefreshCw className="w-4 h-4 animate-spin" />
-                          Processing Transaction...
+                          Processing Order...
+                        </span>
+                      ) : paymentMethodChoice === 'cod' ? (
+                        <span className="flex items-center gap-2">
+                          <Truck className="w-4 h-4" />
+                          <span>Place Cash on Delivery Order (₹{subtotal})</span>
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
                           <CreditCard className="w-4 h-4" />
-                          <span>Pay via Razorpay (₹{subtotal})</span>
+                          <span>Pay Online via Razorpay (₹{subtotal})</span>
                         </span>
                       )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleWhatsAppCheckout}
-                      className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <MessageSquare className="w-4 h-4 fill-current" />
-                      <span>Or Book via WhatsApp</span>
                     </button>
                   </div>
                 </form>

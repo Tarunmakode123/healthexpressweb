@@ -52,9 +52,9 @@ export function loadRazorpaySDK() {
 }
 
 /**
- * Creates internal order in database and returns order details
+ * Creates internal order in database for either COD or ONLINE payment method
  */
-export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, userId = null }) {
+export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, userId = null, paymentMethod = 'ONLINE' }) {
   // 1. Validate inputs
   if (!customerName || customerName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
@@ -73,7 +73,8 @@ export async function createInternalOrder({ customerName, customerPhone, custome
   }
 
   const { verifiedTotal, validatedItems } = cartValidation;
-  const paymentMode = isRazorpayLiveConfigured() ? 'LIVE' : 'DEMO';
+  const isCod = paymentMethod.toUpperCase() === 'COD';
+  const paymentMode = isCod ? 'COD' : (isRazorpayLiveConfigured() ? 'LIVE' : 'DEMO');
 
   // 3. Database persistence via Supabase RPC or Direct fallback
   if (isSupabaseConfigured) {
@@ -85,9 +86,10 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         p_city: city,
         p_items: validatedItems,
         p_total_amount: verifiedTotal,
-        p_razorpay_order_id: null,
+        p_razorpay_order_id: isCod ? `cod_ord_${Date.now()}` : null,
         p_payment_mode: paymentMode,
-        p_user_id: userId
+        p_user_id: userId,
+        p_payment_method: isCod ? 'COD' : 'ONLINE'
       });
 
       if (error) {
@@ -106,7 +108,10 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         razorpay_order_id: data.razorpay_order_id,
         total_amount: verifiedTotal,
         currency: 'INR',
+        payment_method: isCod ? 'COD' : 'ONLINE',
         payment_mode: paymentMode,
+        payment_status: isCod ? 'PENDING' : 'PENDING',
+        order_status: isCod ? 'CONFIRMED' : 'PENDING',
         items: validatedItems,
         customer_name: customerName.trim(),
         customer_phone: phone_e164
@@ -118,17 +123,20 @@ export async function createInternalOrder({ customerName, customerPhone, custome
   }
 
   // Fallback demo object if Supabase env is not connected
-  const demoOrderId = 'demo_ord_' + Date.now();
+  const demoOrderId = (isCod ? 'cod_ord_' : 'demo_ord_') + Date.now();
   const demoOrderCode = 'HEX-ORD-' + Math.floor(Math.random() * 8999 + 1000);
   return {
     success: true,
     order_id: demoOrderId,
     order_code: demoOrderCode,
     patient_id: 'demo_patient_' + Date.now(),
-    razorpay_order_id: 'demo_rzp_ord_' + Date.now(),
+    razorpay_order_id: isCod ? 'cod_no_rzp' : 'demo_rzp_ord_' + Date.now(),
     total_amount: verifiedTotal,
     currency: 'INR',
-    payment_mode: 'DEMO',
+    payment_method: isCod ? 'COD' : 'ONLINE',
+    payment_mode: paymentMode,
+    payment_status: isCod ? 'PENDING' : 'PENDING',
+    order_status: isCod ? 'CONFIRMED' : 'PENDING',
     items: validatedItems,
     customer_name: customerName.trim(),
     customer_phone: phone_e164
