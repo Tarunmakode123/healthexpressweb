@@ -32,6 +32,7 @@ export default function AdminDashboardPage() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [patients, setPatients] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [dataError, setDataError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Selected Order for Detail Modal
@@ -44,10 +45,9 @@ export default function AdminDashboardPage() {
 
     async function checkCurrentSession() {
       if (!isSupabaseConfigured) {
-        // Fallback for local demo mode without Supabase env
-        const storedAuth = localStorage.getItem('hex_admin_auth') === 'true';
         if (isMounted) {
-          setIsAuthenticated(storedAuth);
+          setIsAuthenticated(false);
+          setAuthError('Supabase environment is not configured.');
           setIsCheckingSession(false);
         }
         return;
@@ -106,7 +106,6 @@ export default function AdminDashboardPage() {
       const res = await verifyAdminAuth(adminEmail, adminPassword);
       if (res.success) {
         setIsAuthenticated(true);
-        localStorage.setItem('hex_admin_auth', 'true');
         setAuthError('');
       } else {
         setAuthError(res.error || 'Invalid email or password.');
@@ -121,7 +120,6 @@ export default function AdminDashboardPage() {
   // Handle Admin Logout
   const handleLogout = async () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('hex_admin_auth');
     setSelectedOrder(null);
     setSelectedPatient(null);
     if (isSupabaseConfigured) {
@@ -133,9 +131,11 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Load Admin Telemetry Data when authenticated
+  // Load Admin Telemetry Data directly from production Supabase database
   const loadAdminData = async () => {
     setIsLoading(true);
+    setDataError(null);
+
     try {
       const [ordRes, presRes, patRes] = await Promise.all([
         fetchAdminOrders(),
@@ -143,11 +143,31 @@ export default function AdminDashboardPage() {
         fetchAdminPatients()
       ]);
 
-      if (ordRes.success) setOrders(ordRes.data || []);
-      if (presRes.success) setPrescriptions(presRes.data || []);
-      if (patRes.success) setPatients(patRes.data || []);
+      const errors = [];
+      if (ordRes.success) {
+        setOrders(ordRes.data || []);
+      } else {
+        errors.push(ordRes.error || 'Unable to fetch orders.');
+      }
+
+      if (presRes.success) {
+        setPrescriptions(presRes.data || []);
+      } else {
+        errors.push(presRes.error || 'Unable to fetch guest prescriptions.');
+      }
+
+      if (patRes.success) {
+        setPatients(patRes.data || []);
+      } else {
+        errors.push(patRes.error || 'Unable to fetch registered patients.');
+      }
+
+      if (errors.length > 0) {
+        setDataError(errors.join(' | '));
+      }
     } catch (err) {
       console.error('Failed to load admin data:', err);
+      setDataError(err.message || 'Unable to load production telemetry data from database.');
     } finally {
       setIsLoading(false);
     }
@@ -166,13 +186,8 @@ export default function AdminDashboardPage() {
 
     const res = await markCodPaymentCollected(order.id);
     if (res.success) {
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === order.id
-            ? { ...o, payment_status: 'PAID', order_status: 'CONFIRMED' }
-            : o
-        )
-      );
+      // Re-query database to recalculate telemetry directly from Supabase
+      await loadAdminData();
       if (selectedOrder && selectedOrder.id === order.id) {
         setSelectedOrder((prev) => ({
           ...prev,
@@ -422,6 +437,22 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
+        {/* DATABASE ERROR CALLOUT BANNER */}
+        {dataError && (
+          <div className="p-4 bg-rose-950/80 border border-rose-800/80 rounded-2xl text-xs text-rose-200 font-bold flex items-center justify-between gap-4 animate-in fade-in">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <span>{dataError}</span>
+            </div>
+            <button
+              onClick={loadAdminData}
+              className="px-3 py-1.5 rounded-lg bg-rose-900 hover:bg-rose-800 text-white font-black text-xs cursor-pointer shrink-0 transition-colors"
+            >
+              Retry Connection
+            </button>
+          </div>
+        )}
+
         {/* ACCURATE FINANCIAL SUMMARY CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
@@ -563,7 +594,7 @@ export default function AdminDashboardPage() {
                     {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="p-8 text-center text-slate-400 font-medium">
-                          No transaction data yet.
+                          {orders.length === 0 ? 'No orders yet.' : 'No transaction records found matching filter criteria.'}
                         </td>
                       </tr>
                     ) : (
@@ -691,7 +722,7 @@ export default function AdminDashboardPage() {
                   {filteredPrescriptions.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-slate-400 font-medium">
-                        No guest prescriptions found.
+                        {prescriptions.length === 0 ? 'No prescriptions yet.' : 'No guest prescriptions found matching search query.'}
                       </td>
                     </tr>
                   ) : (
@@ -795,7 +826,7 @@ export default function AdminDashboardPage() {
                   {filteredPatients.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">
-                        No registered patients found.
+                        {patients.length === 0 ? 'No registered patients yet.' : 'No registered patients found matching search query.'}
                       </td>
                     </tr>
                   ) : (
