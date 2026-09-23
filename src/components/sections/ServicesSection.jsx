@@ -110,10 +110,10 @@ export default function ServicesSection() {
             <span>ONE CONNECTED HEALTHCARE PLATFORM</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-            Complete healthcare, <span className="text-purple-700">connected.</span>
+            One Platform. <span className="text-purple-700">Every Healthcare Need.</span>
           </h2>
           <p className="text-base sm:text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
-            From diagnostics and home healthcare to preventive care and specialist support — Health Express brings your healthcare journey together.
+            From diagnostics and home healthcare to preventive care and specialist support — Health Express brings your connected healthcare journey together.
           </p>
         </div>
 
