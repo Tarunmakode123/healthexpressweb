@@ -1,7 +1,6 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import ProblemSection from '../components/sections/ProblemSection';
-import SimplerHealthcareSection from '../components/sections/SimplerHealthcareSection';
 import HowItWorksSection from '../components/sections/HowItWorksSection';
 import ServicesSection from '../components/sections/ServicesSection';
 import PreventiveHealthSection from '../components/sections/PreventiveHealthSection';
@@ -24,9 +23,6 @@ export default function HomePage({ onOpenUploadModal }) {
 
       {/* 2. WHY DO I NEED YOU? -> Problem */}
       <ProblemSection />
-
-      {/* 3. WHAT DO YOU DO? -> What Health Express Does */}
-      <SimplerHealthcareSection />
 
       {/* HOW IT WORKS -> Request to Care */}
       <HowItWorksSection onOpenUploadModal={onOpenUploadModal} />
