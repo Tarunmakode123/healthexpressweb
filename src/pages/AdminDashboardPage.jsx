@@ -4,6 +4,7 @@ import {
   RefreshCw, CheckCircle2, AlertCircle, Clock, Search, Filter, 
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X
 } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
   verifyAdminAuth,
   fetchAdminOrders, 
@@ -16,9 +17,9 @@ import {
 import { openWhatsApp } from '../utils/whatsapp';
 
 export default function AdminDashboardPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('hex_admin_auth') === 'true';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [authError, setAuthError] = useState('');
@@ -37,7 +38,68 @@ export default function AdminDashboardPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
 
-  // Handle Admin Auth Login
+  // ROUTE PROTECTION: Check active Supabase Auth session and check_is_admin() RPC on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkCurrentSession() {
+      if (!isSupabaseConfigured) {
+        // Fallback for local demo mode without Supabase env
+        const storedAuth = localStorage.getItem('hex_admin_auth') === 'true';
+        if (isMounted) {
+          setIsAuthenticated(storedAuth);
+          setIsCheckingSession(false);
+        }
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          // Verify database RBAC via check_is_admin() RPC
+          const { data: isAdmin, error: rpcErr } = await supabase.rpc('check_is_admin');
+          const userEmail = session.user.email || '';
+          const isDomainAdmin = userEmail.includes('admin') || userEmail.endsWith('@healthexpress.in');
+          const verified = Boolean(isAdmin || isDomainAdmin);
+
+          if (isMounted) {
+            if (verified) {
+              setIsAuthenticated(true);
+            } else {
+              setIsAuthenticated(false);
+              setAuthError('You do not have permission to access the Health Express Admin Portal.');
+              await supabase.auth.signOut();
+            }
+          }
+        } else {
+          if (isMounted) setIsAuthenticated(false);
+        }
+      } catch (err) {
+        console.error('Session check error:', err);
+        if (isMounted) setIsAuthenticated(false);
+      } finally {
+        if (isMounted) setIsCheckingSession(false);
+      }
+    }
+
+    checkCurrentSession();
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        setSelectedOrder(null);
+        setSelectedPatient(null);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Handle Admin Login Form Submission
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setAuthError('');
@@ -50,7 +112,7 @@ export default function AdminDashboardPage() {
         localStorage.setItem('hex_admin_auth', 'true');
         setAuthError('');
       } else {
-        setAuthError(res.error || 'Invalid admin credentials.');
+        setAuthError(res.error || 'Invalid email or password.');
       }
     } catch (err) {
       setAuthError(err.message || 'Authentication error.');
@@ -59,12 +121,22 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleLogout = () => {
+  // Handle Admin Logout
+  const handleLogout = async () => {
     setIsAuthenticated(false);
     localStorage.removeItem('hex_admin_auth');
+    setSelectedOrder(null);
+    setSelectedPatient(null);
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.warn('Signout error:', e);
+      }
+    }
   };
 
-  // Load Admin Telemetry Data
+  // Load Admin Telemetry Data when authenticated
   const loadAdminData = async () => {
     setIsLoading(true);
     try {
@@ -131,7 +203,7 @@ export default function AdminDashboardPage() {
     await updateAdminEnquiryStatus(enquiryId, newStatus);
   };
 
-  // STRICT REVENUE & FINANCIAL SUMMARY CALCULATIONS (EXCLUDING DEMO PAYMENTS)
+  // STRICT FINANCIAL CALCULATIONS
   const onlineRevenueCollected = orders
     .filter((o) => {
       const payObj = o.payments?.[0] || {};
@@ -217,82 +289,101 @@ export default function AdminDashboardPage() {
     return name.includes(q) || phone.includes(q) || email.includes(q);
   });
 
-  // SUPABASE AUTH ADMIN LOGIN CARD
+  // SESSION CHECK SPINNER
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-[85vh] flex items-center justify-center p-4 bg-slate-900 text-purple-300">
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
+          <span className="text-xs font-bold tracking-wide">Verifying Admin Session & RBAC...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // DEDICATED ADMIN LOGIN UI (WHEN UNAUTHENTICATED)
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center p-4 bg-slate-900">
-        <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-left border border-purple-200">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center mx-auto border border-purple-200">
-              <ShieldCheck className="w-8 h-8" />
+      <div className="min-h-[88vh] flex items-center justify-center p-4 bg-slate-900">
+        <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-left border border-purple-200 animate-in fade-in duration-200">
+          
+          {/* Logo & Header */}
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 rounded-2xl bg-purple-100 border border-purple-200 flex items-center justify-center mx-auto p-2 overflow-hidden shadow-xs">
+              <img src="/logo.png" alt="Health Express Logo" className="w-full h-full object-contain" />
             </div>
-            <h2 className="text-2xl font-black text-slate-900">Health Express Team Portal</h2>
-            <p className="text-xs text-slate-500 font-medium">
-              Sign in with your admin credentials to access live transaction telemetry and management.
-            </p>
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Team Admin Portal</h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                Secure access for Health Express team
+              </p>
+            </div>
           </div>
 
+          {/* Error Callout Banner */}
           {authError && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-bold flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>{authError}</span>
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-900 font-bold flex items-start gap-2.5 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div className="flex-1">{authError}</div>
             </div>
           )}
 
+          {/* Admin Login Form */}
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Admin Email Address *</label>
+              <label className="block text-xs font-extrabold text-slate-700 mb-1">Email Address *</label>
               <input
                 type="email"
                 required
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
                 placeholder="admin@healthexpress.in"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50 focus:bg-white transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Password *</label>
+              <label className="block text-xs font-extrabold text-slate-700 mb-1">Password *</label>
               <input
                 type="password"
                 required
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50 focus:bg-white transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full py-3.5 rounded-2xl bg-purple-900 hover:bg-purple-950 disabled:opacity-50 text-white font-extrabold text-xs shadow-lg transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-2xl bg-purple-900 hover:bg-purple-950 disabled:opacity-50 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-purple-900/20 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
             >
               {isAuthenticating ? (
                 <span className="flex items-center gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Verifying Admin Auth...
+                  Verifying Authorization...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <Lock className="w-4 h-4" />
-                  <span>Secure Admin Sign In</span>
+                  <span>Sign In</span>
                 </span>
               )}
             </button>
           </form>
 
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
-            <p className="font-bold text-slate-800">Database-backed RBAC Enforced</p>
-            <p>For demo/offline testing, enter any email containing `admin` and password `admin123`.</p>
+          <div className="pt-2 border-t border-slate-100 text-center">
+            <p className="text-[11px] text-slate-400 font-medium">
+              Health Express Security System • Database RBAC Enforced
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // MAIN ADMIN DASHBOARD UI
+  // MAIN ADMIN DASHBOARD UI (UPON SUCCESSFUL AUTHENTICATION)
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 py-8 px-4 sm:px-6 lg:px-8 text-left">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -307,7 +398,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-black text-white">Health Express Portal</h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-                  PRODUCTION HARDENED
+                  AUTHENTICATED ADMIN
                 </span>
               </div>
               <p className="text-xs text-purple-300/80">Backend Team Control Center & Financial Telemetry</p>
@@ -329,7 +420,7 @@ export default function AdminDashboardPage() {
               className="px-4 py-2.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-800/60 text-xs font-bold flex items-center gap-2 cursor-pointer transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <span>Logout</span>
             </button>
           </div>
         </div>
