@@ -24,11 +24,8 @@ export default function HomePage({ onOpenUploadModal, onOpenCalculatorModal }) {
       {/* 2. WHY DO I NEED YOU? -> Problem */}
       <ProblemSection />
 
-      {/* HOW IT WORKS -> Request to Care */}
+      {/* WHAT HEALTH EXPRESS DOES & PATIENT JOURNEY -> One Connected Platform & 4-Step Journey */}
       <HowItWorksSection onOpenUploadModal={onOpenUploadModal} />
-
-      {/* 4. WHAT CAN I USE TODAY? -> Unified Connected Healthcare Platform */}
-      <ServicesSection onOpenUploadModal={onOpenUploadModal} />
 
       {/* PREVENTIVE HEALTH -> Reactive to Proactive */}
       <PreventiveHealthSection />

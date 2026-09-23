@@ -344,22 +344,29 @@ export default function HeroSection({ onOpenUploadModal }) {
                 </div>
               </div>
 
-              {/* MAIN HEALTHCARE PHOTOGRAPHY CONTAINER */}
-              <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl border-4 border-white text-left">
+              {/* MAIN HEALTHCARE VIDEO CONTAINER */}
+              <div className="relative bg-slate-950 rounded-3xl overflow-hidden shadow-xl border-4 border-white text-left">
                 <div className="relative h-72 sm:h-[360px] lg:h-[390px] w-full overflow-hidden">
-                  <img
-                    src="/hero_home_care.jpg"
-                    alt="Health Express Care Manager providing personalized home healthcare"
+                  <video
+                    autoPlay
+                    muted
+                    playsInline
+                    loop
+                    preload="auto"
                     className="w-full h-full object-cover object-center"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/15 to-transparent" />
+                  >
+                    <source src="/videos/healthexpress-journey-story.mp4" type="video/mp4" />
+                    <source src="/videos/healthexpress-2nd%20video.mp4" type="video/mp4" />
+                    Your browser does not support video playback.
+                  </video>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
                   
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-purple-700/90 text-white">
-                      Professional Home Care
+                  <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-purple-700/90 text-white shadow-sm">
+                      Personalized Patient Care
                     </span>
                     <h3 className="text-xs sm:text-sm font-bold text-white/95 mt-1.5">
-                      Care coordinated in the comfort of your home.
+                      Coordinated healthcare for you and your family.
                     </h3>
                   </div>
                 </div>

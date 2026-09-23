@@ -115,67 +115,17 @@ export default function HowItWorksSection({ onOpenUploadModal }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
-        {/* Editorial Section Header */}
+        {/* Editorial Section Header (Merged title & subtitle from What Health Express Does) */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-900/80 border border-purple-700/80 text-purple-200 text-xs font-extrabold uppercase tracking-widest shadow-xs">
-            PATIENT JOURNEY
+            PATIENT JOURNEY • ONE CONNECTED PLATFORM
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-            Healthcare, <span className="text-purple-400">without the runaround.</span>
+            One Platform. <span className="text-purple-400">Every Healthcare Need.</span>
           </h2>
           <p className="text-base sm:text-lg text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed">
-            Upload your prescription and let Health Express take care of your family's healthcare journey.
+            From diagnostics and home healthcare to medicines, preventive care and specialist support — Health Express brings your connected healthcare journey together in one single platform.
           </p>
-        </div>
-
-        {/* 16:9 CINEMATIC STORY VIDEO PLAYER */}
-        <div className="max-w-4xl mx-auto relative group">
-          <div className="relative aspect-video w-full rounded-2xl md:rounded-3xl overflow-hidden border border-purple-900/60 shadow-2xl bg-slate-900">
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              loop
-              preload="auto"
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              className="w-full h-full object-cover"
-            >
-              <source src="/videos/healthexpress-journey-story.mp4" type="video/mp4" />
-              <source src="/videos/healthexpress-2nd%20video.mp4" type="video/mp4" />
-              Your browser does not support video playback.
-            </video>
-
-            {/* Video Controls Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4 sm:p-6 pointer-events-none">
-              <div className="flex items-center gap-3 pointer-events-auto">
-                <button
-                  onClick={togglePlay}
-                  className="w-10 h-10 rounded-full bg-slate-900/90 hover:bg-purple-600 text-white flex items-center justify-center backdrop-blur-md border border-slate-700 transition-all shadow-lg"
-                  aria-label={isPlaying ? 'Pause Video' : 'Play Video'}
-                >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
-                </button>
-                <button
-                  onClick={toggleMute}
-                  className="w-10 h-10 rounded-full bg-slate-900/90 hover:bg-purple-600 text-white flex items-center justify-center backdrop-blur-md border border-slate-700 transition-all shadow-lg"
-                  aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-                >
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                </button>
-              </div>
-
-              <div className="text-right pointer-events-auto">
-                <span className="text-xs font-semibold text-purple-300 bg-purple-950/80 px-3 py-1 rounded-full border border-purple-800">
-                  Health Express Journey
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Ambient Video Glow */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 via-indigo-600/20 to-purple-600/20 rounded-[28px] blur-xl -z-10 opacity-70 group-hover:opacity-100 transition-opacity" />
         </div>
 
         {/* STEP SELECTOR BAR (HORIZONTAL TIMELINE) */}
