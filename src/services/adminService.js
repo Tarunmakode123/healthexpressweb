@@ -27,16 +27,12 @@ export async function verifyAdminAuth(email, password) {
         console.warn('RPC check_is_admin warning:', rpcError.message);
       }
 
-      // If user is logged in, verify if they are admin or fallback to email domain/demo check
-      const userEmail = authData.user?.email || '';
-      const isDomainAdmin = userEmail.includes('admin') || userEmail.endsWith('@healthexpress.in');
-      const verifiedAdmin = Boolean(isAdmin || isDomainAdmin);
-
-      if (!verifiedAdmin) {
+      // Strictly enforce database is_admin = true
+      if (isAdmin !== true) {
         await supabase.auth.signOut();
         return { 
           success: false, 
-          error: 'Access Denied: Your account does not have Admin privileges.' 
+          error: 'You do not have permission to access the Health Express Admin Portal.' 
         };
       }
 

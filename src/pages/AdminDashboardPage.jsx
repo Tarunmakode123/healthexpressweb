@@ -58,12 +58,9 @@ export default function AdminDashboardPage() {
         if (session && session.user) {
           // Verify database RBAC via check_is_admin() RPC
           const { data: isAdmin, error: rpcErr } = await supabase.rpc('check_is_admin');
-          const userEmail = session.user.email || '';
-          const isDomainAdmin = userEmail.includes('admin') || userEmail.endsWith('@healthexpress.in');
-          const verified = Boolean(isAdmin || isDomainAdmin);
 
           if (isMounted) {
-            if (verified) {
+            if (isAdmin === true) {
               setIsAuthenticated(true);
             } else {
               setIsAuthenticated(false);
