@@ -58,7 +58,7 @@ export default function Navbar({ onOpenUploadModal }) {
             <img 
               src="/logo.png" 
               alt="Health Express - Everything Health Fast Tracked" 
-              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+              className="h-12 sm:h-14 md:h-16 lg:h-[60px] w-auto object-contain transition-transform group-hover:scale-[1.02]"
             />
           </Link>
 

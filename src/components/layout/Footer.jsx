@@ -13,11 +13,11 @@ export default function Footer({ onOpenUploadModal }) {
           
           {/* Brand Info (Spans 2 columns on lg screens) */}
           <div className="col-span-2 space-y-4 pr-4">
-            <Link to="/" className="inline-block bg-white p-2 rounded-2xl shadow-sm hover:scale-[1.02] transition-transform">
+            <Link to="/" className="inline-block bg-white p-2.5 rounded-2xl shadow-sm hover:scale-[1.02] transition-transform">
               <img 
                 src="/logo.png" 
                 alt="Health Express - Everything Health Fast Tracked" 
-                className="h-10 w-auto object-contain"
+                className="h-12 sm:h-14 md:h-16 w-auto object-contain"
               />
             </Link>
             

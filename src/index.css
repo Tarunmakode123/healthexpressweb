@@ -20,13 +20,13 @@
 }
 
 @theme {
-  --color-brand-purple: #7c3aed;
-  --color-brand-purple-hover: #6d28d9;
-  --color-brand-purple-dark: #581c87;
-  --color-brand-purple-deep: #3b0764;
-  --color-brand-lavender: #f5f3ff;
-  --color-brand-lavender-light: #faf5ff;
-  --color-brand-purple-soft: #ede9fe;
+  --color-brand-purple: #8425c0;
+  --color-brand-purple-hover: #721ea8;
+  --color-brand-purple-dark: #5c168b;
+  --color-brand-purple-deep: #430d67;
+  --color-brand-lavender: #f9f2fc;
+  --color-brand-lavender-light: #fdfafd;
+  --color-brand-purple-soft: #f1e2f9;
   --color-brand-navy: #0f172a;
   --color-brand-navy-light: #1e293b;
   --color-brand-gray: #475569;
@@ -111,7 +111,7 @@
 }
 
 .gradient-text-purple {
-  background: linear-gradient(135deg, #7c3aed 0%, #c084fc 50%, #6d28d9 100%);
+  background: linear-gradient(135deg, #8425c0 0%, #a855f7 50%, #6d28d9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
