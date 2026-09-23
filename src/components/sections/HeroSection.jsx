@@ -335,14 +335,7 @@ export default function HeroSection({ onOpenUploadModal }) {
               {/* Subtle Ambient Glow Backdrop */}
               <div className="absolute -inset-3 bg-gradient-to-tr from-purple-200/30 via-indigo-100/20 to-slate-100/50 rounded-[32px] blur-xl -z-10" />
 
-              {/* SINGLE SUBTLE OVERLAY BADGE (MAXIMUM 1) */}
-              <div className="hidden sm:flex absolute -bottom-2 -right-2 sm:-right-3 z-20 bg-white/95 px-3.5 py-2 rounded-xl shadow-md border border-slate-200/90 items-center gap-2.5 backdrop-blur-xs">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <div className="text-left">
-                  <div className="text-[11px] font-bold text-slate-900">Personal Care Coordination</div>
-                  <div className="text-[9px] text-slate-500 font-semibold">✓ Health Manager Support</div>
-                </div>
-              </div>
+
 
               {/* MAIN HEALTHCARE VIDEO CONTAINER */}
               <div className="relative bg-slate-950 rounded-3xl overflow-hidden shadow-xl border-4 border-white text-left">
