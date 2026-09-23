@@ -205,3 +205,36 @@ export async function fetchAdminPatients() {
     return { success: false, error: err.message || 'Database connection error.' };
   }
 }
+
+/**
+ * Generate a secure temporary signed URL for viewing/downloading a private prescription file
+ */
+export async function getPrescriptionSignedUrl(filePath, expiresInSeconds = 300) {
+  if (!filePath) {
+    return { success: false, error: 'File path unavailable.' };
+  }
+
+  if (!isSupabaseConfigured) {
+    return { success: false, error: 'Supabase configuration is missing.' };
+  }
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('prescriptions')
+      .createSignedUrl(filePath, expiresInSeconds);
+
+    if (error) {
+      console.error('Storage createSignedUrl error:', error);
+      return { success: false, error: error.message || 'Failed to generate secure signed URL.' };
+    }
+
+    if (!data?.signedUrl) {
+      return { success: false, error: 'Unable to generate secure file URL.' };
+    }
+
+    return { success: true, signedUrl: data.signedUrl };
+  } catch (err) {
+    console.error('getPrescriptionSignedUrl exception:', err);
+    return { success: false, error: err.message || 'Error generating file download URL.' };
+  }
+}

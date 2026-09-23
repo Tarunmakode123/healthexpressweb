@@ -12,7 +12,8 @@ import {
   markCodPaymentCollected,
   fetchAdminPrescriptions, 
   updateAdminEnquiryStatus, 
-  fetchAdminPatients 
+  fetchAdminPatients,
+  getPrescriptionSignedUrl
 } from '../services/adminService';
 import { openWhatsApp } from '../utils/whatsapp';
 
@@ -213,6 +214,27 @@ export default function AdminDashboardPage() {
       prev.map((p) => (p.id === enquiryId ? { ...p, status: newStatus } : p))
     );
     await updateAdminEnquiryStatus(enquiryId, newStatus);
+  };
+
+  // Secure Prescription File View/Download Handler
+  const handleViewPrescriptionFile = async (fileObj) => {
+    const filePath = fileObj?.file_path || fileObj?.filePath;
+    if (!filePath) {
+      alert('File path is unavailable for this prescription.');
+      return;
+    }
+
+    try {
+      const res = await getPrescriptionSignedUrl(filePath, 300);
+      if (res.success && res.signedUrl) {
+        window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        alert(`Unable to open prescription file: ${res.error}`);
+      }
+    } catch (err) {
+      console.error('Prescription file view exception:', err);
+      alert(`Error accessing prescription file: ${err.message}`);
+    }
   };
 
   // STRICT FINANCIAL CALCULATIONS
@@ -761,11 +783,12 @@ export default function AdminDashboardPage() {
                                     <FileText className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                                     <span className="truncate max-w-[140px]">{f.file_name}</span>
                                     <button
-                                      onClick={() => alert(`Accessing file: ${f.file_name}`)}
-                                      className="p-1 hover:text-white text-slate-400 cursor-pointer"
-                                      title="View / Download File"
+                                      onClick={() => handleViewPrescriptionFile(f)}
+                                      className="p-1 hover:text-white text-purple-300 hover:text-purple-100 cursor-pointer flex items-center gap-1 bg-purple-900/40 hover:bg-purple-800/60 px-1.5 py-0.5 rounded transition-colors"
+                                      title="View / Download Secure File"
                                     >
                                       <Download className="w-3.5 h-3.5" />
+                                      <span className="text-[10px]">Open</span>
                                     </button>
                                   </div>
                                 ))
