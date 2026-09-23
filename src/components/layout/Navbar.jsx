@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut } from 'lucide-react';
+import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, ShoppingBag } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 
 export default function Navbar({ onOpenUploadModal }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -10,6 +11,7 @@ export default function Navbar({ onOpenUploadModal }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
   const { user, isLoggedIn, logout } = useAuth();
+  const { itemCount, openCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,6 +83,22 @@ export default function Navbar({ onOpenUploadModal }) {
 
           {/* Header Right Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
+            
+            {/* Cart Icon Button */}
+            <button
+              onClick={openCart}
+              className="relative p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 transition-all shadow-2xs flex items-center gap-2 cursor-pointer group"
+              aria-label="Open Health Basket"
+            >
+              <ShoppingBag className="w-4.5 h-4.5 text-purple-700 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-extrabold hidden lg:inline">Cart</span>
+              {itemCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full bg-purple-700 text-white text-[10px] font-black min-w-[18px] text-center shadow-xs">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+
             <button
               onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
               className="text-xs font-semibold text-slate-700 hover:text-purple-700 px-3.5 py-2 rounded-xl hover:bg-purple-50 transition-colors flex items-center gap-1.5"
@@ -135,6 +153,19 @@ export default function Navbar({ onOpenUploadModal }) {
 
           {/* Mobile Right Quick Action & Hamburger */}
           <div className="md:hidden flex items-center gap-2">
+            {/* Mobile Cart Button */}
+            <button
+              onClick={openCart}
+              className="relative p-2 rounded-xl bg-purple-100 text-purple-900 border border-purple-200 flex items-center justify-center cursor-pointer"
+              aria-label="Open Health Basket"
+            >
+              <ShoppingBag className="w-4 h-4 text-purple-700" />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-purple-700 text-white text-[9px] font-black flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
+            </button>
             {!isLoggedIn ? (
               <Link
                 to="/auth"

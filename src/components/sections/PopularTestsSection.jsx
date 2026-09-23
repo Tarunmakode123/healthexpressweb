@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Sparkles, MessageCircle, ArrowRight, CheckCircle2, ShieldCheck, Droplet, Activity, Sun, Target, Heart, UserCheck, Shield } from 'lucide-react';
+import { Search, Sparkles, MessageCircle, ArrowRight, CheckCircle2, ShieldCheck, Droplet, Activity, Sun, Target, Heart, UserCheck, Shield, ShoppingBag } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
+import { useCart } from '../../context/CartContext';
 
 export default function PopularTestsSection() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { addToCart } = useCart();
 
   const popularServices = [
     {
@@ -142,7 +144,14 @@ export default function PopularTestsSection() {
             return (
               <div
                 key={service.id}
-                onClick={() => openWhatsApp(`Namaste Health Express! I would like to inquire about booking the ${service.title}.`)}
+                onClick={() => addToCart({
+                  id: service.id,
+                  name: service.title,
+                  category: service.category,
+                  price: service.id === 'full-body-checkup' ? 999 : 299,
+                  originalPrice: service.id === 'full-body-checkup' ? 2499 : 599,
+                  turnaround: '6-12 Hours'
+                })}
                 className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group cursor-pointer flex flex-col justify-between space-y-4 text-left relative overflow-hidden"
               >
                 <div className="space-y-3">
@@ -166,7 +175,10 @@ export default function PopularTestsSection() {
                 </div>
 
                 <div className="pt-2 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900">
-                  <span>Inquire & Book</span>
+                  <span className="flex items-center gap-1">
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>Book & Add to Basket</span>
+                  </span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>

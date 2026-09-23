@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import CartDrawer from './components/cart/CartDrawer';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PrescriptionModal from './components/common/PrescriptionModal';
@@ -38,49 +40,54 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <HealthExpressIntro />
-        <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 antialiased">
-          
-          {/* Responsive Header Navbar */}
-          <Navbar onOpenUploadModal={handleOpenUploadModal} />
+      <CartProvider>
+        <Router>
+          <ScrollToTop />
+          <HealthExpressIntro />
+          <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 antialiased">
+            
+            {/* Responsive Header Navbar */}
+            <Navbar onOpenUploadModal={handleOpenUploadModal} />
 
-          {/* Main Content Area */}
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} />} />
-              <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
-              <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
-              <Route path="/health-library" element={<HealthLibraryPage />} />
-              <Route path="/health-library/:slug" element={<ArticleDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
-              <Route path="/about" element={<AboutPage onOpenUploadModal={handleOpenUploadModal} />} />
-              <Route path="/providers" element={<ProvidersPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/legal/:type" element={<LegalPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/login" element={<AuthPage />} />
-              <Route path="/signup" element={<AuthPage />} />
-            </Routes>
-          </main>
+            {/* Main Content Area */}
+            <main className="flex-1">
+              <Routes>
+                <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/health-library" element={<HealthLibraryPage />} />
+                <Route path="/health-library/:slug" element={<ArticleDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/about" element={<AboutPage onOpenUploadModal={handleOpenUploadModal} />} />
+                <Route path="/providers" element={<ProvidersPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/legal/:type" element={<LegalPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/signup" element={<AuthPage />} />
+              </Routes>
+            </main>
 
-          {/* Footer */}
-          <Footer onOpenUploadModal={handleOpenUploadModal} />
+            {/* Footer */}
+            <Footer onOpenUploadModal={handleOpenUploadModal} />
 
-          {/* Floating Care Manager Direct Phone CTA */}
-          <CareManagerCTA />
+            {/* Floating Care Manager Direct Phone CTA */}
+            <CareManagerCTA />
 
-          {/* Global Upload Prescription WhatsApp Modal */}
-          <PrescriptionModal 
-            isOpen={isUploadModalOpen} 
-            onClose={handleCloseUploadModal} 
-          />
+            {/* Slide-over Health Basket Cart Drawer */}
+            <CartDrawer />
 
-          {/* Global AI Healthcare Service Assistant */}
-          <HealthExpressAssistant onOpenUploadModal={handleOpenUploadModal} />
+            {/* Global Upload Prescription WhatsApp Modal */}
+            <PrescriptionModal 
+              isOpen={isUploadModalOpen} 
+              onClose={handleCloseUploadModal} 
+            />
 
-        </div>
-      </Router>
+            {/* Global AI Healthcare Service Assistant */}
+            <HealthExpressAssistant onOpenUploadModal={handleOpenUploadModal} />
+
+          </div>
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

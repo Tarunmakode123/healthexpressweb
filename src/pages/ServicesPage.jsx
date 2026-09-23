@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { openWhatsApp } from '../utils/whatsapp';
 import { HEALTH_MANAGER_PHONE } from '../config/constants';
+import { useCart } from '../context/CartContext';
 
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
 import PrescriptionHeroBanner from '../components/common/PrescriptionHeroBanner';
@@ -26,6 +27,7 @@ const categoryIconMap = {
 export default function ServicesPage({ onOpenUploadModal }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState('all');
+  const { addToCart } = useCart();
 
   // Filter logic across all services
   const filteredServices = ALL_SERVICES.filter((service) => {
@@ -43,8 +45,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
   });
 
   const handleBookNowService = (service) => {
-    const message = `Hello Health Express!\n\nI would like to book the following service:\n• Service: ${service.name}\n• Category: ${service.category_name || 'Healthcare'}\n• Special Price: ₹${service.discount_price} (Original: ₹${service.price})\n• Turnaround Time: ${service.turnaround_time}\n\nPlease confirm availability and help me schedule this service.`;
-    openWhatsApp(message);
+    addToCart(service);
   };
 
   return (

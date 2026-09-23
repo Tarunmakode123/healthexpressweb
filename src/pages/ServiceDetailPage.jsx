@@ -3,16 +3,18 @@ import { useParams, Link } from 'react-router-dom';
 import { 
   FlaskConical, Scan, Dna, Home, Stethoscope, ShieldCheck, 
   Clock, Calendar, FileText, CheckCircle2, AlertCircle, MessageSquare, 
-  Phone, ArrowRight, ChevronRight, HelpCircle, UserCheck, ShieldAlert
+  Phone, ArrowRight, ChevronRight, HelpCircle, UserCheck, ShieldAlert, ShoppingBag
 } from 'lucide-react';
 import { ALL_SERVICES, CATEGORIES } from '../data/services';
 import { CATEGORY_GUIDANCE_BLOCKS, HEALTH_MANAGER_PHONE } from '../config/constants';
 import { openWhatsApp } from '../utils/whatsapp';
+import { useCart } from '../context/CartContext';
 
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
 
 export default function ServiceDetailPage({ onOpenUploadModal }) {
   const { slug } = useParams();
+  const { addToCart } = useCart();
 
   // Find service by slug or fallback to first
   const service = ALL_SERVICES.find(s => s.slug === slug) || ALL_SERVICES[0];
@@ -103,19 +105,26 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3">
                 <button
-                  onClick={onOpenUploadModal}
-                  className="px-7 py-3.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm shadow-lg shadow-purple-700/20 transition-all flex items-center justify-center gap-2 active:scale-95"
+                  onClick={() => addToCart(service)}
+                  className="px-7 py-3.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm shadow-lg shadow-purple-700/20 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
                 >
-                  <span>Book / Upload Prescription</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Book Now • Add to Basket</span>
+                </button>
+
+                <button
+                  onClick={onOpenUploadModal}
+                  className="px-6 py-3.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 font-extrabold text-sm shadow-2xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                >
+                  <span>Upload Prescription</span>
                 </button>
 
                 <button
                   onClick={() => openWhatsApp(whatsappMsg)}
-                  className="px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+                  className="px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4 fill-current" />
-                  <span>Talk to your Health Manager</span>
+                  <span>Talk to Health Manager</span>
                 </button>
               </div>
 
@@ -154,6 +163,14 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
                     <span>Digital Verified PDF Report</span>
                   </div>
                 </div>
+
+                <button
+                  onClick={() => addToCart(service)}
+                  className="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Book Service (₹{service.discount_price})</span>
+                </button>
 
                 <a
                   href={`tel:${HEALTH_MANAGER_PHONE}`}
