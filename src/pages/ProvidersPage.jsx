@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Building2, ShieldCheck, TrendingUp, Handshake, Send, Mail, CheckCircle2, 
-  MessageSquare, Sparkles, Zap, FlaskConical, Camera, Home, Dna, ArrowRight, Activity, Clock
+  MessageSquare, Sparkles, Zap, FlaskConical, Camera, Home, Dna, ArrowRight, Activity, Clock, Pill, HeartPulse
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 
@@ -56,6 +56,28 @@ export default function ProvidersPage() {
       ]
     },
     {
+      id: 'Pharmacy Partner',
+      icon: Pill,
+      title: 'Medicines & Pharmacy Partners',
+      highlight: 'Prescription Order Fulfillment & Express Local Delivery',
+      benefits: [
+        'Fulfill verified prescription medicine orders for home care patients across Bengaluru.',
+        'Seamless integration with Health Express care managers for dosage confirmation.',
+        'Fast-track doorstep delivery dispatch with digital payment receipting.'
+      ]
+    },
+    {
+      id: 'Preventive Health',
+      icon: HeartPulse,
+      title: 'Preventive Health & Wellness Centers',
+      highlight: 'Comprehensive Health Screening & Executive Packages',
+      benefits: [
+        'Partner on multi-parameter executive checkups, cardiac risk screens, and diabetes management.',
+        'Automated patient reminder loops for annual and semi-annual health checkups.',
+        'Digital wellness summary distribution directly to patient vaults.'
+      ]
+    },
+    {
       id: 'Genomics Lab',
       icon: Dna,
       title: 'Genomics & Precision Medicine Labs',
@@ -64,6 +86,17 @@ export default function ProvidersPage() {
         'Expand hereditary risk panels & pharmacogenomics reach across Bengaluru.',
         'Secure specimen handling & fast-track digital reporting.',
         'Coordinated post-report genetic counselor consultation scheduling.'
+      ]
+    },
+    {
+      id: 'Specialist Clinic',
+      icon: Activity,
+      title: 'Specialist & Surgical Guidance Centers',
+      highlight: 'Coordinated Surgical Guidance & Patient Referral Routing',
+      benefits: [
+        'Connect with patients needing specialist opinions, surgical guidance, and post-op care.',
+        'Dedicated care coordinator manages referral records and follow-up slots.',
+        'Direct care manager communication loop for pre-op & post-op coordination.'
       ]
     }
   ];
@@ -122,7 +155,7 @@ export default function ProvidersPage() {
           </h1>
 
           <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            Join Bengaluru’s fastest-growing connected healthcare network. We connect verified diagnostic labs, imaging centers, and home nursing agencies with patients seamlessly.
+            Join Bengaluru’s fastest-growing connected healthcare network. We connect verified diagnostic labs, imaging centers, home nursing agencies, pharmacies, and specialty clinics with patients seamlessly.
           </p>
         </div>
 
@@ -158,17 +191,17 @@ export default function ProvidersPage() {
                 <span>Tailored Partner Integration</span>
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Select your facility type to preview specific logistics & digital benefits
+                Select your facility category to preview specific logistics & digital benefits
               </p>
             </div>
             
             <span className="px-3.5 py-1 rounded-full bg-purple-100 text-purple-900 text-[11px] font-black uppercase">
-              Select Facility Type Below
+              Select Facility Category Below
             </span>
           </div>
 
-          {/* Selector Tabs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Selector Tabs for All Service Categories */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
             {providerTypesData.map((pt) => {
               const IconComp = pt.icon;
               const isSelected = activeProviderType === pt.id;
@@ -179,14 +212,14 @@ export default function ProvidersPage() {
                     setActiveProviderType(pt.id);
                     setFormData(prev => ({ ...prev, providerType: pt.id }));
                   }}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
                     isSelected
                       ? 'bg-purple-900 text-white border-purple-800 shadow-md scale-105'
                       : 'bg-white hover:bg-purple-50 text-slate-900 border-purple-100'
                   }`}
                 >
-                  <IconComp className={`w-6 h-6 ${isSelected ? 'text-emerald-400' : 'text-purple-700'}`} />
-                  <div className="text-xs font-extrabold">{pt.id}</div>
+                  <IconComp className={`w-5 h-5 ${isSelected ? 'text-emerald-400' : 'text-purple-700'}`} />
+                  <div className="text-[11px] font-extrabold leading-tight">{pt.id}</div>
                 </button>
               );
             })}
@@ -194,7 +227,7 @@ export default function ProvidersPage() {
 
           {/* Active Provider Benefit Box */}
           <div className="p-6 rounded-2xl bg-white border border-purple-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <h4 className="text-lg font-extrabold text-slate-900">{currentProviderInfo.title}</h4>
               <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">
                 {currentProviderInfo.highlight}
@@ -245,7 +278,7 @@ export default function ProvidersPage() {
             </div>
             <button
               onClick={() => openWhatsApp(`Hello Health Express, I am interested in partnering as a ${activeProviderType} with daily processing capacity of ${dailyCapacity} samples/scans.`)}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] shrink-0 transition-all"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] shrink-0 transition-all cursor-pointer"
             >
               Request Custom Partner SLA
             </button>
@@ -261,7 +294,7 @@ export default function ProvidersPage() {
             </div>
             <h3 className="text-xl font-extrabold text-slate-900">Zero Customer Acquisition Cost</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Health Express drives patient volume directly to your lab or nursing unit without expensive marketing expenditure.
+              Health Express drives patient volume directly to your lab, nursing unit, or pharmacy without expensive marketing expenditure.
             </p>
           </div>
 
@@ -367,7 +400,7 @@ export default function ProvidersPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-extrabold text-slate-800 mb-1">Facility Category</label>
+                  <label className="block text-xs font-extrabold text-slate-800 mb-1">Facility Category *</label>
                   <select
                     value={formData.providerType}
                     onChange={(e) => setFormData({ ...formData, providerType: e.target.value })}
@@ -375,9 +408,12 @@ export default function ProvidersPage() {
                   >
                     <option value="Diagnostic Lab">Diagnostic Laboratory</option>
                     <option value="Imaging Center">Imaging & Radiology Center</option>
-                    <option value="Home Nursing Agency">Home Nursing Agency</option>
-                    <option value="Genomics Lab">Genomics & DNA Lab</option>
-                    <option value="Hospital / Clinic">Hospital / Specialty Clinic</option>
+                    <option value="Home Nursing Agency">Home Healthcare & Nursing Agency</option>
+                    <option value="Pharmacy Partner">Medicines & Pharmacy Partner</option>
+                    <option value="Preventive Health">Preventive Health & Wellness Center</option>
+                    <option value="Genomics Lab">Genomics & Precision Medicine Lab</option>
+                    <option value="Specialist Clinic">Hospital & Specialty Clinic</option>
+                    <option value="OTHERS">OTHERS</option>
                   </select>
                 </div>
 
