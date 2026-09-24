@@ -52,9 +52,33 @@ export function loadRazorpaySDK() {
 }
 
 /**
+ * Calls server-side endpoint /api/create-razorpay-order to generate an official Razorpay Order ID (rzp_order_...)
+ */
+export async function createRazorpayOrderServer({ items, customerName, customerPhone, customerEmail }) {
+  try {
+    const response = await fetch('/api/create-razorpay-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, customerName, customerPhone, customerEmail })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return { success: false, error: errData.error || `Server API error (${response.status})` };
+    }
+
+    const data = await response.json();
+    return { success: true, ...data };
+  } catch (err) {
+    console.error('Fetch create-razorpay-order exception:', err);
+    return { success: false, error: err.message || 'Failed to call Razorpay order API.' };
+  }
+}
+
+/**
  * Creates internal order in database for either COD or ONLINE payment method
  */
-export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, userId = null, paymentMethod = 'ONLINE' }) {
+export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null }) {
   // 1. Validate inputs
   if (!customerName || customerName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
@@ -86,7 +110,7 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         p_city: city,
         p_items: validatedItems,
         p_total_amount: verifiedTotal,
-        p_razorpay_order_id: isCod ? `cod_ord_${Date.now()}` : null,
+        p_razorpay_order_id: isCod ? `cod_ord_${Date.now()}` : (razorpayOrderId || null),
         p_payment_mode: paymentMode,
         p_user_id: userId,
         p_payment_method: isCod ? 'COD' : 'ONLINE'

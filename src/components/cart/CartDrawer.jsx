@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { 
   createInternalOrder, 
+  createRazorpayOrderServer,
   verifyAndConfirmPayment, 
   loadRazorpaySDK, 
   isRazorpayLiveConfigured, 
@@ -119,6 +120,23 @@ export default function CartDrawer() {
       // ----------------------------------------------------
       // ONLINE PAYMENT FLOW (RAZORPAY LIVE OR DEMO MODE)
       // ----------------------------------------------------
+      // 1. Create official Razorpay Order via server API endpoint (/api/create-razorpay-order)
+      const rzpServerRes = await createRazorpayOrderServer({
+        items: cartItems,
+        customerName: patientData.name,
+        customerPhone: patientData.phone,
+        customerEmail: patientData.email
+      });
+
+      let realRzpOrderId = null;
+      let isLiveServerOrder = false;
+
+      if (rzpServerRes.success && rzpServerRes.mode === 'LIVE' && rzpServerRes.razorpay_order_id && rzpServerRes.razorpay_order_id.startsWith('order_')) {
+        realRzpOrderId = rzpServerRes.razorpay_order_id;
+        isLiveServerOrder = true;
+      }
+
+      // 2. Create internal order in Supabase database
       const orderRes = await createInternalOrder({
         customerName: patientData.name,
         customerPhone: patientData.phone,
@@ -126,7 +144,8 @@ export default function CartDrawer() {
         city: patientData.address,
         items: cartItems,
         userId: user?.id || null,
-        paymentMethod: 'ONLINE'
+        paymentMethod: 'ONLINE',
+        razorpayOrderId: realRzpOrderId
       });
 
       if (!orderRes.success) {
@@ -135,7 +154,7 @@ export default function CartDrawer() {
         return;
       }
 
-      if (isRazorpayLiveConfigured()) {
+      if (isRazorpayLiveConfigured() && isLiveServerOrder) {
         const sdkLoaded = await loadRazorpaySDK();
         if (!sdkLoaded) {
           setErrorMessage('Could not load Razorpay SDK. Please check your internet connection.');
@@ -150,7 +169,7 @@ export default function CartDrawer() {
           name: 'Health Express',
           description: `Order ${orderRes.order_code} (${orderRes.items.length} items)`,
           image: '/logo.png',
-          order_id: orderRes.razorpay_order_id,
+          order_id: realRzpOrderId,
           handler: async function (response) {
             // Server-side Payment Verification
             const verifyRes = await verifyAndConfirmPayment({
