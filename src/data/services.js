@@ -77,6 +77,30 @@ export const CATEGORIES = [
 
 // Initial dataset of priority tests across all 6 categories
 export const ALL_SERVICES = [
+  {
+    id: 'test-package-1rupee',
+    slug: 'test-package-1rupee',
+    name: 'Razorpay ₹1 Payment Test Package',
+    category_id: 'lab-tests',
+    subcategory: 'Verification Test',
+    shortDesc: 'Official ₹1 test package for end-to-end payment verification and live checkout testing.',
+    description: 'Special ₹1 diagnostic verification package for testing Razorpay live/test checkout, payment verification, and automated invoice delivery.',
+    price: 99,
+    discount_price: 1,
+    discount_percentage: '99%',
+    turnaround_time: 'Instant Digital Verification',
+    sample_type: 'Digital Verification',
+    fasting_required: false,
+    preparation: 'No preparation required. Use to test ₹1 payment flow.',
+    home_collection_available: true,
+    centre_visit_required: false,
+    parameters_count: 1,
+    parameters: ['Digital Payment Verification Parameter'],
+    overview: 'This is an official ₹1 diagnostic test service created for testing live and test Razorpay payment flows.',
+    faq: [
+      { question: 'Why is this package ₹1?', answer: 'This package allows customers and admin team members to test complete Razorpay payment integration for exactly ₹1.' }
+    ]
+  },
   // 1. LAB TESTS
   {
     id: 'cbc',

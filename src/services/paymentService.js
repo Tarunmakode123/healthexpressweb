@@ -54,12 +54,12 @@ export function loadRazorpaySDK() {
 /**
  * Calls server-side endpoint /api/create-razorpay-order to generate an official Razorpay Order ID (rzp_order_...)
  */
-export async function createRazorpayOrderServer({ items, customerName, customerPhone, customerEmail, isTestModePayment = false }) {
+export async function createRazorpayOrderServer({ items, customerName, customerPhone, customerEmail }) {
   try {
     const response = await fetch('/api/create-razorpay-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, customerName, customerPhone, customerEmail, isTestModePayment })
+      body: JSON.stringify({ items, customerName, customerPhone, customerEmail })
     });
 
     if (!response.ok) {
@@ -78,7 +78,7 @@ export async function createRazorpayOrderServer({ items, customerName, customerP
 /**
  * Creates internal order in database for either COD or ONLINE payment method
  */
-export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null, isTestModePayment = false }) {
+export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null }) {
   // 1. Validate inputs
   if (!customerName || customerName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
@@ -97,8 +97,6 @@ export async function createInternalOrder({ customerName, customerPhone, custome
   }
 
   const { verifiedTotal, validatedItems } = cartValidation;
-  const isTestKey = isRazorpayLiveConfigured() && VITE_RAZORPAY_KEY_ID.startsWith('rzp_test_');
-  const finalTotal = (isTestKey && isTestModePayment === true) ? 1 : verifiedTotal;
   const isCod = paymentMethod.toUpperCase() === 'COD';
   const paymentMode = isCod ? 'COD' : (isRazorpayLiveConfigured() ? 'LIVE' : 'DEMO');
 
@@ -111,7 +109,7 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         p_customer_email: customerEmail ? customerEmail.trim() : null,
         p_city: city,
         p_items: validatedItems,
-        p_total_amount: finalTotal,
+        p_total_amount: verifiedTotal,
         p_razorpay_order_id: isCod ? `cod_ord_${Date.now()}` : (razorpayOrderId || null),
         p_payment_mode: paymentMode,
         p_user_id: userId,
@@ -132,7 +130,7 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         order_code: data.order_code,
         patient_id: data.patient_id,
         razorpay_order_id: data.razorpay_order_id,
-        total_amount: finalTotal,
+        total_amount: verifiedTotal,
         currency: 'INR',
         payment_method: isCod ? 'COD' : 'ONLINE',
         payment_mode: paymentMode,
