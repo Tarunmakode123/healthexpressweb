@@ -7,7 +7,7 @@ import { validateCartTotal } from '../src/services/catalogPriceValidator.js';
  * NEVER EXPOSES RAZORPAY_KEY_SECRET TO BROWSER
  */
 export async function handleCreateRazorpayOrder(reqBody) {
-  const { items, customerName, customerPhone, customerEmail } = reqBody || {};
+  const { items, customerName, customerPhone, customerEmail, isTestModePayment } = reqBody || {};
 
   // 1. Validate Cart & calculate trusted amount on server
   const cartValidation = validateCartTotal(items);
@@ -19,10 +19,14 @@ export async function handleCreateRazorpayOrder(reqBody) {
   }
 
   const { verifiedTotal, validatedItems } = cartValidation;
-  const amountInPaise = Math.round(verifiedTotal * 100);
 
   const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+  // STRICT TEST MODE CHECK: Only allow ₹1 test amount override if Razorpay key starts with rzp_test_
+  const isTestKey = keyId && keyId.startsWith('rzp_test_');
+  const finalAmount = (isTestKey && isTestModePayment === true) ? 1 : verifiedTotal;
+  const amountInPaise = Math.round(finalAmount * 100);
 
   // Check if live Razorpay secret credentials exist
   if (!keyId || !keySecret || !keyId.startsWith('rzp_')) {
@@ -77,7 +81,7 @@ export async function handleCreateRazorpayOrder(reqBody) {
       body: {
         mode: 'LIVE',
         razorpay_order_id: rzpData.id,
-        amount: verifiedTotal,
+        amount: finalAmount,
         currency: 'INR',
         items: validatedItems,
         key_id: keyId

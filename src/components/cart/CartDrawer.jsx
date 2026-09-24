@@ -39,6 +39,9 @@ export default function CartDrawer() {
   const [confirmedOrder, setConfirmedOrder] = useState(null);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [pendingDemoOrder, setPendingDemoOrder] = useState(null);
+  const [isTestModePayment, setIsTestModePayment] = useState(false);
+
+  const isRazorpayTestMode = Boolean(VITE_RAZORPAY_KEY_ID && VITE_RAZORPAY_KEY_ID.startsWith('rzp_test_'));
 
   const [patientData, setPatientData] = useState({
     name: '',
@@ -125,7 +128,8 @@ export default function CartDrawer() {
         items: cartItems,
         customerName: patientData.name,
         customerPhone: patientData.phone,
-        customerEmail: patientData.email
+        customerEmail: patientData.email,
+        isTestModePayment: isRazorpayTestMode && isTestModePayment
       });
 
       let realRzpOrderId = null;
@@ -145,7 +149,8 @@ export default function CartDrawer() {
         items: cartItems,
         userId: user?.id || null,
         paymentMethod: 'ONLINE',
-        razorpayOrderId: realRzpOrderId
+        razorpayOrderId: realRzpOrderId,
+        isTestModePayment: isRazorpayTestMode && isTestModePayment
       });
 
       if (!orderRes.success) {
@@ -524,6 +529,33 @@ export default function CartDrawer() {
 
                     </div>
                   </div>
+
+                  {/* Razorpay Test Mode Control (Visible ONLY when rzp_test_ key is active) */}
+                  {isRazorpayTestMode && paymentMethodChoice === 'online' && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-left space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold text-amber-900 flex items-center gap-1.5 uppercase tracking-wide">
+                          <span>🧪 TEST PAYMENT — ₹1</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsTestModePayment(!isTestModePayment)}
+                          className={`px-3 py-1 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all ${
+                            isTestModePayment
+                              ? 'bg-amber-600 text-white shadow-xs'
+                              : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                          }`}
+                        >
+                          {isTestModePayment ? '✓ Test ₹1 Active' : 'Enable ₹1 Test'}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-amber-800/90 leading-tight">
+                        {isTestModePayment
+                          ? 'Razorpay Test Mode — Creates a ₹1 (100 paise) real test order to verify popup, HMAC verification, & webhook end-to-end. No real money charged.'
+                          : 'Razorpay Test Mode active. Click above to test complete checkout flow for ₹1.'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Summary Mini Box */}
                   <div className="bg-purple-50/80 p-4 rounded-2xl border border-purple-100 text-xs space-y-2">
