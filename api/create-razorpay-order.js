@@ -91,3 +91,15 @@ export async function handleCreateRazorpayOrder(reqBody) {
     };
   }
 }
+
+/**
+ * VERCEL SERVERLESS FUNCTION DEFAULT EXPORT
+ */
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+  const result = await handleCreateRazorpayOrder(req.body);
+  return res.status(result.status).json(result.body);
+}
+

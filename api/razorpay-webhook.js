@@ -114,3 +114,17 @@ export async function handleRazorpayWebhook(rawBodyText, signatureHeader) {
 
   return { status: 200, body: { status: 'SUCCESS', event } };
 }
+
+/**
+ * VERCEL SERVERLESS FUNCTION DEFAULT EXPORT
+ */
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+  const signature = req.headers['x-razorpay-signature'];
+  const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+  const result = await handleRazorpayWebhook(rawBody, signature);
+  return res.status(result.status).json(result.body);
+}
+
