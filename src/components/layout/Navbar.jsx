@@ -124,18 +124,18 @@ export default function Navbar({ onOpenUploadModal }) {
                 {showProfileMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-purple-100 p-2 z-50 space-y-1 animate-in fade-in duration-100">
                     <Link
-                      to="/auth"
+                      to="/account"
                       className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2"
                     >
                       <User className="w-3.5 h-3.5 text-purple-600" />
-                      <span>My Profile</span>
+                      <span>My Account Dashboard</span>
                     </Link>
                     <button
                       onClick={() => {
                         logout();
                         setShowProfileMenu(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5 text-rose-500" />
                       <span>Sign Out</span>

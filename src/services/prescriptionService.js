@@ -262,6 +262,14 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
     // ----------------------------------------------------
     // STEP D: PRESCRIPTION METADATA RECORD CREATION
     // ----------------------------------------------------
+    let currentAuthUserId = null;
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      currentAuthUserId = authSession?.user?.id || null;
+    } catch (e) {
+      // Ignore
+    }
+
     for (const item of uploadedFiles) {
       const { error: prescriptionError } = await supabase
         .from('prescriptions')
@@ -273,7 +281,7 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
           file_name: item.name,
           file_type: item.type || 'application/octet-stream',
           file_size: item.size || 0,
-          user_id: null
+          user_id: currentAuthUserId
         });
 
       if (prescriptionError) {

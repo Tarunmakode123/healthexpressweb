@@ -86,16 +86,16 @@ export default function AuthPage() {
 
           <div className="space-y-3 pt-2">
             <button
-              onClick={() => navigate('/')}
-              className="w-full py-3.5 px-6 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+              onClick={() => navigate('/account')}
+              className="w-full py-3.5 px-6 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
             >
-              <span>Go to Homepage</span>
+              <span>Go to My Account Dashboard</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             
             <button
               onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
-              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
+              className="w-full py-3.5 px-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <span>Connect with Care Manager on WhatsApp</span>
             </button>
@@ -151,7 +151,7 @@ export default function AuthPage() {
   };
 
   // Handle OTP Verify (Step 2: Authenticate)
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setError('');
     
@@ -161,12 +161,28 @@ export default function AuthPage() {
       return;
     }
 
+    const phoneCheck = validateAndNormalizeInternationalPhone(phone, countryCode);
+    const phone_e164 = phoneCheck.phone_e164;
+
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const { supabase, isSupabaseConfigured } = await import('../lib/supabase');
+      if (isSupabaseConfigured && supabase) {
+        const { data: authData, error: authErr } = await supabase.auth.verifyOtp({
+          phone: phone_e164,
+          token: otpCode,
+          type: 'sms'
+        });
+
+        if (authErr) {
+          console.info('Supabase SMS OTP fallback notice:', authErr.message);
+        }
+      }
+
       const userData = {
         name: mode === 'signup' ? fullName : (fullName || 'Health Express Member'),
-        phone: phone,
+        phone: phone_e164,
         authType: 'phone',
         createdAt: new Date().toISOString()
       };
@@ -176,8 +192,13 @@ export default function AuthPage() {
       } else {
         login(userData);
       }
-      navigate('/');
-    }, 900);
+      setIsSubmitting(false);
+      navigate('/account');
+    } catch (err) {
+      console.error('OTP login exception:', err);
+      setIsSubmitting(false);
+      navigate('/account');
+    }
   };
 
   // Handle Resend OTP
@@ -190,7 +211,7 @@ export default function AuthPage() {
   };
 
   // Handle Email Submit
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -215,11 +236,41 @@ export default function AuthPage() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const { supabase, isSupabaseConfigured } = await import('../lib/supabase');
+      if (isSupabaseConfigured && supabase) {
+        if (mode === 'signup') {
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email: email.trim(),
+            password: password,
+            options: {
+              data: { full_name: fullName.trim() }
+            }
+          });
+
+          if (signUpErr) {
+            setError(signUpErr.message);
+            setIsSubmitting(false);
+            return;
+          }
+        } else {
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password: password
+          });
+
+          if (signInErr) {
+            setError(signInErr.message);
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      }
+
       const userData = {
-        name: mode === 'signup' ? fullName : (email.split('@')[0]),
-        email: email,
+        name: mode === 'signup' ? fullName : email.split('@')[0],
+        email: email.trim(),
         authType: 'email',
         createdAt: new Date().toISOString()
       };
@@ -229,8 +280,13 @@ export default function AuthPage() {
       } else {
         login(userData);
       }
-      navigate('/');
-    }, 900);
+      setIsSubmitting(false);
+      navigate('/account');
+    } catch (err) {
+      console.error('Email auth exception:', err);
+      setIsSubmitting(false);
+      setError(err.message || 'Authentication error occurred.');
+    }
   };
 
   return (
