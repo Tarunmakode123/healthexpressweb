@@ -28,12 +28,15 @@ import AuthPage from './pages/AuthPage';
 import CustomerDashboardPage from './pages/CustomerDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 
-// Helper component to scroll window to top on route navigation
+// Helper component to scroll window to top on route navigation & track PAGE_VIEW
 function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    import('./utils/analytics.js').then(({ logAnalyticsEvent }) => {
+      logAnalyticsEvent('PAGE_VIEW', { pagePath: pathname, metadata: { page_path: pathname }, deduplicate: true });
+    }).catch(() => {});
   }, [pathname]);
 
   return null;

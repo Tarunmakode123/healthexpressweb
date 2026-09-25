@@ -67,7 +67,8 @@ export function CartProvider({ children }) {
     // Instrument non-PII analytics logging
     import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
       logAnalyticsEvent('ADD_TO_CART', {
-        metadata: { service_id: serviceId, service_name: name, price: price }
+        metadata: { service_id: serviceId, service_name: name, price: price },
+        deduplicate: true
       });
     }).catch(() => {});
   };
@@ -77,7 +78,8 @@ export function CartProvider({ children }) {
 
     import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
       logAnalyticsEvent('REMOVE_FROM_CART', {
-        metadata: { service_id: id }
+        metadata: { service_id: id },
+        deduplicate: true
       });
     }).catch(() => {});
   };

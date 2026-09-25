@@ -112,6 +112,13 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    try {
+      const { logAnalyticsEvent } = await import('../utils/analytics.js');
+      await logAnalyticsEvent('LOGOUT', { userId: user?.id || null });
+    } catch (e) {
+      // Non-blocking catch
+    }
+
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.auth.signOut();

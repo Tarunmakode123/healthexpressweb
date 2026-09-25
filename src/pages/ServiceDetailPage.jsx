@@ -20,8 +20,14 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
   const service = ALL_SERVICES.find(s => s.slug === slug) || ALL_SERVICES[0];
   const category = CATEGORIES.find(c => c.id === service.category_id) || CATEGORIES[0];
 
-  const isImaging = service.category_id === 'imaging';
-  const whatsappMsg = `Hello Health Express!\n\nI am interested in booking or getting details for:\nService: ${service.name}\nCategory: ${category.name}\n\nPlease guide me on next steps.`;
+  // Track SERVICE_VIEW analytics event
+  React.useEffect(() => {
+    if (slug) {
+      import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+        logAnalyticsEvent('SERVICE_VIEW', { metadata: { service_id: slug }, deduplicate: true });
+      }).catch(() => {});
+    }
+  }, [slug]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 pt-6">

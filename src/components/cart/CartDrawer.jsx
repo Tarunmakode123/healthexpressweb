@@ -83,6 +83,12 @@ export default function CartDrawer() {
 
     setIsProcessingPayment(true);
 
+    import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+      logAnalyticsEvent('CHECKOUT_STARTED', {
+        metadata: { item_count: cartItems.length, subtotal: cartTotal }
+      });
+    }).catch(() => {});
+
     try {
       // ----------------------------------------------------
       // COD (CASH ON DELIVERY / PAY ON COLLECTION) FLOW

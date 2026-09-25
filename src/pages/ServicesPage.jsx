@@ -44,6 +44,21 @@ export default function ServicesPage({ onOpenUploadModal }) {
     return matchesCategory && matchesSearch;
   });
 
+  // Track SEARCH analytics event (stores ONLY results_count for health privacy, NO raw query text!)
+  React.useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      const timer = setTimeout(() => {
+        import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+          logAnalyticsEvent('SEARCH', {
+            metadata: { results_count: filteredServices.length },
+            deduplicate: true
+          });
+        }).catch(() => {});
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, filteredServices.length]);
+
   const handleBookNowService = (service) => {
     addToCart(service);
   };

@@ -303,6 +303,11 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
         metadata: { enquiry_code: enquiryCode, file_count: uploadedFiles.length },
         patientId: patientId
       });
+      logAnalyticsEvent('PRESCRIPTION_SUBMITTED', {
+        pagePath: '/services',
+        metadata: { enquiry_code: enquiryCode, file_count: uploadedFiles.length },
+        patientId: patientId
+      });
     } catch (anErr) {
       console.warn('Analytics event warning:', anErr);
     }
