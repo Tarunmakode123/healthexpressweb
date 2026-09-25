@@ -198,8 +198,23 @@ export default function CartDrawer() {
               });
               clearCart();
               setCheckoutStep('success');
+
+              import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+                logAnalyticsEvent('PAYMENT_SUCCESS', {
+                  metadata: { order_code: orderRes.order_code, total_amount: orderRes.total_amount, payment_mode: 'LIVE' }
+                });
+                logAnalyticsEvent('ORDER_CREATED', {
+                  metadata: { order_code: orderRes.order_code, total_amount: orderRes.total_amount }
+                });
+              }).catch(() => {});
             } else {
               setErrorMessage(verifyRes.error || 'Payment verification failed on server.');
+
+              import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+                logAnalyticsEvent('PAYMENT_FAILED', {
+                  metadata: { order_code: orderRes.order_code, error: verifyRes.error }
+                });
+              }).catch(() => {});
             }
             setIsProcessingPayment(false);
           },
@@ -214,6 +229,11 @@ export default function CartDrawer() {
               setIsProcessingPayment(false);
               if (!isPaymentHandled) {
                 setErrorMessage('Payment process was cancelled by user. No money was charged.');
+                import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+                  logAnalyticsEvent('PAYMENT_CANCELLED', {
+                    metadata: { order_code: orderRes.order_code }
+                  });
+                }).catch(() => {});
               }
             }
           }

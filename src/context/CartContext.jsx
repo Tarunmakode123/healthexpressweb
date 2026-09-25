@@ -63,10 +63,23 @@ export function CartProvider({ children }) {
 
     setLastAddedItem(name);
     setIsCartOpen(true);
+
+    // Instrument non-PII analytics logging
+    import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+      logAnalyticsEvent('ADD_TO_CART', {
+        metadata: { service_id: serviceId, service_name: name, price: price }
+      });
+    }).catch(() => {});
   };
 
   const removeFromCart = (id) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
+
+    import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+      logAnalyticsEvent('REMOVE_FROM_CART', {
+        metadata: { service_id: id }
+      });
+    }).catch(() => {});
   };
 
   const updateQuantity = (id, delta) => {

@@ -189,8 +189,14 @@ export default function AuthPage() {
 
       if (mode === 'signup') {
         signup(userData);
+        import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+          logAnalyticsEvent('SIGNUP_COMPLETED', { metadata: { auth_type: 'phone' } });
+        }).catch(() => {});
       } else {
         login(userData);
+        import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+          logAnalyticsEvent('LOGIN_SUCCESS', { metadata: { auth_type: 'phone' } });
+        }).catch(() => {});
       }
       setIsSubmitting(false);
       navigate('/account');
@@ -252,6 +258,9 @@ export default function AuthPage() {
           if (signUpErr) {
             setError(signUpErr.message);
             setIsSubmitting(false);
+            import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+              logAnalyticsEvent('LOGIN_FAILED', { metadata: { auth_type: 'email', error: signUpErr.message } });
+            }).catch(() => {});
             return;
           }
         } else {
@@ -263,6 +272,9 @@ export default function AuthPage() {
           if (signInErr) {
             setError(signInErr.message);
             setIsSubmitting(false);
+            import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+              logAnalyticsEvent('LOGIN_FAILED', { metadata: { auth_type: 'email', error: signInErr.message } });
+            }).catch(() => {});
             return;
           }
         }
@@ -277,8 +289,14 @@ export default function AuthPage() {
 
       if (mode === 'signup') {
         signup(userData);
+        import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+          logAnalyticsEvent('SIGNUP_COMPLETED', { metadata: { auth_type: 'email' } });
+        }).catch(() => {});
       } else {
         login(userData);
+        import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
+          logAnalyticsEvent('LOGIN_SUCCESS', { metadata: { auth_type: 'email' } });
+        }).catch(() => {});
       }
       setIsSubmitting(false);
       navigate('/account');

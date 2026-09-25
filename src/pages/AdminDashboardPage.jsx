@@ -1351,34 +1351,109 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* NAV SECTION 7: ACTIVITY LOGS */}
+        {/* NAV SECTION 7: ACTIVITY LOGS & CUSTOMER JOURNEY TRACKING */}
         {activeNav === 'activity' && (
-          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-4 shadow-xl">
-            <div className="border-b border-slate-700/80 pb-3">
-              <h3 className="text-base font-black text-white flex items-center gap-2">
-                <Layers className="w-5 h-5 text-purple-400" />
-                <span>System Activity Logs</span>
-              </h3>
-              <p className="text-xs text-slate-400">Non-PII Telemetry & User Event Logs</p>
-            </div>
+          <div className="space-y-6">
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-6 shadow-xl">
+              <div className="border-b border-slate-700/80 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-black text-white flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-purple-400" />
+                    <span>Customer Journey Telemetry & Activity Logs</span>
+                  </h3>
+                  <p className="text-xs text-slate-400">Non-PII User Interaction Events & Dynamic Journey Segmentation</p>
+                </div>
 
-            {analyticsEvents.length === 0 ? (
-              <p className="text-xs text-slate-400 py-8 text-center">No system events logged yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {analyticsEvents.map((evt) => (
-                  <div key={evt.id} className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-extrabold text-purple-300">{evt.event_type}</span>
-                      <div className="text-[10px] text-slate-400">Path: {evt.page_path || '/'} • Session: {evt.session_id}</div>
-                    </div>
-                    <div className="text-right text-[11px] text-slate-400">
-                      {new Date(evt.created_at).toLocaleString('en-IN')}
-                    </div>
-                  </div>
-                ))}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="px-3 py-1 rounded-full bg-purple-900/60 border border-purple-700/60 text-purple-300 font-bold">
+                    {analyticsEvents.length} Total Events
+                  </span>
+                </div>
               </div>
-            )}
+
+              {/* Derived Customer Activity Segments Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unique Sessions</span>
+                  <div className="text-2xl font-black text-white">
+                    {new Set(analyticsEvents.map(e => e.session_id)).size}
+                  </div>
+                  <span className="text-[10px] text-slate-500">Anonymous & Auth Sessions</span>
+                </div>
+
+                <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-1">
+                  <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider">Prescription Events</span>
+                  <div className="text-2xl font-black text-purple-300">
+                    {analyticsEvents.filter(e => e.event_type?.includes('PRESCRIPTION')).length}
+                  </div>
+                  <span className="text-[10px] text-slate-500">Uploads & Submissions</span>
+                </div>
+
+                <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-1">
+                  <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider">Purchase Events</span>
+                  <div className="text-2xl font-black text-emerald-300">
+                    {analyticsEvents.filter(e => e.event_type?.includes('PAYMENT') || e.event_type?.includes('ORDER') || e.event_type?.includes('CHECKOUT')).length}
+                  </div>
+                  <span className="text-[10px] text-slate-500">Cart, Checkout & Payments</span>
+                </div>
+
+                <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-700/60 space-y-1">
+                  <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">Auth Events</span>
+                  <div className="text-2xl font-black text-amber-300">
+                    {analyticsEvents.filter(e => e.event_type?.includes('LOGIN') || e.event_type?.includes('SIGNUP')).length}
+                  </div>
+                  <span className="text-[10px] text-slate-500">Signups & Logins</span>
+                </div>
+              </div>
+
+              {/* Event Logs Stream */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider">Realtime Activity Stream</h4>
+
+                {analyticsEvents.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-8 text-center bg-slate-900/40 rounded-2xl border border-slate-800">
+                    No system activity logged yet.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                    {analyticsEvents.map((evt) => (
+                      <div key={evt.id} className="p-3.5 bg-slate-900/80 rounded-2xl border border-slate-700/60 flex items-start justify-between gap-4 text-xs">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              evt.event_type?.includes('SUCCESS') || evt.event_type?.includes('CREATED')
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : evt.event_type?.includes('FAILED') || evt.event_type?.includes('CANCELLED')
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                : evt.event_type?.includes('PRESCRIPTION')
+                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                : 'bg-slate-700 text-slate-300'
+                            }`}>
+                              {evt.event_type}
+                            </span>
+                            <span className="text-[11px] text-slate-400 font-mono">Path: {evt.page_path || '/'}</span>
+                          </div>
+
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            Session: {evt.session_id} {evt.user_id ? `• User: ${evt.user_id}` : ''}
+                          </div>
+
+                          {evt.metadata && Object.keys(evt.metadata).length > 0 && (
+                            <div className="text-[10px] text-purple-200/80 bg-slate-950/60 p-2 rounded-xl font-mono border border-slate-800">
+                              {JSON.stringify(evt.metadata)}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-right text-[10px] text-slate-400 shrink-0 font-medium">
+                          {new Date(evt.created_at).toLocaleString('en-IN')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
