@@ -16,15 +16,14 @@ export async function fetchCustomerHealthRecords() {
       return { success: true, data: [] };
     }
 
-    // Query prescriptions table for records linked to user directly or via patient_id
+    // Query prescriptions table for records linked to user_id directly
     const { data: prescriptions, error } = await supabase
       .from('prescriptions')
       .select(`
         *,
-        patients!inner(user_id, phone_e164),
         enquiries(enquiry_code, status, created_at)
       `)
-      .or(`user_id.eq.${userId},patients.user_id.eq.${userId}`)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -80,14 +79,13 @@ export async function fetchCustomerPrescriptions() {
       return { success: true, data: [] };
     }
 
-    const { data: enquiries, error } = await supabase
-      .from('enquiries')
+    const { data: prescriptions, error } = await supabase
+      .from('prescriptions')
       .select(`
         *,
-        patients!inner(user_id),
-        prescriptions(*)
+        enquiries(enquiry_code, status, created_at)
       `)
-      .eq('patients.user_id', userId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -95,7 +93,7 @@ export async function fetchCustomerPrescriptions() {
       return { success: false, error: `Failed to load prescription history: ${error.message}` };
     }
 
-    return { success: true, data: enquiries || [] };
+    return { success: true, data: prescriptions || [] };
   } catch (err) {
     console.error('Fetch prescriptions exception:', err);
     return { success: false, error: err.message || 'Error retrieving prescription history.' };
@@ -118,13 +116,14 @@ export async function fetchCustomerOrders() {
       return { success: true, data: [] };
     }
 
+    // Clean PostgREST query: filter directly on orders.user_id = userId
     const { data: orders, error } = await supabase
       .from('orders')
       .select(`
         *,
         payments(*)
       `)
-      .or(`user_id.eq.${userId},patient_id.in.(select id from patients where user_id='${userId}')`)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {

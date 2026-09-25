@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { validateAndNormalizeInternationalPhone } from '../utils/phone';
 
 const AuthContext = createContext();
 
@@ -9,23 +8,16 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Auto-link matching guest records when an authenticated user with a verified phone logs in
-  const linkGuestRecords = async (phoneToLink) => {
+  // Invoke zero-argument SECURITY DEFINER RPC to securely link guest records using server-derived phone
+  const linkGuestRecords = async () => {
     if (!isSupabaseConfigured || !supabase) return;
 
     try {
       const { data: { session: activeSession } } = await supabase.auth.getSession();
       if (!activeSession?.user) return;
 
-      const targetPhone = phoneToLink || activeSession.user.phone || activeSession.user.user_metadata?.phone;
-      if (!targetPhone) return;
-
-      const phoneCheck = validateAndNormalizeInternationalPhone(targetPhone);
-      if (!phoneCheck.isValid) return;
-
-      const { error } = await supabase.rpc('link_guest_records_on_otp_login', {
-        verified_phone_e164: phoneCheck.phone_e164
-      });
+      // Zero-argument call: Server derives verified phone number from auth.users for auth.uid()
+      const { error } = await supabase.rpc('link_guest_records_on_otp_login');
 
       if (error) {
         console.warn('Guest record linking notice:', error.message);
@@ -54,15 +46,13 @@ export function AuthProvider({ children }) {
               createdAt: authUser.created_at
             };
             setUser(mappedUser);
-            if (mappedUser.phone) {
-              await linkGuestRecords(mappedUser.phone);
-            }
+            await linkGuestRecords();
           }
         } catch (e) {
           console.error('Error fetching Supabase auth session:', e);
         }
 
-        // Listen for realtime auth changes
+        // Listen for realtime auth state changes
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
           setSession(newSession);
           if (newSession?.user) {
@@ -78,11 +68,12 @@ export function AuthProvider({ children }) {
             setUser(mappedUser);
             localStorage.setItem('health_express_user', JSON.stringify(mappedUser));
 
-            if (event === 'SIGNED_IN' && mappedUser.phone) {
-              await linkGuestRecords(mappedUser.phone);
+            if (event === 'SIGNED_IN') {
+              await linkGuestRecords();
             }
           } else if (event === 'SIGNED_OUT') {
             setUser(null);
+            setSession(null);
             localStorage.removeItem('health_express_user');
           }
         });
@@ -111,17 +102,13 @@ export function AuthProvider({ children }) {
   const login = (userData) => {
     setUser(userData);
     localStorage.setItem('health_express_user', JSON.stringify(userData));
-    if (userData.phone) {
-      linkGuestRecords(userData.phone);
-    }
+    linkGuestRecords();
   };
 
   const signup = (userData) => {
     setUser(userData);
     localStorage.setItem('health_express_user', JSON.stringify(userData));
-    if (userData.phone) {
-      linkGuestRecords(userData.phone);
-    }
+    linkGuestRecords();
   };
 
   const logout = async () => {
