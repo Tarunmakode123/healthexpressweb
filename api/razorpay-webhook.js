@@ -89,23 +89,37 @@ export async function handleRazorpayWebhook(rawBodyText, signatureHeader) {
   } else if (event === 'payment.failed') {
     if (isSupabaseConfigured) {
       try {
-        const failureReason = paymentEntity?.error_description || 'Payment failed.';
-        await supabase
+        const { data: payments } = await supabase
           .from('payments')
-          .update({
-            payment_status: 'FAILED',
-            error_message: failureReason,
-            updated_at: new Date().toISOString()
-          })
-          .eq('razorpay_order_id', razorpayOrderId);
+          .select('order_id, payment_status')
+          .eq('razorpay_order_id', razorpayOrderId)
+          .limit(1);
 
-        await supabase
-          .from('orders')
-          .update({
-            payment_status: 'FAILED',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', (await supabase.from('payments').select('order_id').eq('razorpay_order_id', razorpayOrderId)).data?.[0]?.order_id);
+        if (payments && payments.length > 0) {
+          // Idempotent Safeguard: Do not downgrade an already PAID order/payment to FAILED
+          if (payments[0].payment_status === 'PAID') {
+            return { status: 200, body: { status: 'Ignored payment.failed because payment is already PAID' } };
+          }
+          const targetOrderId = payments[0].order_id;
+          const failureReason = paymentEntity?.error_description || 'Payment failed.';
+
+          await supabase
+            .from('payments')
+            .update({
+              payment_status: 'FAILED',
+              error_message: failureReason,
+              updated_at: new Date().toISOString()
+            })
+            .eq('razorpay_order_id', razorpayOrderId);
+
+          await supabase
+            .from('orders')
+            .update({
+              payment_status: 'FAILED',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', targetOrderId);
+        }
       } catch (dbErr) {
         console.error('Webhook failure handler error:', dbErr);
       }

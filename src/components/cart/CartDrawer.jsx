@@ -162,6 +162,8 @@ export default function CartDrawer() {
           return;
         }
 
+        let isPaymentHandled = false;
+
         const options = {
           key: VITE_RAZORPAY_KEY_ID,
           amount: Math.round(orderRes.total_amount * 100),
@@ -171,6 +173,9 @@ export default function CartDrawer() {
           image: '/logo.png',
           order_id: realRzpOrderId,
           handler: async function (response) {
+            isPaymentHandled = true;
+            setErrorMessage(null);
+
             // Server-side Payment Verification
             const verifyRes = await verifyAndConfirmPayment({
               orderId: orderRes.order_id,
@@ -182,6 +187,7 @@ export default function CartDrawer() {
             });
 
             if (verifyRes.success) {
+              setErrorMessage(null);
               setConfirmedOrder({
                 ...orderRes,
                 payment_status: 'PAID',
@@ -206,13 +212,16 @@ export default function CartDrawer() {
           modal: {
             ondismiss: function () {
               setIsProcessingPayment(false);
-              setErrorMessage('Payment process was cancelled by user. No money was charged.');
+              if (!isPaymentHandled) {
+                setErrorMessage('Payment process was cancelled by user. No money was charged.');
+              }
             }
           }
         };
 
         const razorpayInstance = new window.Razorpay(options);
         razorpayInstance.on('payment.failed', function (resp) {
+          isPaymentHandled = true;
           console.error('Razorpay Payment Failed:', resp.error);
           setErrorMessage(`Payment Failed: ${resp.error.description || 'Transaction declined.'}`);
           setIsProcessingPayment(false);
