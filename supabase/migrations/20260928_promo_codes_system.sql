@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — PROMO CODE & COUPON MANAGEMENT SYSTEM
--- Tailored to actual Supabase schema (orders.id UUID, patients.id UUID, check_is_admin() RPC)
+-- Production-Hardened Database Migration
 -- ============================================================
 
 -- 1. TABLE: public.promo_codes
@@ -46,7 +46,7 @@ create index if not exists idx_promo_usage_patient_id on public.promo_code_usage
 alter table public.promo_codes enable row level security;
 alter table public.promo_code_usage enable row level security;
 
--- Public / Anonymous Customers: Select active promo codes
+-- Public / Anonymous Customers: Select active promo codes that are within validity dates
 drop policy if exists "Customers can view active promo codes" on public.promo_codes;
 create policy "Customers can view active promo codes" on public.promo_codes
   for select using (
@@ -62,21 +62,19 @@ create policy "Admins have full access to promo codes" on public.promo_codes
     public.check_is_admin() = true
   );
 
--- Admins: Full view access to promo_code_usage using existing check_is_admin() RPC
+-- Admins: Full view access to promo_code_usage audit log
 drop policy if exists "Admins can view promo code usage" on public.promo_code_usage;
 create policy "Admins can view promo code usage" on public.promo_code_usage
   for select using (
     public.check_is_admin() = true
   );
 
--- Service role & security definer functions can insert usage records
-drop policy if exists "Allow usage insertion upon order completion" on public.promo_code_usage;
-create policy "Allow usage insertion upon order completion" on public.promo_code_usage
-  for insert with check (true);
+-- NOTE: No public INSERT policy on promo_code_usage.
+-- Insertion is handled strictly & securely via SECURITY DEFINER function record_promo_code_usage_atomic.
 
 -- ============================================================
 -- ATOMIC PROMO CODE USAGE INCREMENT RPC FUNCTION
--- Prevents race conditions on limited-use coupons
+-- Hardened with valid_from and valid_until validation
 -- ============================================================
 
 create or replace function public.record_promo_code_usage_atomic(
@@ -89,11 +87,12 @@ declare
   v_usage_limit integer;
   v_used_count integer;
   v_is_active boolean;
+  v_valid_from timestamptz;
   v_valid_until timestamptz;
 begin
-  -- 1. Lock and check promo_code row
-  select usage_limit, used_count, is_active, valid_until
-  into v_usage_limit, v_used_count, v_is_active, v_valid_until
+  -- 1. Lock and inspect target promo_code row
+  select usage_limit, used_count, is_active, valid_from, valid_until
+  into v_usage_limit, v_used_count, v_is_active, v_valid_from, v_valid_until
   from public.promo_codes
   where id = p_code_id
   for update;
@@ -103,6 +102,10 @@ begin
   end if;
 
   if not v_is_active then
+    return false;
+  end if;
+
+  if v_valid_from is not null and v_valid_from > now() then
     return false;
   end if;
 
@@ -120,7 +123,7 @@ begin
       updated_at = now()
   where id = p_code_id;
 
-  -- 3. Insert usage audit record
+  -- 3. Insert usage audit record (bypasses RLS safely via SECURITY DEFINER)
   insert into public.promo_code_usage (promo_code_id, order_id, patient_id, discount_applied)
   values (p_code_id, p_order_id, p_patient_id, p_discount_applied);
 
@@ -130,13 +133,3 @@ $$ language plpgsql security definer set search_path = public;
 
 -- Grant execute access
 grant execute on function public.record_promo_code_usage_atomic(uuid, uuid, uuid, numeric) to anon, authenticated, service_role;
-
--- ============================================================
--- SEED INITIAL PROMO CODES FOR HEALTH EXPRESS
--- ============================================================
-insert into public.promo_codes (code, discount_type, discount_value, min_order_amount, max_discount, valid_from, valid_until, usage_limit, is_active)
-values 
-  ('HEALTH50', 'flat', 50, 299, null, now(), now() + interval '90 days', 500, true),
-  ('WELCOME10', 'percentage', 10, 199, 150, now(), now() + interval '90 days', 1000, true),
-  ('EXPRESS20', 'percentage', 20, 499, 250, now(), now() + interval '90 days', 250, true)
-on conflict (code) do nothing;
