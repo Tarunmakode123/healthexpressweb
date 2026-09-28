@@ -4,22 +4,166 @@
  */
 
 export const SURGERY_SPECIALITIES = [
-  { id: 'orthopaedics', name: 'Orthopaedic Surgery', iconName: 'Bone' },
-  { id: 'spine', name: 'Spine Surgery', iconName: 'Activity' },
-  { id: 'cardiac', name: 'Cardiac & Cardiothoracic Surgery', iconName: 'Heart' },
-  { id: 'neurosurgery', name: 'Neurosurgery', iconName: 'Brain' },
-  { id: 'general-surgery', name: 'General & Laparoscopic Surgery', iconName: 'Stethoscope' },
-  { id: 'gastrointestinal', name: 'Gastrointestinal Surgery', iconName: 'Activity' },
-  { id: 'urology', name: 'Urology', iconName: 'Shield' },
-  { id: 'oncology', name: 'Oncology & Cancer Surgery', iconName: 'ShieldAlert' },
-  { id: 'gynaecology', name: 'Gynaecological Surgery', iconName: 'HeartPulse' },
-  { id: 'ent', name: 'ENT Surgery', iconName: 'UserCheck' },
-  { id: 'ophthalmology', name: 'Ophthalmic Surgery', iconName: 'Eye' },
-  { id: 'plastic-reconstructive', name: 'Plastic & Reconstructive Surgery', iconName: 'Sparkles' },
-  { id: 'transplant', name: 'Transplant', iconName: 'CheckCircle2' },
-  { id: 'ivf-fertility', name: 'IVF & Fertility', iconName: 'Dna' },
-  { id: 'aesthetic-cosmetic', name: 'Aesthetic & Cosmetic Surgery', iconName: 'Sparkles' },
-  { id: 'hair-aesthetic', name: 'Hair & Aesthetic Treatments', iconName: 'UserCheck' },
+  { 
+    id: 'orthopaedics', 
+    name: 'Orthopaedic Surgery', 
+    iconName: 'Bone',
+    description: 'Comprehensive joint replacement, bone fracture management, ligament repairs, and arthroscopic procedures using advanced minimally invasive techniques.',
+    procedures: ['Knee Replacement (Total / Partial)', 'Hip Replacement', 'ACL & Ligament Reconstruction', 'Shoulder Arthroscopy', 'Fracture Fixation & Bone Trauma'],
+    benefits: ['Minimally Invasive Robotic & Laparoscopic Options', 'NABH Accredited Partner Hospitals', 'Post-Op Physiotherapy & Rehab Guidance', 'Transparent Hospital Package Estimates'],
+    hospitalStay: '1 to 3 Days',
+    recoveryTime: 'Rapid Rehabilitation Protocol'
+  },
+  { 
+    id: 'spine', 
+    name: 'Spine Surgery', 
+    iconName: 'Activity',
+    description: 'Advanced spinal deformity correction, herniated disc treatment, minimally invasive discectomy, and spinal fusion procedures for chronic neck and back pain.',
+    procedures: ['Spinal Fusion (TLIF / PLIF)', 'Microdiscectomy', 'Laminectomy & Decompression', 'Artificial Disc Replacement', 'Endoscopic Spine Surgery'],
+    benefits: ['Endoscopic & Microscopic Precision', 'Expert Neuro & Ortho Spine Surgeons', 'Comprehensive Pre & Post-Op Rehab'],
+    hospitalStay: '2 to 4 Days',
+    recoveryTime: '3 to 6 Weeks Guided Recovery'
+  },
+  { 
+    id: 'cardiac', 
+    name: 'Cardiac & Cardiothoracic Surgery', 
+    iconName: 'Heart',
+    description: 'Open-heart and minimally invasive cardiothoracic procedures, coronary artery bypass grafting (CABG), valve repair/replacement, and congenital heart surgery.',
+    procedures: ['Coronary Artery Bypass Grafting (CABG)', 'Heart Valve Replacement / Repair', 'Aortic Aneurysm Repair', 'Pacemaker & ICD Implantation', 'Minimally Invasive Cardiac Surgery (MICS)'],
+    benefits: ['Senior Cardiothoracic Surgeons', 'Dedicated Cardiac ICU & Monitoring', 'Second Opinion & Package Comparison'],
+    hospitalStay: '4 to 7 Days',
+    recoveryTime: 'Structured Cardiac Rehab Program'
+  },
+  { 
+    id: 'neurosurgery', 
+    name: 'Neurosurgery', 
+    iconName: 'Brain',
+    description: 'Specialized surgical care for brain tumors, cerebrovascular disorders, aneurysms, head trauma, and peripheral nerve conditions using image-guided navigation.',
+    procedures: ['Brain Tumor Resection', 'Cerebral Aneurysm Clipping / Coiling', 'Hydrocephalus VP Shunt', 'Craniotomy for Trauma', 'Stereotactic Radiosurgery'],
+    benefits: ['3D Image-Guided Neuronavigation', 'Dedicated Neuro-Intensive Care Unit', 'Multidisciplinary Tumor Board Review'],
+    hospitalStay: '3 to 7 Days',
+    recoveryTime: 'Comprehensive Neuro-Rehab Support'
+  },
+  { 
+    id: 'general-surgery', 
+    name: 'General & Laparoscopic Surgery', 
+    iconName: 'Stethoscope',
+    description: 'Keyhole/laparoscopic abdominal surgeries for gallbladder stones, hernias, appendicitis, and gastrointestinal conditions with minimal scarring and fast recovery.',
+    procedures: ['Laparoscopic Cholecystectomy (Gallbladder)', 'Hernia Repair (Inguinal / Ventral)', 'Laparoscopic Appendectomy', 'Bariatric / Weight Loss Surgery', 'Piles & Fissure Laser Treatment'],
+    benefits: ['Single-Day & Short Stay Procedures', 'Keyhole Laparoscopic & Laser Tech', 'Quick Return to Daily Routine'],
+    hospitalStay: '24 Hours to 2 Days',
+    recoveryTime: '3 to 7 Days'
+  },
+  { 
+    id: 'gastrointestinal', 
+    name: 'Gastrointestinal Surgery', 
+    iconName: 'Activity',
+    description: 'Surgical management of complex GI tract conditions, liver, pancreas, spleen, intestine, and colorectal diseases by specialized GI surgeons.',
+    procedures: ['Colorectal Resection & Surgery', 'Pancreaticoduodenectomy (Whipple)', 'Liver Resection & Biliary Surgery', 'Splenectomy', 'GERD & Hiatal Hernia Surgery'],
+    benefits: ['Specialized GI Surgical Gastroenterologists', 'Advanced Endoscopic & Laparoscopic Suites', 'Post-Op Nutritionist Guidance'],
+    hospitalStay: '2 to 5 Days',
+    recoveryTime: '1 to 3 Weeks'
+  },
+  { 
+    id: 'urology', 
+    name: 'Urology', 
+    iconName: 'Shield',
+    description: 'Minimally invasive laser and endoscopic treatment for kidney stones, prostate enlargement (BPH), urinary incontinence, and urological oncology.',
+    procedures: ['Laser Kidney Stone Surgery (RIRS / PCNL)', 'Prostate Surgery (TURP / Laser)', 'Stricture Urethra Surgery', 'Bladder & Kidney Cancer Surgery', 'Varicocelectomy'],
+    benefits: ['Stitchless Laser & Endoscopic Surgery', 'Same-Day / Overnight Discharge Options', 'Immediate Pain & Stone Relief'],
+    hospitalStay: 'Same-Day to 2 Days',
+    recoveryTime: '2 to 5 Days'
+  },
+  { 
+    id: 'oncology', 
+    name: 'Oncology & Cancer Surgery', 
+    iconName: 'ShieldAlert',
+    description: 'Surgical oncology care including tumor removal, organ-preserving surgeries, lymph node dissection, and multidisciplinary cancer care planning.',
+    procedures: ['Breast Cancer Surgery (Mastectomy / Lumpectomy)', 'GI & Colorectal Cancer Resection', 'Gynecological Cancer Surgery', 'Head & Neck Tumor Resection', 'Lung & Thoracic Cancer Surgery'],
+    benefits: ['Senior Surgical Oncologists', 'Tumor Board Opinion & Chemotherapy Planning', 'Organ-Preserving Surgical Techniques'],
+    hospitalStay: '2 to 5 Days',
+    recoveryTime: '2 to 4 Weeks Care Plan'
+  },
+  { 
+    id: 'gynaecology', 
+    name: 'Gynaecological Surgery', 
+    iconName: 'HeartPulse',
+    description: 'Laparoscopic and minimally invasive procedures for uterine fibroids, ovarian cysts, endometriosis, hysterectomy, and pelvic floor disorders.',
+    procedures: ['Laparoscopic Hysterectomy', 'Fibroid Removal (Myomectomy)', 'Ovarian Cystectomy', 'Endometriosis Excision', 'Pelvic Organ Prolapse Repair'],
+    benefits: ['Keyhole Laparoscopic Micro-Incision', 'Female Gynaec-Surgeon Options', 'Preservation of Reproductive Health Options'],
+    hospitalStay: '1 to 2 Days',
+    recoveryTime: '5 to 10 Days'
+  },
+  { 
+    id: 'ent', 
+    name: 'ENT Surgery', 
+    iconName: 'UserCheck',
+    description: 'Microscopic and endoscopic procedures for ear, nose, throat, sinus, thyroid, and head & neck disorders.',
+    procedures: ['Functional Endoscopic Sinus Surgery (FESS)', 'Tympanoplasty & Mastoidectomy', 'Tonsillectomy & Adenoidectomy', 'Septoplasty & Nasal Surgery', 'Thyroidectomy'],
+    benefits: ['Stitchless Micro-Endoscopic Techniques', 'Day-Care / Overnight Discharge', 'Preservation of Voice & Hearing'],
+    hospitalStay: 'Day Care to 1 Day',
+    recoveryTime: '3 to 7 Days'
+  },
+  { 
+    id: 'ophthalmology', 
+    name: 'Ophthalmic Surgery', 
+    iconName: 'Eye',
+    description: 'Advanced eye surgical procedures for cataracts, vision correction, retina, glaucoma, and corneal conditions using robotic & laser tech.',
+    procedures: ['Phaco & Robotic Cataract Surgery', 'LASIK & Contoura Vision', 'Retinal Detachment & Vitrectomy', 'Glaucoma Valve / Trabeculectomy', 'Corneal Transplant'],
+    benefits: ['Blade-Free Robotic Laser Precision', 'Walk-In Walk-Out Daycare Procedures', 'Rapid Visual Rehabilitation'],
+    hospitalStay: 'Day Care (Walk-In Walk-Out)',
+    recoveryTime: '24 to 48 Hours'
+  },
+  { 
+    id: 'plastic-reconstructive', 
+    name: 'Plastic & Reconstructive Surgery', 
+    iconName: 'Sparkles',
+    description: 'Reconstructive procedures for trauma, burn care, scar revision, post-cancer tissue reconstruction, and congenital anomaly repairs.',
+    procedures: ['Post-Mastectomy Breast Reconstruction', 'Facial Trauma & Fracture Fixation', 'Burn Scar Revision & Microvascular Flaps', 'Cleft Lip & Palate Repair', 'Hand & Tendon Reconstruction'],
+    benefits: ['Board-Certified Reconstructive Plastic Surgeons', 'Aesthetic & Functional Restoration', 'Advanced Microvascular Techniques'],
+    hospitalStay: '1 to 4 Days',
+    recoveryTime: '1 to 3 Weeks'
+  },
+  { 
+    id: 'transplant', 
+    name: 'Transplant', 
+    iconName: 'CheckCircle2',
+    description: 'Comprehensive solid organ transplant coordination including living donor workups, recipient surgery, and post-transplant immunosuppression management.',
+    procedures: ['Kidney (Renal) Transplant', 'Liver Transplant (Living / Deceased Donor)', 'Heart Transplant', 'Lung Transplant', 'Bone Marrow / Stem Cell Transplant'],
+    benefits: ['State-of-the-Art Transplant ICU Suites', 'Dedicated Transplant Coordination Team', 'Legal & Authorization Support Assistance'],
+    hospitalStay: '7 to 14 Days',
+    recoveryTime: 'Structured Post-Transplant Monitoring'
+  },
+  { 
+    id: 'ivf-fertility', 
+    name: 'IVF & Fertility', 
+    iconName: 'Dna',
+    description: 'Advanced assisted reproductive technology (ART) including IVF, ICSI, IUI, egg freezing, and male/female fertility treatments.',
+    procedures: ['In-Vitro Fertilization (IVF) & ICSI', 'Intrauterine Insemination (IUI)', 'Egg & Embryo Freezing', 'TESE / PESA Male Fertility Procedures', 'Hysteroscopic & Laparoscopic Fertility Surgery'],
+    benefits: ['NABL Accredited IVF Laboratories', 'Experienced Reproductive Endocrinologists', 'High Success Rate Protocols & Transparent Packages'],
+    hospitalStay: 'Day Care Procedures',
+    recoveryTime: 'Immediate Return to Daily Activities'
+  },
+  { 
+    id: 'aesthetic-cosmetic', 
+    name: 'Aesthetic & Cosmetic Surgery', 
+    iconName: 'Sparkles',
+    description: 'Body contouring, facial rejuvenation, rhinoplasty, breast enhancement, and liposuction performed by certified cosmetic surgeons.',
+    procedures: ['Rhinoplasty (Nose Reshaping)', 'Liposuction & Body Contouring', 'Breast Augmentation & Reduction', 'Gynecomastia (Male Breast Reduction)', 'Facelift & Abdominoplasty (Tummy Tuck)'],
+    benefits: ['Certified Senior Cosmetic Surgeons', 'Private Discreet Hospital Suites', 'Natural Aesthetic Results & High Patient Satisfaction'],
+    hospitalStay: 'Day Care to 1 Day',
+    recoveryTime: '5 to 10 Days'
+  },
+  { 
+    id: 'hair-aesthetic', 
+    name: 'Hair & Aesthetic Treatments', 
+    iconName: 'UserCheck',
+    description: 'Advanced hair restoration, FUE/FUT hair transplantation, PRP therapy, and non-surgical clinical aesthetic treatments.',
+    procedures: ['FUE Hair Transplantation', 'Direct Hair Implantation (DHI)', 'PRP & GFC Hair Growth Therapy', 'Scalp Micropigmentation', 'Laser Skin & Scar Treatments'],
+    benefits: ['Stitchless High-Density Hair Transplants', 'Natural Hairline Design & Maximum Graft Survival', 'Painless Local Anesthesia Techniques'],
+    hospitalStay: 'Day Care (Walk-In Walk-Out)',
+    recoveryTime: '2 to 3 Days'
+  }
 ];
 
 export const POPULAR_SURGERIES_CATEGORIES = [

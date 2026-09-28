@@ -6,9 +6,10 @@ import {
 import { 
   Stethoscope, Upload, MessageSquare, ArrowRight, ShieldCheck, ChevronRight, 
   ChevronDown, HelpCircle, CheckCircle2, UserCheck, Activity, Heart, Brain, 
-  Eye, Bone, Dna, Sparkles, ShieldAlert, Shield, Clock, Building2
+  Eye, Bone, Dna, Sparkles, ShieldAlert, Shield, Clock, Building2, X, Phone
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import { HEALTH_MANAGER_PHONE } from '../config/constants';
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
 
 const iconMap = {
@@ -18,6 +19,7 @@ const iconMap = {
 
 export default function SurgeriesPage({ onOpenUploadModal }) {
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
+  const [selectedSpeciality, setSelectedSpeciality] = useState(null);
 
   // Set document title & meta tags for SEO
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 text-left">
+    <div className="min-h-screen bg-slate-50/50 pb-20 text-left relative">
       
       {/* 1. HERO SECTION */}
       <div className="bg-gradient-to-b from-purple-50/80 via-white to-slate-50/50 py-12 md:py-16 border-b border-purple-100/60">
@@ -104,26 +106,33 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
               Explore Surgery by Speciality
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 font-medium">
-              Find surgical care across major medical specialities. Explore procedures, specialists and hospitals based on your healthcare needs.
+              Click any speciality to view procedure details, clinical overviews, and recovery guidance.
             </p>
           </div>
 
-          {/* 16 Clean Cards Grid (No long descriptions) */}
+          {/* 16 Clean Interactive Cards Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {SURGERY_SPECIALITIES.map((spec) => {
               const IconComp = iconMap[spec.iconName] || Stethoscope;
               return (
                 <div
                   key={spec.id}
-                  onClick={() => handleWhatsAppConsultation(spec.name)}
+                  onClick={() => setSelectedSpeciality(spec)}
                   className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 hover:border-purple-300 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col items-start justify-between group space-y-3"
                 >
                   <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-colors">
                     <IconComp className="w-5 h-5" />
                   </div>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors leading-tight">
-                    {spec.name}
-                  </h3>
+                  
+                  <div className="w-full space-y-1.5">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors leading-tight">
+                      {spec.name}
+                    </h3>
+                    <div className="flex items-center justify-between text-[10px] font-bold text-purple-700 group-hover:text-purple-900">
+                      <span>View Details</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -361,6 +370,122 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
         </section>
 
       </div>
+
+      {/* SPECIALITY DETAIL POPUP MODAL */}
+      {selectedSpeciality && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-purple-100 p-6 sm:p-8 space-y-6 relative text-left my-auto">
+            
+            {/* Close (X) Button */}
+            <button 
+              onClick={() => setSelectedSpeciality(null)}
+              className="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-100 hover:bg-purple-100 text-slate-500 hover:text-purple-900 flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-start gap-4 pr-8">
+              <div className="w-14 h-14 rounded-2xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-700/20">
+                {React.createElement(iconMap[selectedSpeciality.iconName] || Stethoscope, { className: 'w-7 h-7' })}
+              </div>
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200">
+                  Surgical Speciality Overview
+                </span>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">
+                  {selectedSpeciality.name}
+                </h2>
+              </div>
+            </div>
+
+            {/* Clinical Overview */}
+            <div className="space-y-2">
+              <h3 className="text-xs uppercase font-extrabold text-purple-900 tracking-wider">Clinical Scope & Overview</h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                {selectedSpeciality.description || 'Comprehensive surgical consultation, hospital options, and treatment coordination.'}
+              </p>
+            </div>
+
+            {/* Key Procedures Included */}
+            {selectedSpeciality.procedures && (
+              <div className="space-y-2.5 pt-2 border-t border-slate-100">
+                <h3 className="text-xs uppercase font-extrabold text-purple-900 tracking-wider flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-purple-700" />
+                  <span>Common Procedures Covered</span>
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedSpeciality.procedures.map((proc, i) => (
+                    <span key={i} className="text-xs font-semibold px-3 py-1 rounded-xl bg-purple-50 text-purple-900 border border-purple-100 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>{proc}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Care Specs Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
+              {selectedSpeciality.hospitalStay && (
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Typical Hospital Stay</div>
+                  <div className="font-extrabold text-slate-900 mt-0.5">{selectedSpeciality.hospitalStay}</div>
+                </div>
+              )}
+              {selectedSpeciality.recoveryTime && (
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Recovery & Rehab</div>
+                  <div className="font-extrabold text-slate-900 mt-0.5">{selectedSpeciality.recoveryTime}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Health Express Care Commitment */}
+            {selectedSpeciality.benefits && (
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <h3 className="text-xs uppercase font-extrabold text-purple-900 tracking-wider">Health Express Care Commitment</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 font-medium">
+                  {selectedSpeciality.benefits.map((b, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+              <button
+                onClick={() => {
+                  handleWhatsAppConsultation(selectedSpeciality.name);
+                  setSelectedSpeciality(null);
+                }}
+                className="w-full sm:w-auto flex-1 py-3.5 px-6 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <MessageSquare className="w-4 h-4 fill-current" />
+                <span>Get Surgery Assistance & Estimate</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedSpeciality(null);
+                  onOpenUploadModal();
+                }}
+                className="w-full sm:w-auto py-3.5 px-5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 font-extrabold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Upload className="w-4 h-4 text-purple-700" />
+                <span>Upload Reports</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
