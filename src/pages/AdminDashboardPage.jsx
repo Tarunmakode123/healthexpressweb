@@ -1137,14 +1137,14 @@ function AdminDashboardPage() {
                               <div className="space-y-1">
                                 {Array.isArray(ord.items) && ord.items.map((it, idx) => (
                                   <div key={idx} className="text-[11px] text-slate-300 truncate">
-                                    ΓÇó {it.name} <span className="text-purple-300 font-bold">({it.quantity}x)</span>
+                                    • {it.name} <span className="text-purple-300 font-bold">({it.quantity}x)</span>
                                   </div>
                                 ))}
                               </div>
                             </td>
 
                             <td className="p-4 font-black text-white text-sm whitespace-nowrap">
-                              Γé╣{ord.total_amount}
+                              ₹{ord.total_amount}
                             </td>
 
                             <td className="p-4 whitespace-nowrap">
@@ -1290,7 +1290,7 @@ function AdminDashboardPage() {
                             </div>
                           </td>
                           <td className="p-4 font-bold text-slate-200">{pat.phone_e164}</td>
-                          <td className="p-4 text-slate-300">{pat.email || 'ΓÇö'}</td>
+                          <td className="p-4 text-slate-300">{pat.email || '—'}</td>
                           <td className="p-4 text-slate-300">{pat.city || 'Bengaluru'}</td>
                           <td className="p-4">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${pat.user_id ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-700 text-slate-300'}`}>
@@ -1305,7 +1305,7 @@ function AdminDashboardPage() {
                               onClick={() => handleOpenCustomer360(pat.id)}
                               className="px-3 py-1.5 rounded-lg bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-700/60 font-bold text-[11px] cursor-pointer transition-colors"
                             >
-                              Customer 360┬░ Profile
+                              Customer 360° Profile
                             </button>
                           </td>
                         </tr>
@@ -1814,7 +1814,7 @@ function AdminDashboardPage() {
                         <tr key={pay.id} className="hover:bg-slate-700/30 transition-colors">
                           <td className="p-4 font-mono font-bold text-purple-300">{pay.id.substring(0, 8)}...</td>
                           <td className="p-4 font-bold text-white">{pay.patients?.full_name || pay.orders?.customer_name || 'Customer'}</td>
-                          <td className="p-4 font-black text-white text-sm">Γé╣{pay.amount}</td>
+                          <td className="p-4 font-black text-white text-sm">₹{pay.amount}</td>
                           <td className="p-4 whitespace-nowrap">
                             <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px] font-extrabold text-slate-200">
                               {pay.payment_method} ({pay.payment_mode})
@@ -1865,7 +1865,7 @@ function AdminDashboardPage() {
                     <div>
                       <div className="flex justify-between text-xs font-bold mb-1">
                         <span className="text-slate-300">Online Paid Revenue</span>
-                        <span className="text-emerald-300">Γé╣{onlineRevenueCollected.toLocaleString('en-IN')}</span>
+                        <span className="text-emerald-300">₹{onlineRevenueCollected.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
                         <div className="h-full bg-emerald-500" style={{ width: `${totalRevenue > 0 ? (onlineRevenueCollected / totalRevenue) * 100 : 0}%` }} />
@@ -1875,7 +1875,7 @@ function AdminDashboardPage() {
                     <div>
                       <div className="flex justify-between text-xs font-bold mb-1">
                         <span className="text-slate-300">COD Collected Revenue</span>
-                        <span className="text-purple-300">Γé╣{codCollected.toLocaleString('en-IN')}</span>
+                        <span className="text-purple-300">₹{codCollected.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
                         <div className="h-full bg-purple-500" style={{ width: `${totalRevenue > 0 ? (codCollected / totalRevenue) * 100 : 0}%` }} />
@@ -1885,7 +1885,7 @@ function AdminDashboardPage() {
                     <div>
                       <div className="flex justify-between text-xs font-bold mb-1">
                         <span className="text-slate-300">COD Pending Balance</span>
-                        <span className="text-amber-300">Γé╣{codPendingCollection.toLocaleString('en-IN')}</span>
+                        <span className="text-amber-300">₹{codPendingCollection.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
                         <div className="h-full bg-amber-500" style={{ width: `${(codPendingCollection / (totalRevenue + codPendingCollection || 1)) * 100}%` }} />
@@ -1941,7 +1941,7 @@ function AdminDashboardPage() {
                   <div key={evt.id} className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-extrabold text-purple-300">{evt.event_type}</span>
-                      <div className="text-[10px] text-slate-400">Path: {evt.page_path || '/'} ΓÇó Session: {evt.session_id}</div>
+                      <div className="text-[10px] text-slate-400">Path: {evt.page_path || '/'} • Session: {evt.session_id}</div>
                     </div>
                     <div className="text-right text-[11px] text-slate-400">
                       {new Date(evt.created_at).toLocaleString('en-IN')}
