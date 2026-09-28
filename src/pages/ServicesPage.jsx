@@ -165,59 +165,92 @@ export default function ServicesPage({ onOpenUploadModal }) {
               const cat = CATEGORIES.find(c => c.id === service.category_id);
               const IconComp = categoryIconMap[service.category_id] || FlaskConical;
 
+              const defaultCategoryImages = {
+                'lab-tests': 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80',
+                'imaging': 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80',
+                'genetics': 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80',
+                'home-care': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80',
+                'surgery': 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=600&q=80',
+                'health-packages': 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=600&q=80'
+              };
+              const displayImage = service.image || defaultCategoryImages[service.category_id] || defaultCategoryImages['lab-tests'];
+
               return (
                 <div 
                   key={service.id}
-                  className="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-purple-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left group"
+                  className="bg-white rounded-3xl overflow-hidden border border-slate-200/80 hover:border-purple-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left group"
                 >
-                  <div className="space-y-4">
-                    
-                    {/* Badge & Category */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] uppercase font-black px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
-                        <IconComp className="w-3 h-3" />
-                        {cat?.name || 'Healthcare'}
-                      </span>
-
-                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
-                        service.centre_visit_required
-                          ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                          : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
-                      }`}>
-                        {service.centre_visit_required ? 'Centre Visit Required' : 'Home Collection'}
-                      </span>
-                    </div>
-
-                    {/* Title */}
-                    <div>
-                      <Link 
-                        to={`/services/${service.slug}`}
-                        className="text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors line-clamp-1"
-                      >
-                        {service.name}
-                      </Link>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                        {service.shortDesc}
-                      </p>
-                    </div>
-
-                    {/* Meta Info Pills */}
-                    <div className="flex items-center gap-3 text-[11px] text-slate-600 pt-1">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-purple-700" />
-                        {service.turnaround_time}
-                      </span>
-                      {service.sample_type && (
-                        <span className="truncate max-w-[140px]">
-                          • {service.sample_type}
+                  <div>
+                    {/* TOP DEMONSTRATION IMAGE CONTAINER */}
+                    <div className="h-44 w-full relative overflow-hidden bg-slate-100">
+                      <img
+                        src={displayImage}
+                        alt={service.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = defaultCategoryImages[service.category_id] || defaultCategoryImages['lab-tests'];
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-black/20" />
+                      
+                      {/* Top Overlay Badges */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                        <span className="text-[10px] uppercase font-black px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-purple-900 border border-white/50 shadow-xs flex items-center gap-1">
+                          <IconComp className="w-3 h-3 text-purple-700" />
+                          {cat?.name || 'Healthcare'}
                         </span>
+
+                        <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full backdrop-blur-md shadow-xs ${
+                          service.centre_visit_required
+                            ? 'bg-amber-500/90 text-white border border-amber-400'
+                            : 'bg-emerald-500/90 text-white border border-emerald-400'
+                        }`}>
+                          {service.centre_visit_required ? 'Centre Visit' : 'Home Collection'}
+                        </span>
+                      </div>
+
+                      {/* Parameters Count Badge */}
+                      {service.parameters_count && (
+                        <div className="absolute bottom-3 left-3">
+                          <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white border border-white/20">
+                            {service.parameters_count} Parameters Included
+                          </span>
+                        </div>
                       )}
                     </div>
 
+                    <div className="p-5 space-y-3">
+                      {/* Title */}
+                      <div>
+                        <Link 
+                          to={`/services/${service.slug}`}
+                          className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors line-clamp-1"
+                        >
+                          {service.name}
+                        </Link>
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                          {service.shortDesc}
+                        </p>
+                      </div>
+
+                      {/* Meta Info Pills */}
+                      <div className="flex items-center gap-3 text-[11px] font-medium text-slate-600 pt-1 border-t border-slate-100">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-purple-700" />
+                          {service.turnaround_time}
+                        </span>
+                        {service.sample_type && (
+                          <span className="truncate max-w-[140px]">
+                            • {service.sample_type}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Pricing & Footer Actions */}
-                  <div className="pt-5 border-t border-slate-100 mt-5 space-y-3">
+                  <div className="px-5 pb-5 pt-3 border-t border-slate-100 space-y-3">
                     <div className="flex items-baseline justify-between">
                       <div>
                         <span className="text-xl font-extrabold text-slate-900">₹{service.discount_price}</span>

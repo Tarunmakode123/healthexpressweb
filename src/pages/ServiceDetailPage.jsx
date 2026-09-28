@@ -137,8 +137,30 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
 
             </div>
 
-            {/* Right Pricing Card */}
-            <div className="lg:col-span-4">
+            {/* Right Pricing & Demonstration Image Column */}
+            <div className="lg:col-span-4 space-y-4">
+              {/* Demonstration Test Image */}
+              <div className="h-48 sm:h-52 w-full rounded-3xl overflow-hidden relative shadow-md border border-purple-100 bg-slate-100">
+                <img
+                  src={service.image || {
+                    'lab-tests': 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80',
+                    'imaging': 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&q=80',
+                    'genetics': 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80',
+                    'home-care': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80',
+                    'surgery': 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=600&q=80',
+                    'health-packages': 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=600&q=80'
+                  }[service.category_id] || 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80'}
+                  alt={service.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-white bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20">
+                    NABL Verified Diagnostic Procedure
+                  </span>
+                </div>
+              </div>
+
               <div className="bg-gradient-to-br from-slate-900 to-purple-950 text-white rounded-3xl p-6 shadow-xl space-y-4 border border-purple-800/40 text-left">
                 <div className="text-xs uppercase font-extrabold text-purple-300 tracking-wider">
                   Health Express Transparent Pricing
