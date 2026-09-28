@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — PROMO CODE & COUPON MANAGEMENT SYSTEM
--- Centralized database migration for admin-controlled promotions
+-- Tailored to actual Supabase schema (orders.id UUID, patients.id UUID, check_is_admin() RPC)
 -- ============================================================
 
 -- 1. TABLE: public.promo_codes
@@ -46,7 +46,7 @@ create index if not exists idx_promo_usage_patient_id on public.promo_code_usage
 alter table public.promo_codes enable row level security;
 alter table public.promo_code_usage enable row level security;
 
--- Public / Anonymous Customers: Select active promo codes (without internal metrics exposure)
+-- Public / Anonymous Customers: Select active promo codes
 drop policy if exists "Customers can view active promo codes" on public.promo_codes;
 create policy "Customers can view active promo codes" on public.promo_codes
   for select using (
@@ -55,24 +55,18 @@ create policy "Customers can view active promo codes" on public.promo_codes
     (valid_until is null or valid_until >= now())
   );
 
--- Admins: Full management access to promo_codes
+-- Admins: Full management access to promo_codes using existing check_is_admin() RPC
 drop policy if exists "Admins have full access to promo codes" on public.promo_codes;
 create policy "Admins have full access to promo codes" on public.promo_codes
   for all using (
-    exists (
-      select 1 from public.admin_users
-      where user_id = auth.uid() and is_active = true
-    )
+    public.check_is_admin() = true
   );
 
--- Admins: Full view access to promo_code_usage
+-- Admins: Full view access to promo_code_usage using existing check_is_admin() RPC
 drop policy if exists "Admins can view promo code usage" on public.promo_code_usage;
 create policy "Admins can view promo code usage" on public.promo_code_usage
   for select using (
-    exists (
-      select 1 from public.admin_users
-      where user_id = auth.uid() and is_active = true
-    )
+    public.check_is_admin() = true
   );
 
 -- Service role & security definer functions can insert usage records
