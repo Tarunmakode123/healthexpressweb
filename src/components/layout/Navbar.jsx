@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, ShoppingBag, Coins } from 'lucide-react';
+import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, ShoppingBag } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -11,7 +11,7 @@ export default function Navbar({ onOpenUploadModal }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
   const { user, isLoggedIn, logout } = useAuth();
-  const { itemCount, openCart, walletBalance } = useCart();
+  const { itemCount, openCart } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,15 +111,6 @@ export default function Navbar({ onOpenUploadModal }) {
 
             {isLoggedIn ? (
               <div className="flex items-center gap-2">
-                <Link
-                  to="/account"
-                  className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-black flex items-center gap-1.5 transition-all shadow-2xs"
-                  title="Your Health Coins Balance"
-                >
-                  <Coins className="w-4 h-4 text-amber-600" />
-                  <span>{walletBalance !== undefined ? walletBalance.toLocaleString() : 1000} Coins</span>
-                </Link>
-
                 <div className="relative">
                   <button
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
