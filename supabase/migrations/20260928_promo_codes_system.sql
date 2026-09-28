@@ -74,7 +74,8 @@ create policy "Admins can view promo code usage" on public.promo_code_usage
 
 -- ============================================================
 -- ATOMIC PROMO CODE USAGE INCREMENT RPC FUNCTION
--- Hardened with valid_from and valid_until validation
+-- Hardened with valid_from and valid_until validation.
+-- Strictly restricted to authenticated & service_role (anon revoked).
 -- ============================================================
 
 create or replace function public.record_promo_code_usage_atomic(
@@ -131,5 +132,6 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
--- Grant execute access
-grant execute on function public.record_promo_code_usage_atomic(uuid, uuid, uuid, numeric) to anon, authenticated, service_role;
+-- Revoke execute from public & anon; grant strictly to authenticated and service_role
+revoke execute on function public.record_promo_code_usage_atomic(uuid, uuid, uuid, numeric) from public, anon;
+grant execute on function public.record_promo_code_usage_atomic(uuid, uuid, uuid, numeric) to authenticated, service_role;

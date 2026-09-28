@@ -177,7 +177,7 @@ export async function createInternalOrder({ customerName, customerPhone, custome
 
 /**
  * Verifies payment signature and updates database state to PAID / CONFIRMED.
- * Also atomically records promo code usage upon confirmed payment.
+ * Atomic promo code usage is recorded from server-side order calculations.
  */
 export async function verifyAndConfirmPayment({ orderId, promoCodeId = null, patientId = null, promoDiscount = 0, razorpayOrderId, razorpayPaymentId, razorpaySignature, paymentMethod = 'unknown', paymentMode = 'DEMO' }) {
   if (!orderId) {
