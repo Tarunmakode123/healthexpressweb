@@ -35,23 +35,25 @@ export default function TrustSection() {
         </div>
 
         {/* 3 Trust Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch max-w-5xl mx-auto">
           {trustItems.map((item, idx) => {
             const IconComponent = item.icon;
             return (
               <div 
                 key={idx}
-                className="glass-card hover:bg-white p-7 rounded-3xl border border-purple-100/80 shadow-xs hover-glow space-y-4 text-left group transition-all"
+                className="glass-card hover:bg-white p-7 rounded-3xl border border-purple-100/80 shadow-xs hover-glow space-y-4 text-left group transition-all min-h-[240px] h-full flex flex-col justify-between"
               >
-                <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:bg-purple-800 transition-all">
-                  <IconComponent className="w-6 h-6" />
+                <div className="space-y-4 flex-1 flex flex-col justify-start">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:bg-purple-800 transition-all">
+                    <IconComponent className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors min-h-[3rem] flex items-center">
+                    {item.title}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium flex-1">
+                    {item.description}
+                  </p>
                 </div>
-                <h4 className="text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors">
-                  {item.title}
-                </h4>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                  {item.description}
-                </p>
               </div>
             );
           })}

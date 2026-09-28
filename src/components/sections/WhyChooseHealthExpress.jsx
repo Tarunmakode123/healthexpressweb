@@ -57,13 +57,13 @@ export default function WhyChooseHealthExpress() {
         </div>
 
         {/* 6 Numbered Feature Cards Row */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-stretch">
           {highlights.map((item) => {
             const IconComponent = item.icon;
             return (
               <div 
                 key={item.num}
-                className="bg-white rounded-3xl p-5 border border-purple-100 shadow-xs hover:shadow-md hover:border-purple-300 transition-all duration-300 text-center flex flex-col items-center justify-between space-y-3 group"
+                className="bg-white rounded-3xl p-5 border border-purple-100 shadow-xs hover:shadow-md hover:border-purple-300 transition-all duration-300 text-center flex flex-col items-center justify-between space-y-3 group min-h-[220px] h-full"
               >
                 <div className="relative">
                   {/* Big Stylized Number Background */}
@@ -77,11 +77,11 @@ export default function WhyChooseHealthExpress() {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors leading-snug">
+                <div className="space-y-1 flex-1 flex flex-col justify-center">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors leading-snug min-h-[2.5rem] flex items-center justify-center">
                     {item.title}
                   </h3>
-                  <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                  <p className="text-[11px] text-slate-500 leading-relaxed font-medium min-h-[2.5rem] flex items-center justify-center">
                     {item.desc}
                   </p>
                 </div>

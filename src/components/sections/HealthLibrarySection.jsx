@@ -113,41 +113,40 @@ export default function HealthLibrarySection() {
             <Link
               key={article.id}
               to={`/health-library/${article.slug}`}
-              className="w-[280px] sm:w-[310px] flex-shrink-0 snap-start group bg-white rounded-3xl overflow-hidden border border-purple-100 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
+              className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start group bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left min-h-[340px] transform hover:-translate-y-1"
             >
-              <div>
-                <div className="relative h-44 overflow-hidden bg-slate-100">
+              <div className="flex-1 flex flex-col justify-between">
+                <div className="relative h-44 overflow-hidden bg-slate-100 shrink-0">
                   <img
                     src={article.image}
                     alt={article.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                   />
-                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-bold text-purple-800">
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-bold text-purple-800 border border-white/50">
                     {article.category}
                   </div>
                 </div>
 
-                <div className="p-5 space-y-2 text-left">
+                <div className="p-5 space-y-2 text-left flex-1 flex flex-col justify-start">
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                    <Clock className="w-3 h-3" />
+                    <Clock className="w-3 h-3 text-purple-600" />
                     <span>{article.readTime}</span>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors leading-snug">
+                  <h3 className="text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors leading-snug line-clamp-2 min-h-[3rem] flex items-center">
                     {article.title}
                   </h3>
 
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed min-h-[2.5rem]">
                     {article.summary}
                   </p>
                 </div>
               </div>
 
-              <div className="p-5 pt-0 text-left">
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-700 group-hover:translate-x-1 transition-transform">
-                  Read article <ArrowRight className="w-3.5 h-3.5" />
-                </span>
+              <div className="px-5 pb-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-700 group-hover:text-purple-900 mt-auto">
+                <span>Read Article Guide</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
           ))}

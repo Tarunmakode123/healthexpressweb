@@ -149,9 +149,9 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
               <div
                 key={calc.id}
                 onClick={() => handleCardClick(calc.slug)}
-                className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 border border-purple-100 shadow-md shadow-purple-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between space-y-5 text-left transform hover:-translate-y-1 relative overflow-hidden"
+                className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between text-left transform hover:-translate-y-1 relative overflow-hidden min-h-[260px]"
               >
-                <div className="space-y-4">
+                <div className="space-y-4 flex-1 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-colors shadow-2xs">
                       <IconComponent className="w-6 h-6" />
@@ -161,17 +161,17 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
                     </span>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors">
+                  <div className="space-y-1.5 flex-1 flex flex-col justify-start">
+                    <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors line-clamp-2 min-h-[3rem] flex items-center">
                       {calc.title}
                     </h3>
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2 min-h-[2.5rem]">
                       {calc.shortDesc}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900">
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900 mt-auto">
                   <span className="flex items-center gap-1.5">
                     <Calculator className="w-3.5 h-3.5" />
                     <span>Calculate Now (Instant)</span>

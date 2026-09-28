@@ -220,9 +220,9 @@ export default function PopularTestsSection() {
               <div
                 key={service.id}
                 onClick={(e) => handleAddToCart(service, e)}
-                className="w-[280px] sm:w-[310px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
+                className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between text-left transform hover:-translate-y-1 relative overflow-hidden min-h-[260px]"
               >
-                <div className="space-y-3">
+                <div className="space-y-3 flex-1 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-colors shadow-2xs">
                       <IconComp className="w-5 h-5" />
@@ -232,17 +232,17 @@ export default function PopularTestsSection() {
                     </span>
                   </div>
 
-                  <div>
-                    <h4 className="text-base font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors">
+                  <div className="space-y-1.5 flex-1 flex flex-col justify-start">
+                    <h4 className="text-base font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors line-clamp-1 min-h-[1.75rem] flex items-center">
                       {service.title}
                     </h4>
-                    <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2 min-h-[2.5rem]">
                       {service.desc}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900">
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900 mt-auto">
                   <span className="flex items-center gap-1">
                     <ShoppingBag className="w-3.5 h-3.5 text-purple-600" />
                     <span>Book & Add to Basket</span>

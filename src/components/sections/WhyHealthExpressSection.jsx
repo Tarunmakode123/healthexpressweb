@@ -52,9 +52,9 @@ export default function WhyHealthExpressSection() {
             return (
               <div 
                 key={item.num}
-                className="bg-white rounded-3xl p-7 sm:p-8 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group text-left flex flex-col justify-between space-y-5 relative overflow-hidden"
+                className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group text-left flex flex-col justify-between space-y-5 relative overflow-hidden min-h-[260px] h-full"
               >
-                <div className="space-y-4 relative z-10">
+                <div className="space-y-4 relative z-10 flex-1 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md shadow-purple-700/20 group-hover:scale-105 transition-transform">
                       <IconComp className="w-6 h-6" />
@@ -64,17 +64,17 @@ export default function WhyHealthExpressSection() {
                     </span>
                   </div>
 
-                  <div className="space-y-2">
-                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors leading-snug">
+                  <div className="space-y-2 flex-1 flex flex-col justify-start">
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors leading-snug min-h-[3.25rem] flex items-center">
                       {item.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+                    <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed flex-1 min-h-[3.5rem]">
                       {item.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <div className="pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700 mt-auto">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Coordinated Care Standard</span>
                 </div>
