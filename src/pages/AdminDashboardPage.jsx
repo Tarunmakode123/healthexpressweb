@@ -907,7 +907,464 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* NAV SECTION: OFFERS & PROMOTIONS */}
+        {/* NAV SECTION 1: OVERVIEW */}
+        {activeNav === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-5 h-5 text-purple-400" />
+                  <h3 className="text-base font-black text-white">Recent Orders Stream</h3>
+                </div>
+                <button onClick={() => setActiveNav('orders')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
+                  <span>View All Orders</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {dateFilteredOrders.length === 0 ? (
+                <p className="text-xs text-slate-400 py-8 text-center">No transactions recorded for selected period.</p>
+              ) : (
+                <div className="space-y-3">
+                  {dateFilteredOrders.slice(0, 5).map((ord) => {
+                    const isCod = ord.payment_method === 'COD' || ord.payments?.[0]?.payment_method === 'COD';
+                    return (
+                      <div key={ord.id} className="p-3.5 bg-slate-900/60 rounded-2xl border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-xs text-purple-300">{ord.order_code}</span>
+                            <span className="text-xs font-bold text-white">{ord.customer_name}</span>
+                            {isCod && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black">COD</span>}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-medium">
+                            {ord.customer_phone} • {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                          </div>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <div className="font-black text-sm text-white">₹{ord.total_amount}</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                            ord.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          }`}>
+                            {ord.payment_status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+              <h3 className="text-base font-black text-white flex items-center gap-2 border-b border-slate-700/80 pb-3">
+                <ShieldCheck className="w-5 h-5 text-purple-400" />
+                <span>Quick System Actions</span>
+              </h3>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setEditingPromo(null);
+                    setPromoFormData({
+                      code: '',
+                      discount_type: 'flat',
+                      discount_value: '',
+                      min_order_amount: '299',
+                      max_discount: '',
+                      applicable_scope: 'all',
+                      applicable_categories: [],
+                      applicable_items: [],
+                      valid_from: new Date().toISOString().slice(0, 10),
+                      valid_until: '',
+                      usage_limit: '',
+                      is_active: true
+                    });
+                    setCustomCategoryInput('');
+                    setCustomItemInput('');
+                    setIsPromoModalOpen(true);
+                  }}
+                  className="w-full p-3 bg-purple-900/40 hover:bg-purple-900/60 border border-purple-700/60 rounded-2xl text-left text-xs text-purple-200 font-bold transition-all flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-purple-400" />
+                    <span>Create Scope Promo Coupon</span>
+                  </span>
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+
+{/* NAV SECTION 2: ORDERS PAGE */}
+        {activeNav === 'orders' && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
+                  <Filter className="w-3 h-3" /> Filter:
+                </span>
+                {['ALL', 'COD', 'ONLINE', 'PAID', 'PENDING', 'FAILED', 'COMPLETED', 'CANCELLED'].map((chip) => (
+                  <button
+                    key={chip}
+                    onClick={() => { setOrderFilter(chip); setCurrentPage(1); }}
+                    className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-[11px] ${
+                      orderFilter === chip
+                        ? 'bg-purple-600 border-purple-500 text-white font-black'
+                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+              <span className="text-slate-400 text-[11px]">Showing {paginatedOrders.length} of {filteredOrders.length} orders</span>
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Order Code</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Items Purchased</th>
+                      <th className="p-4">Amount</th>
+                      <th className="p-4">Method</th>
+                      <th className="p-4">Payment Status</th>
+                      <th className="p-4">Order Status</th>
+                      <th className="p-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 text-slate-200">
+                    {paginatedOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-slate-400 font-medium">
+                          {orders.length === 0 ? 'No orders yet.' : 'No transaction records found matching filter criteria.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedOrders.map((ord) => {
+                        const payObj = ord.payments?.[0] || {};
+                        const payMethod = (payObj.payment_method || ord.payment_method || 'ONLINE').toUpperCase();
+                        const payMode = (payObj.payment_mode || ord.payment_mode || 'LIVE').toUpperCase();
+                        const isCod = payMethod === 'COD' || payMode === 'COD';
+
+                        return (
+                          <tr key={ord.id} className="hover:bg-slate-700/30 transition-colors">
+                            <td className="p-4 font-black text-purple-300 whitespace-nowrap cursor-pointer" onClick={() => setSelectedOrder(ord)}>
+                              <div className="hover:underline flex items-center gap-1">
+                                <span>{ord.order_code}</span>
+                                <Eye className="w-3 h-3 text-purple-400" />
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-normal">
+                                {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                              </div>
+                            </td>
+
+                            <td className="p-4 cursor-pointer" onClick={() => handleOpenCustomer360(ord.patient_id)}>
+                              <div className="font-extrabold text-white hover:text-purple-300 flex items-center gap-1">
+                                <span>{ord.customer_name}</span>
+                                <ChevronRight className="w-3 h-3 text-slate-400" />
+                              </div>
+                              <div className="text-[11px] text-slate-300 font-semibold">{ord.customer_phone}</div>
+                            </td>
+
+                            <td className="p-4 max-w-xs cursor-pointer" onClick={() => setSelectedOrder(ord)}>
+                              <div className="space-y-1">
+                                {Array.isArray(ord.items) && ord.items.map((it, idx) => (
+                                  <div key={idx} className="text-[11px] text-slate-300 truncate">
+                                    ΓÇó {it.name} <span className="text-purple-300 font-bold">({it.quantity}x)</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+
+                            <td className="p-4 font-black text-white text-sm whitespace-nowrap">
+                              Γé╣{ord.total_amount}
+                            </td>
+
+                            <td className="p-4 whitespace-nowrap">
+                              {isCod ? (
+                                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-extrabold flex items-center gap-1">
+                                  <Truck className="w-3 h-3" /> COD
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-extrabold flex items-center gap-1">
+                                  <CreditCard className="w-3 h-3" /> ONLINE ({payMode})
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="p-4 whitespace-nowrap">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide ${
+                                ord.payment_status === 'PAID'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                  : ord.payment_status === 'FAILED'
+                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                              }`}>
+                                {ord.payment_status}
+                              </span>
+                            </td>
+
+                            <td className="p-4 whitespace-nowrap">
+                              <select
+                                value={ord.order_status}
+                                onChange={(e) => handleOrderStatusChange(ord.id, e.target.value)}
+                                className="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2 py-1 text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+                              >
+                                <option value="PENDING">PENDING</option>
+                                <option value="CONFIRMED">CONFIRMED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                              </select>
+                            </td>
+
+                            <td className="p-4 whitespace-nowrap space-x-2">
+                              {isCod && ord.payment_status === 'PENDING' && (
+                                <button
+                                  onClick={() => setCodConfirmOrder(ord)}
+                                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-slate-950 font-black text-[11px] cursor-pointer transition-colors shadow-xs"
+                                >
+                                  Mark COD Collected
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => setSelectedOrder(ord)}
+                                className="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-[11px] cursor-pointer transition-colors"
+                              >
+                                View Details
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination controls */}
+              {totalOrderPages > 1 && (
+                <div className="p-4 bg-slate-900 border-t border-slate-700 flex items-center justify-between text-xs text-slate-400">
+                  <div>Page <strong>{currentPage}</strong> of <strong>{totalOrderPages}</strong></div>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      className="px-3 py-1 rounded bg-slate-800 disabled:opacity-50 hover:bg-slate-700 font-bold cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      disabled={currentPage === totalOrderPages}
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalOrderPages))}
+                      className="px-3 py-1 rounded bg-slate-800 disabled:opacity-50 hover:bg-slate-700 font-bold cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        
+
+{/* NAV SECTION 3: CUSTOMERS PAGE */}
+        {activeNav === 'customers' && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
+                <Filter className="w-3 h-3" /> Account Type:
+              </span>
+              {['ALL', 'REGISTERED', 'GUEST'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setCustomerTypeFilter(type)}
+                  className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-[11px] ${
+                    customerTypeFilter === type
+                      ? 'bg-purple-600 border-purple-500 text-white font-black'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {type === 'ALL' ? 'All Customers' : type === 'REGISTERED' ? 'Registered Accounts' : 'Guest Profiles'}
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Customer Name</th>
+                      <th className="p-4">Phone Number</th>
+                      <th className="p-4">Email Address</th>
+                      <th className="p-4">City</th>
+                      <th className="p-4">User Type</th>
+                      <th className="p-4">Created Date</th>
+                      <th className="p-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 text-slate-200">
+                    {filteredPatients.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">
+                          {patients.length === 0 ? 'No registered patients yet.' : 'No registered patients found matching search query.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPatients.map((pat) => (
+                        <tr key={pat.id} className="hover:bg-slate-700/30 transition-colors">
+                          <td className="p-4 font-extrabold text-white cursor-pointer" onClick={() => handleOpenCustomer360(pat.id)}>
+                            <div className="hover:text-purple-300 flex items-center gap-1">
+                              <span>{pat.full_name}</span>
+                              <ChevronRight className="w-3 h-3 text-slate-400" />
+                            </div>
+                          </td>
+                          <td className="p-4 font-bold text-slate-200">{pat.phone_e164}</td>
+                          <td className="p-4 text-slate-300">{pat.email || 'ΓÇö'}</td>
+                          <td className="p-4 text-slate-300">{pat.city || 'Bengaluru'}</td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${pat.user_id ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-700 text-slate-300'}`}>
+                              {pat.user_id ? 'REGISTERED USER' : 'GUEST PROFILE'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-slate-400 text-[11px]">
+                            {new Date(pat.created_at).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+                          </td>
+                          <td className="p-4">
+                            <button
+                              onClick={() => handleOpenCustomer360(pat.id)}
+                              className="px-3 py-1.5 rounded-lg bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-700/60 font-bold text-[11px] cursor-pointer transition-colors"
+                            >
+                              Customer 360┬░ Profile
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        
+
+{/* NAV SECTION 4: PRESCRIPTIONS PAGE */}
+        {activeNav === 'prescriptions' && (
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
+                  <tr>
+                    <th className="p-4">Enquiry Code</th>
+                    <th className="p-4">Patient Info</th>
+                    <th className="p-4">Notes / Requirement</th>
+                    <th className="p-4">Uploaded Files</th>
+                    <th className="p-4">Review Status</th>
+                    <th className="p-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/60 text-slate-200">
+                  {filteredPrescriptions.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-400 font-medium">
+                        {prescriptions.length === 0 ? 'No prescriptions yet.' : 'No guest prescriptions found matching search query.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredPrescriptions.map((enq) => {
+                      const pat = enq.patients || {};
+                      const files = enq.prescriptions || [];
+
+                      return (
+                        <tr key={enq.id} className="hover:bg-slate-700/30 transition-colors">
+                          <td className="p-4 font-black text-amber-300 whitespace-nowrap">
+                            <div>{enq.enquiry_code}</div>
+                            <div className="text-[10px] text-slate-400 font-normal">
+                              {new Date(enq.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                            </div>
+                          </td>
+
+                          <td className="p-4">
+                            <div className="font-extrabold text-white">{pat.full_name || 'Guest Patient'}</div>
+                            <div className="text-[11px] text-slate-300 font-semibold">{pat.phone_e164}</div>
+                            {pat.city && <div className="text-[10px] text-slate-400">{pat.city}</div>}
+                          </td>
+
+                          <td className="p-4 max-w-xs">
+                            <p className="text-slate-300 italic text-[11px]">
+                              {enq.notes || 'No notes provided by patient.'}
+                            </p>
+                          </td>
+
+                          <td className="p-4">
+                            <div className="space-y-1">
+                              {files.length === 0 ? (
+                                <span className="text-slate-500 italic text-[11px]">No file attached</span>
+                              ) : (
+                                files.map((f, idx) => (
+                                  <div key={idx} className="flex items-center gap-1.5 text-xs text-purple-300 font-bold">
+                                    <FileText className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                                    <span className="truncate max-w-[140px]">{f.file_name}</span>
+                                    <button
+                                      onClick={() => handleViewPrescriptionFile(f)}
+                                      className="p-1 text-purple-300 hover:text-purple-100 cursor-pointer flex items-center gap-1 bg-purple-900/40 hover:bg-purple-800/60 px-1.5 py-0.5 rounded transition-colors"
+                                      title="View / Download Secure File"
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                      <span className="text-[10px]">Open</span>
+                                    </button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="p-4 whitespace-nowrap">
+                            <select
+                              value={enq.status}
+                              onChange={(e) => handleEnquiryStatusChange(enq.id, e.target.value)}
+                              className="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2 py-1 text-amber-300 font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer uppercase"
+                            >
+                              <option value="pending_review">PENDING REVIEW</option>
+                              <option value="contacted">CONTACTED</option>
+                              <option value="completed">COMPLETED</option>
+                            </select>
+                          </td>
+
+                          <td className="p-4 whitespace-nowrap">
+                            <button
+                              onClick={() => {
+                                const msg = `Namaste ${pat.full_name || 'Patient'}! Health Express team received your prescription upload (Ref: ${enq.enquiry_code}). We are ready to assist with your lab tests/medicines.`;
+                                openWhatsApp(msg);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <span>Contact Patient</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        
+
+{/* NAV SECTION: OFFERS & PROMOTIONS */}
         {activeNav === 'promotions' && (
           <div className="space-y-6">
             <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
@@ -1050,7 +1507,9 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* NAV SECTION: HEALTH COINS & REWARDS */}
+        
+
+{/* NAV SECTION: HEALTH COINS & REWARDS */}
         {activeNav === 'coins' && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1243,89 +1702,222 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* NAV SECTION 1: OVERVIEW */}
-        {activeNav === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                <div className="flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-base font-black text-white">Recent Orders Stream</h3>
-                </div>
-                <button onClick={() => setActiveNav('orders')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                  <span>View All Orders</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+        
 
-              {dateFilteredOrders.length === 0 ? (
-                <p className="text-xs text-slate-400 py-8 text-center">No transactions recorded for selected period.</p>
-              ) : (
-                <div className="space-y-3">
-                  {dateFilteredOrders.slice(0, 5).map((ord) => {
-                    const isCod = ord.payment_method === 'COD' || ord.payments?.[0]?.payment_method === 'COD';
-                    return (
-                      <div key={ord.id} className="p-3.5 bg-slate-900/60 rounded-2xl border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-xs text-purple-300">{ord.order_code}</span>
-                            <span className="text-xs font-bold text-white">{ord.customer_name}</span>
-                            {isCod && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black">COD</span>}
-                          </div>
-                          <div className="text-[11px] text-slate-400 font-medium">
-                            {ord.customer_phone} • {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <div className="font-black text-sm text-white">₹{ord.total_amount}</div>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                            ord.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                          }`}>
-                            {ord.payment_status}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+{/* NAV SECTION 5: PAYMENTS PAGE */}
+        {activeNav === 'payments' && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <span className="text-slate-400 flex items-center gap-1 text-[11px] mr-1">
+                <Filter className="w-3 h-3" /> Payment Filter:
+              </span>
+              {['ALL', 'PAID', 'PENDING', 'FAILED', 'COD', 'ONLINE'].map((chip) => (
+                <button
+                  key={chip}
+                  onClick={() => setPaymentFilter(chip)}
+                  className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer text-[11px] ${
+                    paymentFilter === chip
+                      ? 'bg-purple-600 border-purple-500 text-white font-black'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {chip}
+                </button>
+              ))}
             </div>
 
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-              <h3 className="text-base font-black text-white flex items-center gap-2 border-b border-slate-700/80 pb-3">
-                <ShieldCheck className="w-5 h-5 text-purple-400" />
-                <span>Quick System Actions</span>
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Payment ID</th>
+                      <th className="p-4">Customer</th>
+                      <th className="p-4">Amount</th>
+                      <th className="p-4">Method & Mode</th>
+                      <th className="p-4">Payment Status</th>
+                      <th className="p-4">Razorpay Identifiers</th>
+                      <th className="p-4">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 text-slate-200">
+                    {filteredPayments.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">
+                          {payments.length === 0 ? 'No payments yet.' : 'No payment records found matching filter.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPayments.map((pay) => (
+                        <tr key={pay.id} className="hover:bg-slate-700/30 transition-colors">
+                          <td className="p-4 font-mono font-bold text-purple-300">{pay.id.substring(0, 8)}...</td>
+                          <td className="p-4 font-bold text-white">{pay.patients?.full_name || pay.orders?.customer_name || 'Customer'}</td>
+                          <td className="p-4 font-black text-white text-sm">Γé╣{pay.amount}</td>
+                          <td className="p-4 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px] font-extrabold text-slate-200">
+                              {pay.payment_method} ({pay.payment_mode})
+                            </span>
+                          </td>
+                          <td className="p-4 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                              pay.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            }`}>
+                              {pay.payment_status}
+                            </span>
+                          </td>
+                          <td className="p-4 font-mono text-[11px] text-slate-300">
+                            <div>Order: {pay.razorpay_order_id}</div>
+                            {pay.razorpay_payment_id && <div>Pay: {pay.razorpay_payment_id}</div>}
+                          </td>
+                          <td className="p-4 text-slate-400 text-[11px]">
+                            {new Date(pay.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        
+
+{/* NAV SECTION 6: ANALYTICS PAGE */}
+        {activeNav === 'analytics' && (
+          <div className="space-y-6">
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-6 shadow-xl">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <BarChart2 className="w-5 h-5 text-purple-400" />
+                  <span>Revenue & Order Conversion Analytics</span>
+                </h3>
+                <p className="text-xs text-slate-400">Calculated database telemetry for range: <strong className="text-purple-300">{dateRangeFilter}</strong></p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
+                  <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider">Revenue Breakdown</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-xs font-bold mb-1">
+                        <span className="text-slate-300">Online Paid Revenue</span>
+                        <span className="text-emerald-300">Γé╣{onlineRevenueCollected.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500" style={{ width: `${totalRevenue > 0 ? (onlineRevenueCollected / totalRevenue) * 100 : 0}%` }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-xs font-bold mb-1">
+                        <span className="text-slate-300">COD Collected Revenue</span>
+                        <span className="text-purple-300">Γé╣{codCollected.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-500" style={{ width: `${totalRevenue > 0 ? (codCollected / totalRevenue) * 100 : 0}%` }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-xs font-bold mb-1">
+                        <span className="text-slate-300">COD Pending Balance</span>
+                        <span className="text-amber-300">Γé╣{codPendingCollection.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-500" style={{ width: `${(codPendingCollection / (totalRevenue + codPendingCollection || 1)) * 100}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
+                  <h4 className="text-xs font-black uppercase text-purple-300 tracking-wider">Order Status Volumes</h4>
+                  <div className="grid grid-cols-2 gap-3 text-center">
+                    <div className="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                      <div className="text-xl font-black text-emerald-400">{successfulPaymentsCount}</div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase mt-1">Paid / Successful</div>
+                    </div>
+                    <div className="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                      <div className="text-xl font-black text-amber-400">{pendingPaymentsCount}</div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase mt-1">Pending</div>
+                    </div>
+                    <div className="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                      <div className="text-xl font-black text-rose-400">{failedPaymentsCount}</div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase mt-1">Failed Payments</div>
+                    </div>
+                    <div className="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                      <div className="text-xl font-black text-slate-300">{cancelledOrdersCount}</div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase mt-1">Cancelled</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        
+
+{/* NAV SECTION 7: ACTIVITY LOGS */}
+        {activeNav === 'activity' && (
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-4 shadow-xl">
+            <div className="border-b border-slate-700/80 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Layers className="w-5 h-5 text-purple-400" />
+                <span>System Activity Logs</span>
               </h3>
+              <p className="text-xs text-slate-400">Non-PII Telemetry & User Event Logs</p>
+            </div>
+
+            {analyticsEvents.length === 0 ? (
+              <p className="text-xs text-slate-400 py-8 text-center">No system events logged yet.</p>
+            ) : (
               <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    setEditingPromo(null);
-                    setPromoFormData({
-                      code: '',
-                      discount_type: 'flat',
-                      discount_value: '',
-                      min_order_amount: '299',
-                      max_discount: '',
-                      applicable_scope: 'all',
-                      applicable_categories: [],
-                      applicable_items: [],
-                      valid_from: new Date().toISOString().slice(0, 10),
-                      valid_until: '',
-                      usage_limit: '',
-                      is_active: true
-                    });
-                    setCustomCategoryInput('');
-                    setCustomItemInput('');
-                    setIsPromoModalOpen(true);
-                  }}
-                  className="w-full p-3 bg-purple-900/40 hover:bg-purple-900/60 border border-purple-700/60 rounded-2xl text-left text-xs text-purple-200 font-bold transition-all flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-purple-400" />
-                    <span>Create Scope Promo Coupon</span>
-                  </span>
-                  <Plus className="w-4 h-4" />
-                </button>
+                {analyticsEvents.map((evt) => (
+                  <div key={evt.id} className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-extrabold text-purple-300">{evt.event_type}</span>
+                      <div className="text-[10px] text-slate-400">Path: {evt.page_path || '/'} ΓÇó Session: {evt.session_id}</div>
+                    </div>
+                    <div className="text-right text-[11px] text-slate-400">
+                      {new Date(evt.created_at).toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        
+
+{/* NAV SECTION 8: SYSTEM SETTINGS */}
+        {activeNav === 'settings' && (
+          <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-6 shadow-xl">
+            <div className="border-b border-slate-700/80 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Settings className="w-5 h-5 text-purple-400" />
+                <span>System & Security Configuration</span>
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+                <div className="font-extrabold text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Database RBAC Active</span>
+                </div>
+                <p className="text-slate-400 text-[11px]">Enforced via public.check_is_admin() SECURITY DEFINER function.</p>
+              </div>
+
+              <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+                <div className="font-extrabold text-purple-300 flex items-center gap-1.5">
+                  <Lock className="w-4 h-4" />
+                  <span>Storage Bucket Protection</span>
+                </div>
+                <p className="text-slate-400 text-[11px]">Private prescriptions storage bucket using 300s signed URLs.</p>
               </div>
             </div>
           </div>
