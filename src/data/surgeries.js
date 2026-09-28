@@ -171,7 +171,7 @@ export function getSurgeryBySlug(slug) {
     cat.items.map(item => ({
       ...item,
       category: cat.category,
-      priceNotice: "Price available on request",
+      priceNotice: "Custom package estimate based on hospital & insurance",
       description: `Comprehensive evaluation, specialist selection, and hospital coordination for ${item.name} in India.`,
       whyDone: `Recommended by surgical specialists for clinical management and restoration of function or aesthetic outcome.`,
       preparation: `Pre-operative investigations, blood work, anaesthesia assessment, and specialist consultation.`
@@ -182,7 +182,7 @@ export function getSurgeryBySlug(slug) {
     name: 'Surgical & Treatment Option',
     slug: 'surgery-option',
     category: 'Specialist Surgical Care',
-    priceNotice: 'Price available on request',
+    priceNotice: 'Custom package estimate based on hospital & insurance',
     description: 'Explore surgical options, top hospital partners, and experienced specialists in India with Health Express.',
     whyDone: 'Comprehensive surgical guidance tailored to individual clinical requirements.',
     preparation: 'Pre-operative health assessment, doctor consultation, and diagnostic evaluations.'

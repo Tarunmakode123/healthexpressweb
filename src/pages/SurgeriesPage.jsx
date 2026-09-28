@@ -230,13 +230,16 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
 
         {/* 5. POPULAR SURGERIES SECTION */}
         <section className="space-y-8" id="popular-surgeries">
-          <div className="text-center max-w-3xl mx-auto space-y-2">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900">
               Explore Popular Surgery & Treatment Options
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 font-medium">
               Explore commonly searched surgical procedures across major specialities.
             </p>
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 text-purple-900 border border-purple-200/80 text-xs font-semibold shadow-2xs">
+              <span>💡 Surgery costs vary by hospital tier & insurance. Connect with our Care Desk for customized package estimates.</span>
+            </div>
           </div>
 
           {/* Clean Categorized Grid */}
@@ -244,20 +247,20 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
             {POPULAR_SURGERIES_CATEGORIES.map((catGroup, idx) => (
               <div 
                 key={idx}
-                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4 text-left"
+                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4 text-left hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 className="text-base font-extrabold text-purple-900">{catGroup.category}</h3>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
                     {catGroup.items.length} Procedures
                   </span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {catGroup.items.map((item) => (
                     <div 
                       key={item.slug}
-                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-purple-50 transition-colors group cursor-pointer"
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-purple-50/80 transition-colors group cursor-pointer"
                       onClick={() => handleWhatsAppConsultation(item.name)}
                     >
                       <Link 
@@ -267,8 +270,9 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
                       >
                         {item.name}
                       </Link>
-                      <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200 shrink-0">
-                        Price available on request
+                      <span className="text-[11px] font-semibold text-purple-700 group-hover:text-purple-950 flex items-center gap-1 transition-all shrink-0">
+                        Get Estimate
+                        <ChevronRight className="w-3.5 h-3.5 text-purple-500 group-hover:translate-x-0.5 transition-transform" />
                       </span>
                     </div>
                   ))}

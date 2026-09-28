@@ -38,8 +38,8 @@ export default function SurgeryDetailPage({ onOpenUploadModal }) {
               <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
                 {surgery.category}
               </span>
-              <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-200">
-                ⚡ Price available on request
+              <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                🏥 Custom Estimate & Insurance Assistance
               </span>
             </div>
 
