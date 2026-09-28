@@ -1,10 +1,15 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { Search, Sparkles, ArrowRight, ShieldCheck, Droplet, Activity, Sun, Target, Heart, UserCheck, Shield, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
-import { openWhatsApp } from '../../utils/whatsapp';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+  Search, Sparkles, ArrowRight, ShieldCheck, Droplet, Activity, Sun, Target, 
+  Heart, UserCheck, Shield, ShoppingBag, ChevronLeft, ChevronRight, CheckCircle2, ShoppingCart 
+} from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 export default function PopularTestsSection() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
+  const [addedToast, setAddedToast] = useState(null);
   const { addToCart } = useCart();
   const scrollContainerRef = useRef(null);
 
@@ -86,6 +91,24 @@ export default function PopularTestsSection() {
     );
   }, [searchQuery]);
 
+  // Auto-play interval loop with hover pause
+  useEffect(() => {
+    if (isHovered || searchQuery.trim().length > 0) return;
+
+    const interval = setInterval(() => {
+      if (scrollContainerRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+        if (scrollLeft + clientWidth >= scrollWidth - 25) {
+          scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          scrollContainerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+        }
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isHovered, searchQuery]);
+
   const handleScroll = (direction) => {
     if (scrollContainerRef.current) {
       const scrollAmount = direction === 'left' ? -340 : 340;
@@ -93,8 +116,30 @@ export default function PopularTestsSection() {
     }
   };
 
+  const handleAddToCart = (service, e) => {
+    if (e) e.stopPropagation();
+    const testPrice = service.id === 'full-body-checkup' ? 999 : 299;
+    addToCart({
+      id: service.id,
+      name: service.title,
+      category: service.category,
+      price: testPrice,
+      originalPrice: service.id === 'full-body-checkup' ? 2499 : 599,
+      turnaround: '6-12 Hours'
+    });
+
+    setAddedToast({
+      title: service.title,
+      price: testPrice
+    });
+
+    setTimeout(() => {
+      setAddedToast(null);
+    }, 3500);
+  };
+
   return (
-    <section className="py-16 md:py-24 bg-white border-t border-slate-100" id="tests">
+    <section className="py-16 md:py-24 bg-white border-t border-slate-100 relative" id="tests">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Section Header */}
@@ -159,9 +204,13 @@ export default function PopularTestsSection() {
           </div>
         </div>
 
-        {/* Horizontal Slider Track */}
+        {/* Horizontal Slider Track with Auto-Play & Hover Pause */}
         <div 
           ref={scrollContainerRef}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(true)}
+          onTouchEnd={() => setIsHovered(false)}
           className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 scrollbar-none text-left"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
@@ -170,14 +219,7 @@ export default function PopularTestsSection() {
             return (
               <div
                 key={service.id}
-                onClick={() => addToCart({
-                  id: service.id,
-                  name: service.title,
-                  category: service.category,
-                  price: service.id === 'full-body-checkup' ? 999 : 299,
-                  originalPrice: service.id === 'full-body-checkup' ? 2499 : 599,
-                  turnaround: '6-12 Hours'
-                })}
+                onClick={(e) => handleAddToCart(service, e)}
                 className="w-[280px] sm:w-[310px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
               >
                 <div className="space-y-3">
@@ -202,10 +244,10 @@ export default function PopularTestsSection() {
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900">
                   <span className="flex items-center gap-1">
-                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <ShoppingBag className="w-3.5 h-3.5 text-purple-600" />
                     <span>Book & Add to Basket</span>
                   </span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-purple-600" />
                 </div>
               </div>
             );
@@ -213,6 +255,31 @@ export default function PopularTestsSection() {
         </div>
 
       </div>
+
+      {/* Floating Toast Notification Alert for Added to Basket */}
+      {addedToast && (
+        <div className="fixed bottom-6 right-6 z-[9999] bg-slate-900 text-white rounded-2xl p-4 shadow-2xl border border-purple-500/30 flex items-center gap-3 animate-bounce shadow-purple-950/50 text-left">
+          <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+              <span>Added to Basket</span>
+              <span className="text-emerald-400 font-extrabold">₹{addedToast.price}</span>
+            </div>
+            <div className="text-[11px] text-slate-400 font-medium truncate max-w-[220px]">
+              {addedToast.title}
+            </div>
+          </div>
+          <Link
+            to="/cart"
+            className="ml-2 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-extrabold transition-colors flex items-center gap-1 shrink-0"
+          >
+            <ShoppingCart className="w-3 h-3" />
+            <span>View Cart</span>
+          </Link>
+        </div>
+      )}
     </section>
   );
 }

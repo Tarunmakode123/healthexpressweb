@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Sparkles, ArrowRight, Scale, Flame, Zap, Target, Activity, Droplet, 
@@ -12,11 +12,30 @@ const iconMap = {
 
 export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [isHovered, setIsHovered] = useState(false);
   const scrollContainerRef = useRef(null);
 
   const filteredCalculators = activeCategory === 'all' 
     ? CALCULATORS 
     : CALCULATORS.filter(c => c.category === activeCategory);
+
+  // Auto-play interval loop with hover pause
+  useEffect(() => {
+    if (isHovered) return;
+
+    const interval = setInterval(() => {
+      if (scrollContainerRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+        if (scrollLeft + clientWidth >= scrollWidth - 25) {
+          scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          scrollContainerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+        }
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   const handleCardClick = (slug) => {
     if (onOpenCalculatorModal) {
@@ -113,9 +132,13 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
           ))}
         </div>
 
-        {/* Horizontal Slider Track */}
+        {/* Horizontal Slider Track with Auto-Play & Hover Pause */}
         <div 
           ref={scrollContainerRef}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(true)}
+          onTouchEnd={() => setIsHovered(false)}
           className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 scrollbar-none"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
