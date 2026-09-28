@@ -69,7 +69,7 @@ export default function HowItWorksSection({ onOpenUploadModal }) {
   };
 
   return (
-    <section className="py-20 md:py-28 bg-slate-950 text-white relative overflow-hidden" id="how-it-works">
+    <section className="py-12 md:py-16 bg-slate-950 text-white relative overflow-hidden" id="how-it-works">
       
       {/* Ambient Dark Glows */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-purple-900/30 rounded-full blur-3xl pointer-events-none" />

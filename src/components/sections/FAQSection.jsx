@@ -32,7 +32,7 @@ export default function FAQSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-purple-50/20 border-t border-purple-100/40">
+    <section className="py-12 md:py-16 bg-purple-50/20 border-t border-purple-100/40">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Header */}

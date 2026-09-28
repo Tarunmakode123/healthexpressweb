@@ -24,7 +24,7 @@ export default function WhyHealthExpressSection() {
   ];
 
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-purple-50/30 via-white to-slate-50 border-t border-purple-100/60 relative overflow-hidden" id="care-commitment">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-purple-50/30 via-white to-slate-50 border-t border-purple-100/60 relative overflow-hidden" id="care-commitment">
       
       {/* Background Subtle Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[400px] bg-purple-100/25 rounded-full blur-3xl pointer-events-none -z-10" />

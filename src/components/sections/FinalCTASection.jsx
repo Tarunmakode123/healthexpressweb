@@ -8,7 +8,7 @@ import { openWhatsApp } from '../../utils/whatsapp';
 
 export default function FinalCTASection({ onOpenUploadModal }) {
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 relative overflow-hidden">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 relative overflow-hidden">
       
       {/* Background Subtle Ambient Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-purple-100/30 rounded-full blur-3xl pointer-events-none -z-10" />

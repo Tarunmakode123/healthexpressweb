@@ -41,7 +41,7 @@ export default function HealthLibrarySection() {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-purple-50/20 border-t border-purple-100/40" id="health-library">
+    <section className="py-12 md:py-16 bg-purple-50/20 border-t border-purple-100/40" id="health-library">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header */}

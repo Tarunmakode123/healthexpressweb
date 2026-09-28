@@ -25,7 +25,7 @@ export default function CitiesSection() {
   ) || activeLocality.toLowerCase().includes('bengaluru') || activeLocality.toLowerCase().includes('bangalore');
 
   return (
-    <section className="py-16 md:py-24 bg-mesh-purple border-t border-purple-100/60 relative overflow-hidden" id="locations">
+    <section className="py-12 md:py-16 bg-mesh-purple border-t border-purple-100/60 relative overflow-hidden" id="locations">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
         {/* Header */}

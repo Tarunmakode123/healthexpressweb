@@ -4,7 +4,7 @@ import { openWhatsApp } from '../../utils/whatsapp';
 
 export default function HealthRecordsSection() {
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-12 md:py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-purple-50/50 rounded-3xl p-8 sm:p-12 border border-purple-100 flex flex-col md:flex-row items-center justify-between gap-8 shadow-xs">
           

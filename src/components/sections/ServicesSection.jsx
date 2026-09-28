@@ -107,7 +107,7 @@ export default function ServicesSection({ onOpenUploadModal }) {
   };
 
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 relative overflow-hidden" id="services">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 relative overflow-hidden" id="services">
       
       {/* Subtle Ambient Glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-purple-100/30 rounded-full blur-3xl pointer-events-none -z-10" />

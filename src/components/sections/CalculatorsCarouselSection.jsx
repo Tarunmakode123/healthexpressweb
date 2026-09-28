@@ -53,7 +53,7 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-gradient-to-b from-white via-purple-50/20 to-slate-50 border-t border-b border-purple-100/60 relative overflow-hidden" id="calculators">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-white via-purple-50/20 to-slate-50 border-t border-b border-purple-100/60 relative overflow-hidden" id="calculators">
       
       {/* Background Accent Blur */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-purple-100/30 rounded-full blur-3xl pointer-events-none -z-10" />

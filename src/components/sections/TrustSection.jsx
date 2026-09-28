@@ -21,7 +21,7 @@ export default function TrustSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-mesh-purple border-t border-purple-100/60 relative overflow-hidden">
+    <section className="py-12 md:py-16 bg-mesh-purple border-t border-purple-100/60 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
         {/* Header */}

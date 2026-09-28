@@ -4,7 +4,7 @@ import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 
 export default function FamilySection({ onOpenUploadModal }) {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-purple-50/40 via-white to-slate-50 border-y border-purple-100/60">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-purple-50/40 via-white to-slate-50 border-y border-purple-100/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           

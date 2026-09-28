@@ -11,7 +11,7 @@ export default function ProblemSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-purple-50/40 via-white to-slate-50/60 text-slate-900 border-y border-purple-100/60 relative overflow-hidden text-left">
+    <section className="py-12 md:py-16 bg-gradient-to-b from-purple-50/40 via-white to-slate-50/60 text-slate-900 border-y border-purple-100/60 relative overflow-hidden text-left">
       
       {/* Background Decorative Ambient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-purple-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
