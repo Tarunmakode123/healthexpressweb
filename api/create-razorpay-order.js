@@ -5,12 +5,15 @@ import { validateCartTotal } from '../src/services/catalogPriceValidator.js';
  * SERVER-SIDE ONLY ENDPOINT: Create Razorpay Order
  * Uses server-side environment variables: RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET
  * NEVER EXPOSES RAZORPAY_KEY_SECRET TO BROWSER
+ * 
+ * NEVER TRUSTS CLIENT-SUPPLIED TOTALS OR DISCOUNTS.
+ * RECALCULATES CANONICAL SUBTOTAL AND PROMO DISCOUNT SERVER-SIDE.
  */
 export async function handleCreateRazorpayOrder(reqBody) {
-  const { items, customerName, customerPhone, customerEmail } = reqBody || {};
+  const { items, promoCode, customerName, customerPhone, customerEmail } = reqBody || {};
 
-  // 1. Validate Cart & calculate trusted amount on server
-  const cartValidation = validateCartTotal(items);
+  // 1. Validate Cart & calculate trusted amount on server (including promo discount validation)
+  const cartValidation = validateCartTotal(items, promoCode);
   if (!cartValidation.isValid) {
     return {
       status: 400,
@@ -18,7 +21,7 @@ export async function handleCreateRazorpayOrder(reqBody) {
     };
   }
 
-  const { verifiedTotal, validatedItems } = cartValidation;
+  const { verifiedTotal, verifiedSubtotal, promoDiscount, promoCodeApplied, validatedItems } = cartValidation;
   const amountInPaise = Math.round(verifiedTotal * 100);
 
   const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID;
@@ -34,6 +37,9 @@ export async function handleCreateRazorpayOrder(reqBody) {
         mode: 'DEMO',
         razorpay_order_id: demoRzpOrderId,
         amount: verifiedTotal,
+        subtotal: verifiedSubtotal,
+        promo_discount: promoDiscount,
+        promo_code: promoCodeApplied?.code || null,
         currency: 'INR',
         items: validatedItems,
         message: 'Demo Payment — No real money will be charged.'
@@ -57,7 +63,9 @@ export async function handleCreateRazorpayOrder(reqBody) {
         notes: {
           customer_name: customerName || 'Guest',
           customer_phone: customerPhone || '',
-          item_count: validatedItems.length
+          item_count: validatedItems.length,
+          promo_code: promoCodeApplied?.code || 'NONE',
+          promo_discount: promoDiscount
         }
       })
     });
@@ -78,6 +86,9 @@ export async function handleCreateRazorpayOrder(reqBody) {
         mode: 'LIVE',
         razorpay_order_id: rzpData.id,
         amount: verifiedTotal,
+        subtotal: verifiedSubtotal,
+        promo_discount: promoDiscount,
+        promo_code: promoCodeApplied?.code || null,
         currency: 'INR',
         items: validatedItems,
         key_id: keyId
@@ -102,4 +113,3 @@ export default async function handler(req, res) {
   const result = await handleCreateRazorpayOrder(req.body);
   return res.status(result.status).json(result.body);
 }
-

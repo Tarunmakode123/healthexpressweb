@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
+import { DEMO_PROMO_CODES } from './promoService.js';
 
 /**
  * Verifies Admin login credentials against Supabase Auth & Database RBAC
@@ -110,171 +111,136 @@ export async function fetchAdminPayments() {
 }
 
 /**
- * Mark COD Payment as Collected via secure SECURITY DEFINER RPC
+ * Update Order status in database
+ */
+export async function updateAdminOrderStatus(orderId, nextStatus) {
+  if (!orderId || !nextStatus) return { success: false, error: 'Missing order parameters.' };
+
+  if (!isSupabaseConfigured) return { success: false, error: 'Supabase configuration missing.' };
+
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ order_status: nextStatus, updated_at: new Date().toISOString() })
+      .eq('id', orderId)
+      .select();
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, data: data[0] };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Collect COD Payment from Admin Panel
  */
 export async function markCodPaymentCollected(orderId) {
   if (!orderId) return { success: false, error: 'Missing Order ID.' };
 
-  if (!isSupabaseConfigured) {
-    return { success: false, error: 'Supabase configuration is missing.' };
-  }
+  if (!isSupabaseConfigured) return { success: false, error: 'Supabase configuration missing.' };
 
   try {
     const { data, error } = await supabase.rpc('mark_cod_payment_collected', {
       p_order_id: orderId
     });
 
-    if (error) {
-      console.error('RPC mark_cod_payment_collected error:', error);
-      return { success: false, error: error.message };
-    }
-
+    if (error) return { success: false, error: error.message };
     return { success: true, data };
   } catch (err) {
-    console.error('Mark COD Exception:', err);
     return { success: false, error: err.message };
   }
 }
 
 /**
- * Update Order status in database
- */
-export async function updateAdminOrderStatus(orderId, newOrderStatus) {
-  if (!isSupabaseConfigured) {
-    return { success: false, error: 'Supabase configuration is missing.' };
-  }
-
-  try {
-    const { error } = await supabase
-      .from('orders')
-      .update({ order_status: newOrderStatus, updated_at: new Date().toISOString() })
-      .eq('id', orderId);
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
-}
-
-/**
- * Fetch Guest Prescriptions & Enquiries from Supabase
+ * Fetch all prescription uploads for Admin Panel
  */
 export async function fetchAdminPrescriptions() {
-  if (!isSupabaseConfigured) {
-    return { success: false, error: 'Supabase configuration is missing.' };
-  }
+  if (!isSupabaseConfigured) return { success: true, data: [] };
 
   try {
-    const { data: enquiries, error } = await supabase
-      .from('enquiries')
+    const { data, error } = await supabase
+      .from('prescriptions')
       .select(`
         *,
-        patients (*),
-        prescriptions (*)
+        enquiries (*),
+        patients (*)
       `)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Fetch enquiries database error:', error.message);
-      return { success: false, error: `Failed to load enquiries: ${error.message}` };
-    }
-
-    return { success: true, data: enquiries || [] };
-  } catch (err) {
-    console.error('Fetch enquiries exception:', err);
-    return { success: false, error: err.message || 'Database connection error.' };
-  }
-}
-
-/**
- * Update Enquiry status
- */
-export async function updateAdminEnquiryStatus(enquiryId, newStatus) {
-  if (!isSupabaseConfigured) {
-    return { success: false, error: 'Supabase configuration is missing.' };
-  }
-
-  try {
-    const { error } = await supabase
-      .from('enquiries')
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq('id', enquiryId);
-
     if (error) return { success: false, error: error.message };
-    return { success: true };
+    return { success: true, data: data || [] };
   } catch (err) {
     return { success: false, error: err.message };
   }
 }
 
 /**
- * Fetch Registered Patients Directory from Supabase
+ * Update enquiry status
  */
-export async function fetchAdminPatients() {
-  if (!isSupabaseConfigured) {
-    return { success: false, error: 'Supabase configuration is missing.' };
-  }
+export async function updateAdminEnquiryStatus(enquiryId, nextStatus) {
+  if (!enquiryId || !nextStatus) return { success: false, error: 'Missing parameters.' };
+
+  if (!isSupabaseConfigured) return { success: false, error: 'Supabase configuration missing.' };
 
   try {
-    const { data: patients, error } = await supabase
+    const { data, error } = await supabase
+      .from('enquiries')
+      .update({ status: nextStatus, updated_at: new Date().toISOString() })
+      .eq('id', enquiryId)
+      .select();
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, data: data[0] };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch all patients for Admin Patient Directory
+ */
+export async function fetchAdminPatients() {
+  if (!isSupabaseConfigured) return { success: true, data: [] };
+
+  try {
+    const { data, error } = await supabase
       .from('patients')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Fetch patients database error:', error.message);
-      return { success: false, error: `Failed to load patients: ${error.message}` };
-    }
-
-    return { success: true, data: patients || [] };
+    if (error) return { success: false, error: error.message };
+    return { success: true, data: data || [] };
   } catch (err) {
-    console.error('Fetch patients exception:', err);
-    return { success: false, error: err.message || 'Database connection error.' };
+    return { success: false, error: err.message };
   }
 }
 
 /**
- * Generate a secure temporary signed URL for viewing/downloading a private prescription file
+ * Get signed download URL for private prescription file in storage
  */
-export async function getPrescriptionSignedUrl(filePath, expiresInSeconds = 300) {
-  if (!filePath) {
-    return { success: false, error: 'File path unavailable.' };
-  }
-
-  if (!isSupabaseConfigured) {
-    return { success: false, error: 'Supabase configuration is missing.' };
-  }
+export async function getPrescriptionSignedUrl(filePath) {
+  if (!filePath) return null;
+  if (!isSupabaseConfigured) return null;
 
   try {
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabase
+      .storage
       .from('prescriptions')
-      .createSignedUrl(filePath, expiresInSeconds);
+      .createSignedUrl(filePath, 3600); // 1 hour expiration
 
-    if (error) {
-      console.error('Storage createSignedUrl error:', error);
-      return { success: false, error: error.message || 'Failed to generate secure signed URL.' };
-    }
-
-    if (!data?.signedUrl) {
-      return { success: false, error: 'Unable to generate secure file URL.' };
-    }
-
-    return { success: true, signedUrl: data.signedUrl };
-  } catch (err) {
-    console.error('getPrescriptionSignedUrl exception:', err);
-    return { success: false, error: err.message || 'Error generating file download URL.' };
+    if (error) return null;
+    return data.signedUrl;
+  } catch (e) {
+    return null;
   }
 }
 
 /**
- * Fetch 360-degree Customer Profile Details (Orders, Prescriptions, Payments, Event Logs)
+ * Fetch Customer 360 Unified Profile
  */
 export async function fetchCustomerDetails(patientId) {
-  if (!patientId) return { success: false, error: 'Patient ID is required.' };
-  if (!isSupabaseConfigured) return { success: false, error: 'Supabase is not configured.' };
+  if (!patientId || !isSupabaseConfigured) return { success: false, error: 'Invalid parameters.' };
 
   try {
     const [patRes, ordRes, enqRes, payRes, evtRes] = await Promise.all([
@@ -323,5 +289,173 @@ export async function fetchAnalyticsEvents(limit = 100) {
   } catch (err) {
     console.warn('Fetch analytics events exception:', err);
     return { success: true, data: [] };
+  }
+}
+
+// ============================================================
+// ADMIN PROMO CODE / COUPON MANAGEMENT SERVICES
+// ============================================================
+
+let localAdminPromosStore = [...DEMO_PROMO_CODES];
+
+/**
+ * Fetch all promo codes for Admin Panel Data Table
+ */
+export async function fetchAdminPromoCodes() {
+  if (!isSupabaseConfigured) {
+    return { success: true, data: localAdminPromosStore };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Fetch admin promo codes warning:', error.message);
+      return { success: true, data: localAdminPromosStore };
+    }
+
+    return { success: true, data: data || [] };
+  } catch (err) {
+    console.error('Fetch admin promo codes exception:', err);
+    return { success: true, data: localAdminPromosStore };
+  }
+}
+
+/**
+ * Create new Promo Code from Admin Panel
+ */
+export async function createAdminPromoCode(promoData) {
+  const normalizedCode = (promoData.code || '').trim().toUpperCase();
+
+  if (!normalizedCode) return { success: false, error: 'Promo code is required.' };
+  if (!promoData.discount_value || Number(promoData.discount_value) <= 0) {
+    return { success: false, error: 'Discount value must be greater than 0.' };
+  }
+
+  const payload = {
+    code: normalizedCode,
+    discount_type: promoData.discount_type || 'flat',
+    discount_value: Number(promoData.discount_value),
+    min_order_amount: Number(promoData.min_order_amount || 0),
+    max_discount: promoData.max_discount ? Number(promoData.max_discount) : null,
+    valid_from: promoData.valid_from || new Date().toISOString(),
+    valid_until: promoData.valid_until || null,
+    usage_limit: promoData.usage_limit ? parseInt(promoData.usage_limit, 10) : null,
+    is_active: promoData.is_active !== undefined ? Boolean(promoData.is_active) : true,
+    used_count: 0
+  };
+
+  if (!isSupabaseConfigured) {
+    const newPromo = { id: 'demo_promo_' + Date.now(), ...payload, created_at: new Date().toISOString() };
+    localAdminPromosStore = [newPromo, ...localAdminPromosStore];
+    return { success: true, data: newPromo };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message || 'Failed to create promo code.' };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message || 'Database connection error.' };
+  }
+}
+
+/**
+ * Update existing Promo Code from Admin Panel
+ */
+export async function updateAdminPromoCode(id, promoData) {
+  if (!id) return { success: false, error: 'Missing promo code ID.' };
+
+  const normalizedCode = (promoData.code || '').trim().toUpperCase();
+
+  const payload = {
+    code: normalizedCode,
+    discount_type: promoData.discount_type || 'flat',
+    discount_value: Number(promoData.discount_value),
+    min_order_amount: Number(promoData.min_order_amount || 0),
+    max_discount: promoData.max_discount ? Number(promoData.max_discount) : null,
+    valid_from: promoData.valid_from || new Date().toISOString(),
+    valid_until: promoData.valid_until || null,
+    usage_limit: promoData.usage_limit ? parseInt(promoData.usage_limit, 10) : null,
+    is_active: Boolean(promoData.is_active),
+    updated_at: new Date().toISOString()
+  };
+
+  if (!isSupabaseConfigured) {
+    localAdminPromosStore = localAdminPromosStore.map((p) => (p.id === id ? { ...p, ...payload } : p));
+    return { success: true, data: { id, ...payload } };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Toggle Active / Inactive status for a Promo Code from Admin Panel
+ */
+export async function toggleAdminPromoCodeStatus(id, isActive) {
+  if (!id) return { success: false, error: 'Missing promo code ID.' };
+
+  if (!isSupabaseConfigured) {
+    localAdminPromosStore = localAdminPromosStore.map((p) => (p.id === id ? { ...p, is_active: isActive } : p));
+    return { success: true };
+  }
+
+  try {
+    const { error } = await supabase
+      .from('promo_codes')
+      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Delete Promo Code from Admin Panel (Safety check handles foreign keys)
+ */
+export async function deleteAdminPromoCode(id) {
+  if (!id) return { success: false, error: 'Missing promo code ID.' };
+
+  if (!isSupabaseConfigured) {
+    localAdminPromosStore = localAdminPromosStore.filter((p) => p.id !== id);
+    return { success: true };
+  }
+
+  try {
+    const { error } = await supabase
+      .from('promo_codes')
+      .delete()
+      .eq('id', id);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, 
-  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw, Truck
+  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw, Truck, Tag, Percent
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -27,7 +27,15 @@ export default function CartDrawer() {
     subtotal, 
     originalSubtotal, 
     totalSavings, 
-    itemCount 
+    itemCount,
+    appliedPromo,
+    promoDiscount,
+    promoLoading,
+    promoError,
+    availablePromos,
+    applyPromoCode,
+    removePromoCode,
+    finalPayable
   } = useCart();
 
   const { user, isLoggedIn } = useAuth();
@@ -39,6 +47,10 @@ export default function CartDrawer() {
   const [confirmedOrder, setConfirmedOrder] = useState(null);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [pendingDemoOrder, setPendingDemoOrder] = useState(null);
+
+  // Promo Code Form Input State
+  const [promoInput, setPromoInput] = useState('');
+  const [promoSuccessMsg, setPromoSuccessMsg] = useState(null);
 
   const [patientData, setPatientData] = useState({
     name: '',
@@ -60,6 +72,29 @@ export default function CartDrawer() {
   }, [user]);
 
   if (!isCartOpen) return null;
+
+  // Handle manual Promo Code submission
+  const handleApplyPromo = async (e) => {
+    if (e) e.preventDefault();
+    if (!promoInput.trim()) return;
+
+    setPromoSuccessMsg(null);
+    const result = await applyPromoCode(promoInput.trim());
+    if (result.success) {
+      setPromoSuccessMsg(result.message);
+      setPromoInput('');
+    }
+  };
+
+  // Handle direct click on Available Offer badge
+  const handleApplyAvailableOffer = async (code) => {
+    setPromoInput('');
+    setPromoSuccessMsg(null);
+    const result = await applyPromoCode(code);
+    if (result.success) {
+      setPromoSuccessMsg(result.message);
+    }
+  };
 
   // Handle Order Submit (COD or Online Payment)
   const handleSubmitCheckout = async (e) => {
@@ -85,7 +120,7 @@ export default function CartDrawer() {
 
     import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
       logAnalyticsEvent('CHECKOUT_STARTED', {
-        metadata: { item_count: cartItems.length, subtotal: cartTotal }
+        metadata: { item_count: cartItems.length, subtotal: subtotal, finalPayable: finalPayable, promoCode: appliedPromo?.code || null }
       });
     }).catch(() => {});
 
@@ -100,6 +135,7 @@ export default function CartDrawer() {
           customerEmail: patientData.email,
           city: patientData.address,
           items: cartItems,
+          promoCode: appliedPromo?.code || null,
           userId: user?.id || null,
           paymentMethod: 'COD'
         });
@@ -129,6 +165,7 @@ export default function CartDrawer() {
       // 1. Create official Razorpay Order via server API endpoint (/api/create-razorpay-order)
       const rzpServerRes = await createRazorpayOrderServer({
         items: cartItems,
+        promoCode: appliedPromo?.code || null,
         customerName: patientData.name,
         customerPhone: patientData.phone,
         customerEmail: patientData.email
@@ -149,6 +186,7 @@ export default function CartDrawer() {
         customerEmail: patientData.email,
         city: patientData.address,
         items: cartItems,
+        promoCode: appliedPromo?.code || null,
         userId: user?.id || null,
         paymentMethod: 'ONLINE',
         razorpayOrderId: realRzpOrderId
@@ -185,6 +223,9 @@ export default function CartDrawer() {
             // Server-side Payment Verification
             const verifyRes = await verifyAndConfirmPayment({
               orderId: orderRes.order_id,
+              promoCodeId: appliedPromo?.id || null,
+              patientId: orderRes.patient_id || null,
+              promoDiscount: promoDiscount,
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
@@ -277,6 +318,9 @@ export default function CartDrawer() {
 
     const verifyRes = await verifyAndConfirmPayment({
       orderId: pendingDemoOrder.order_id,
+      promoCodeId: appliedPromo?.id || null,
+      patientId: pendingDemoOrder.patient_id || null,
+      promoDiscount: promoDiscount,
       razorpayOrderId: demoPayload.razorpay_order_id,
       razorpayPaymentId: demoPayload.razorpay_payment_id,
       razorpaySignature: demoPayload.razorpay_signature,
@@ -388,6 +432,13 @@ export default function CartDrawer() {
                       </span>
                     </div>
 
+                    {confirmedOrder?.promo_code && (
+                      <div className="flex justify-between text-emerald-700 font-bold">
+                        <span>Promo Code Applied:</span>
+                        <span>{confirmedOrder.promo_code} (-₹{confirmedOrder.promo_discount})</span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-slate-700 font-semibold">
                       <span>Customer Name:</span>
                       <span className="font-bold">{confirmedOrder?.customer_name || patientData.name}</span>
@@ -399,15 +450,15 @@ export default function CartDrawer() {
                     </div>
 
                     <div className="flex justify-between items-baseline pt-2 border-t border-slate-200">
-                      <span className="font-extrabold text-slate-900">Total Amount:</span>
-                      <span className="text-xl font-black text-purple-950">₹{confirmedOrder?.total_amount || subtotal}</span>
+                      <span className="font-extrabold text-slate-900">Total Amount Paid:</span>
+                      <span className="text-xl font-black text-purple-950">₹{confirmedOrder?.total_amount || finalPayable}</span>
                     </div>
                   </div>
 
                   <div className="pt-2 flex flex-col gap-2">
                     <button
                       onClick={() => {
-                        const msg = `Hello Health Express! I placed Order *${confirmedOrder?.order_code || 'HEX-ORD'}* (${confirmedOrder?.payment_method === 'COD' ? 'Cash on Delivery' : 'Paid Online'}) for ₹${confirmedOrder?.total_amount || subtotal}. Please confirm phlebotomist/nurse slot details.`;
+                        const msg = `Hello Health Express! I placed Order *${confirmedOrder?.order_code || 'HEX-ORD'}* (${confirmedOrder?.payment_method === 'COD' ? 'Cash on Delivery' : 'Paid Online'}) for ₹${confirmedOrder?.total_amount || finalPayable}. Please confirm phlebotomist/nurse slot details.`;
                         openWhatsApp(msg);
                       }}
                       className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
@@ -566,15 +617,29 @@ export default function CartDrawer() {
                       <span>Selected Services ({itemCount})</span>
                       <span>₹{subtotal}</span>
                     </div>
+
+                    {appliedPromo && promoDiscount > 0 && (
+                      <div className="flex justify-between text-purple-900 font-extrabold">
+                        <span>Promo Code ({appliedPromo.code})</span>
+                        <span>-₹{promoDiscount}</span>
+                      </div>
+                    )}
+
                     {totalSavings > 0 && (
-                      <div className="flex justify-between text-emerald-700 font-extrabold text-[11px]">
-                        <span>Total Discount Savings</span>
+                      <div className="flex justify-between text-emerald-700 font-bold text-[11px]">
+                        <span>Catalog Savings</span>
                         <span>-₹{totalSavings}</span>
                       </div>
                     )}
+
                     <div className="flex justify-between text-slate-600 text-[11px]">
                       <span>Home Sample Collection</span>
                       <span className="font-bold text-emerald-600">FREE</span>
+                    </div>
+
+                    <div className="pt-2 border-t border-purple-200 flex justify-between items-baseline font-black text-slate-900 text-sm">
+                      <span>Final Payable Amount</span>
+                      <span className="text-purple-950 text-base">₹{finalPayable}</span>
                     </div>
                   </div>
 
@@ -592,12 +657,12 @@ export default function CartDrawer() {
                       ) : paymentMethodChoice === 'cod' ? (
                         <span className="flex items-center gap-2">
                           <Truck className="w-4 h-4" />
-                          <span>Place Cash on Delivery Order (₹{subtotal})</span>
+                          <span>Place Cash on Delivery Order (₹{finalPayable})</span>
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
                           <CreditCard className="w-4 h-4" />
-                          <span>Pay Online via Razorpay (₹{subtotal})</span>
+                          <span>Pay Online via Razorpay (₹{finalPayable})</span>
                         </span>
                       )}
                     </button>
@@ -605,7 +670,7 @@ export default function CartDrawer() {
                 </form>
               ) : (
                 /* Cart Items List */
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="flex items-center justify-between text-xs font-bold text-slate-500">
                     <span>SELECTED SERVICES ({cartItems.length})</span>
                     <button 
@@ -617,6 +682,7 @@ export default function CartDrawer() {
                     </button>
                   </div>
 
+                  {/* Cart Items Cards */}
                   <div className="space-y-3">
                     {cartItems.map((item) => (
                       <div 
@@ -666,6 +732,97 @@ export default function CartDrawer() {
                       </div>
                     ))}
                   </div>
+
+                  {/* 🏷️ PROMO CODE / OFFERS SECTION */}
+                  <div className="bg-purple-50/60 rounded-3xl p-4 border border-purple-100/90 space-y-3.5 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-purple-950 flex items-center gap-1.5 uppercase tracking-wider">
+                        <Tag className="w-4 h-4 text-purple-700" />
+                        <span>Have a Promo Code?</span>
+                      </span>
+                      {appliedPromo && (
+                        <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-700" />
+                          <span>APPLIED</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Applied State View */}
+                    {appliedPromo ? (
+                      <div className="bg-white p-3.5 rounded-2xl border border-purple-200 shadow-2xs flex items-center justify-between gap-3">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-xs text-purple-950 uppercase tracking-wide">
+                              ✓ {appliedPromo.code}
+                            </span>
+                            <span className="text-[10px] font-extrabold bg-purple-100 text-purple-900 px-2 py-0.5 rounded-full">
+                              -₹{promoDiscount} OFF
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 font-medium">Promo code successfully applied to basket.</p>
+                        </div>
+                        <button
+                          onClick={removePromoCode}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 text-xs font-extrabold transition-colors shrink-0"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      /* Manual Promo Code Input Form */
+                      <form onSubmit={handleApplyPromo} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={promoInput}
+                          onChange={(e) => {
+                            setPromoInput(e.target.value.toUpperCase());
+                          }}
+                          placeholder="Enter promo code (e.g. HEALTH50)"
+                          className="flex-1 px-3.5 py-2.5 rounded-2xl border border-purple-200 text-xs font-extrabold uppercase focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white placeholder:normal-case placeholder:font-medium"
+                        />
+                        <button
+                          type="submit"
+                          disabled={promoLoading || !promoInput.trim()}
+                          className="px-5 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-white font-extrabold text-xs shadow-xs transition-colors flex items-center justify-center cursor-pointer shrink-0"
+                        >
+                          {promoLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Apply'}
+                        </button>
+                      </form>
+                    )}
+
+                    {/* Promo Error Message */}
+                    {promoError && (
+                      <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5 pt-0.5 animate-in fade-in">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{promoError}</span>
+                      </div>
+                    )}
+
+                    {/* Available Offers Badges */}
+                    {!appliedPromo && availablePromos && availablePromos.length > 0 && (
+                      <div className="space-y-2 pt-1 border-t border-purple-100/80">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Available Offers:</span>
+                        <div className="flex flex-wrap gap-2">
+                          {availablePromos.map((offer) => (
+                            <button
+                              key={offer.id || offer.code}
+                              onClick={() => handleApplyAvailableOffer(offer.code)}
+                              className="text-left px-3 py-1.5 rounded-xl bg-white hover:bg-purple-100/70 border border-purple-200 text-purple-950 font-bold text-[11px] flex items-center justify-between gap-2 shadow-2xs transition-all cursor-pointer group"
+                            >
+                              <span className="flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-purple-700 shrink-0" />
+                                <strong>{offer.code}</strong>
+                                <span className="text-slate-500 font-medium">({offer.discount_type === 'flat' ? `₹${offer.discount_value} OFF` : `${offer.discount_value}% OFF`})</span>
+                              </span>
+                              <span className="text-[10px] text-purple-700 underline font-extrabold group-hover:text-purple-900">Apply</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               )}
 
@@ -682,8 +839,14 @@ export default function CartDrawer() {
                   </div>
                   {totalSavings > 0 && (
                     <div className="flex justify-between text-emerald-700 font-extrabold">
-                      <span>Special Discount Savings</span>
+                      <span>Catalog Discount Savings</span>
                       <span>-₹{totalSavings}</span>
+                    </div>
+                  )}
+                  {appliedPromo && promoDiscount > 0 && (
+                    <div className="flex justify-between text-purple-900 font-black">
+                      <span>Promo Discount ({appliedPromo.code})</span>
+                      <span>-₹{promoDiscount}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-slate-600 font-semibold">
@@ -693,7 +856,7 @@ export default function CartDrawer() {
 
                   <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline">
                     <span className="text-sm font-extrabold text-slate-900">Total Amount Payable</span>
-                    <span className="text-2xl font-black text-purple-900">₹{subtotal}</span>
+                    <span className="text-2xl font-black text-purple-900">₹{finalPayable}</span>
                   </div>
                 </div>
 

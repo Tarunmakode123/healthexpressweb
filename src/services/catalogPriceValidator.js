@@ -1,25 +1,32 @@
 import { ALL_SERVICES } from '../data/services.js';
+import { DEMO_PROMO_CODES, calculateDiscountAmount } from './promoService.js';
+import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
 
 /**
- * Validates cart items against canonical catalog data and recalculates trusted total
- * PREVENTS CLIENT-SIDE AMOUNT TAMPERING
+ * Validates cart items against canonical catalog data, evaluates optional promoCode server-side,
+ * and recalculates trusted total payable amount.
+ * PREVENTS CLIENT-SIDE PRICE & DISCOUNT TAMPERING
  */
-export function validateCartTotal(items) {
+export function validateCartTotal(items, promoCode = null) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     return {
       isValid: false,
       error: 'Cart is empty. Please select at least one healthcare service or test.',
+      verifiedSubtotal: 0,
+      promoDiscount: 0,
       verifiedTotal: 0,
-      validatedItems: []
+      validatedItems: [],
+      promoCodeApplied: null
     };
   }
 
-  let verifiedTotal = 0;
+  let verifiedSubtotal = 0;
   const validatedItems = [];
 
   for (const item of items) {
     const qty = Math.max(1, parseInt(item.quantity || 1, 10));
-    const itemId = item.id || item.slug;
+    const itemId = item.id || item.product_id || item.slug;
+    const itemType = item.item_type || 'diagnostic_service';
 
     // Look up item in master services dataset
     const catalogService = ALL_SERVICES.find(
@@ -28,41 +35,93 @@ export function validateCartTotal(items) {
 
     let unitPrice = 0;
     let serviceName = item.name || 'Healthcare Service';
+    let categoryName = item.category || 'Diagnostic Service';
 
     if (catalogService) {
       unitPrice = Number(catalogService.discount_price || catalogService.price || 299);
       serviceName = catalogService.name;
+      categoryName = catalogService.category_name || catalogService.category || categoryName;
     } else {
       // Fallback for custom lab package items
-      const rawPrice = Number(item.price || item.discount_price || 299);
+      const rawPrice = Number(item.price || item.unit_price || item.discount_price || 299);
       unitPrice = isNaN(rawPrice) || rawPrice <= 0 ? 299 : rawPrice;
     }
 
     const itemTotal = unitPrice * qty;
-    verifiedTotal += itemTotal;
+    verifiedSubtotal += itemTotal;
 
     validatedItems.push({
       id: itemId || 'custom-item',
+      item_type: itemType,
+      product_id: itemId || 'custom-item',
       name: serviceName,
+      category: categoryName,
       unit_price: unitPrice,
       quantity: qty,
       total_price: itemTotal
     });
   }
 
-  if (verifiedTotal <= 0) {
+  if (verifiedSubtotal <= 0) {
     return {
       isValid: false,
       error: 'Invalid cart total amount.',
+      verifiedSubtotal: 0,
+      promoDiscount: 0,
       verifiedTotal: 0,
-      validatedItems: []
+      validatedItems: [],
+      promoCodeApplied: null
     };
   }
 
+  // Server-side Promo Code Validation if promoCode is supplied
+  let promoDiscount = 0;
+  let promoCodeApplied = null;
+  let promoError = null;
+
+  if (promoCode && typeof promoCode === 'string' && promoCode.trim().length > 0) {
+    const normalizedCode = promoCode.trim().toUpperCase();
+
+    let promo = DEMO_PROMO_CODES.find((p) => p.code.toUpperCase() === normalizedCode);
+
+    if (promo) {
+      const now = new Date();
+      const minAmount = Number(promo.min_order_amount || 0);
+
+      if (!promo.is_active) {
+        promoError = 'This promo code is no longer active.';
+      } else if (promo.valid_from && new Date(promo.valid_from) > now) {
+        promoError = 'This promo code is not active yet.';
+      } else if (promo.valid_until && new Date(promo.valid_until) < now) {
+        promoError = 'This promo code has expired.';
+      } else if (promo.usage_limit && promo.used_count >= promo.usage_limit) {
+        promoError = 'This promo code has reached its usage limit.';
+      } else if (verifiedSubtotal < minAmount) {
+        promoError = `Add ₹${minAmount - verifiedSubtotal} more to use promo code ${promo.code}.`;
+      } else {
+        promoDiscount = calculateDiscountAmount(verifiedSubtotal, promo);
+        promoCodeApplied = {
+          id: promo.id,
+          code: promo.code,
+          discount_type: promo.discount_type,
+          discount_value: promo.discount_value,
+          discount_amount: promoDiscount
+        };
+      }
+    } else {
+      promoError = `Invalid promo code: ${normalizedCode}`;
+    }
+  }
+
+  const verifiedTotal = Math.max(0, verifiedSubtotal - promoDiscount);
+
   return {
     isValid: true,
-    error: null,
+    error: promoError,
+    verifiedSubtotal,
+    promoDiscount,
     verifiedTotal,
-    validatedItems
+    validatedItems,
+    promoCodeApplied
   };
 }

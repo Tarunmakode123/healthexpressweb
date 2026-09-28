@@ -52,14 +52,14 @@ export function loadRazorpaySDK() {
 }
 
 /**
- * Calls server-side endpoint /api/create-razorpay-order to generate an official Razorpay Order ID (rzp_order_...)
+ * Calls server-side endpoint /api/create-razorpay-order to generate an official Razorpay Order ID (order_...)
  */
-export async function createRazorpayOrderServer({ items, customerName, customerPhone, customerEmail }) {
+export async function createRazorpayOrderServer({ items, promoCode = null, customerName, customerPhone, customerEmail }) {
   try {
     const response = await fetch('/api/create-razorpay-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, customerName, customerPhone, customerEmail })
+      body: JSON.stringify({ items, promoCode, customerName, customerPhone, customerEmail })
     });
 
     if (!response.ok) {
@@ -78,7 +78,7 @@ export async function createRazorpayOrderServer({ items, customerName, customerP
 /**
  * Creates internal order in database for either COD or ONLINE payment method
  */
-export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null }) {
+export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, promoCode = null, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null }) {
   // 1. Validate inputs
   if (!customerName || customerName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
@@ -91,12 +91,12 @@ export async function createInternalOrder({ customerName, customerPhone, custome
   const phone_e164 = phoneValidation.phone_e164;
 
   // 2. Validate Cart & Recalculate trusted total amount on server/backend logic
-  const cartValidation = validateCartTotal(items);
+  const cartValidation = validateCartTotal(items, promoCode);
   if (!cartValidation.isValid) {
     return { success: false, error: cartValidation.error };
   }
 
-  const { verifiedTotal, validatedItems } = cartValidation;
+  const { verifiedTotal, verifiedSubtotal, promoDiscount, promoCodeApplied, validatedItems } = cartValidation;
   const isCod = paymentMethod.toUpperCase() === 'COD';
   const paymentMode = isCod ? 'COD' : (isRazorpayLiveConfigured() ? 'LIVE' : 'DEMO');
 
@@ -130,11 +130,15 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         order_code: data.order_code,
         patient_id: data.patient_id,
         razorpay_order_id: data.razorpay_order_id,
+        subtotal: verifiedSubtotal,
+        promo_discount: promoDiscount,
+        promo_code: promoCodeApplied?.code || null,
+        promo_code_id: promoCodeApplied?.id || null,
         total_amount: verifiedTotal,
         currency: 'INR',
         payment_method: isCod ? 'COD' : 'ONLINE',
         payment_mode: paymentMode,
-        payment_status: isCod ? 'PENDING' : 'PENDING',
+        payment_status: 'PENDING',
         order_status: isCod ? 'CONFIRMED' : 'PENDING',
         items: validatedItems,
         customer_name: customerName.trim(),
@@ -155,11 +159,15 @@ export async function createInternalOrder({ customerName, customerPhone, custome
     order_code: demoOrderCode,
     patient_id: 'demo_patient_' + Date.now(),
     razorpay_order_id: isCod ? 'cod_no_rzp' : 'demo_rzp_ord_' + Date.now(),
+    subtotal: verifiedSubtotal,
+    promo_discount: promoDiscount,
+    promo_code: promoCodeApplied?.code || null,
+    promo_code_id: promoCodeApplied?.id || null,
     total_amount: verifiedTotal,
     currency: 'INR',
     payment_method: isCod ? 'COD' : 'ONLINE',
     payment_mode: paymentMode,
-    payment_status: isCod ? 'PENDING' : 'PENDING',
+    payment_status: 'PENDING',
     order_status: isCod ? 'CONFIRMED' : 'PENDING',
     items: validatedItems,
     customer_name: customerName.trim(),
@@ -168,9 +176,10 @@ export async function createInternalOrder({ customerName, customerPhone, custome
 }
 
 /**
- * Verifies payment signature and updates database state to PAID / CONFIRMED
+ * Verifies payment signature and updates database state to PAID / CONFIRMED.
+ * Also atomically records promo code usage upon confirmed payment.
  */
-export async function verifyAndConfirmPayment({ orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature, paymentMethod = 'unknown', paymentMode = 'DEMO' }) {
+export async function verifyAndConfirmPayment({ orderId, promoCodeId = null, patientId = null, promoDiscount = 0, razorpayOrderId, razorpayPaymentId, razorpaySignature, paymentMethod = 'unknown', paymentMode = 'DEMO' }) {
   if (!orderId) {
     return { success: false, error: 'Missing internal Order ID.' };
   }
@@ -192,6 +201,20 @@ export async function verifyAndConfirmPayment({ orderId, razorpayOrderId, razorp
           success: false,
           error: `[Verification Error ${error.code || 'VERIFY_ERR'}] ${error.message || 'Payment signature verification failed.'}`
         };
+      }
+
+      // Record atomic promo code usage if promo code was applied
+      if (promoCodeId) {
+        try {
+          await supabase.rpc('record_promo_code_usage_atomic', {
+            p_code_id: promoCodeId,
+            p_order_id: orderId,
+            p_patient_id: patientId,
+            p_discount_applied: promoDiscount
+          });
+        } catch (promoErr) {
+          console.warn('Failed to record atomic promo usage:', promoErr);
+        }
       }
 
       return {
