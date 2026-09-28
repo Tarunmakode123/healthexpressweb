@@ -33,7 +33,7 @@ import {
 import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
 
-export default function AdminDashboardPage() {
+function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
@@ -541,7 +541,7 @@ export default function AdminDashboardPage() {
   };
 
   // Filtered Orders
-  const dateFilteredOrders = orders.filter((o) => isDateInFilter(o.created_at, dateRangeFilter));
+  const dateFilteredOrders = (orders || []).filter((o) => isDateInFilter(o?.created_at, dateRangeFilter));
   const filteredOrders = dateFilteredOrders.filter((ord) => {
     if (orderFilter !== 'ALL') {
       if (orderFilter === 'COD') {
@@ -569,42 +569,104 @@ export default function AdminDashboardPage() {
     return true;
   });
 
+  // Orders Pagination
+  const totalOrderPages = Math.ceil((filteredOrders.length || 1) / ITEMS_PER_PAGE);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Filtered Patients (Customers Tab)
+  const filteredPatients = (patients || []).filter((pat) => {
+    if (customerTypeFilter === 'REGISTERED' && !pat?.user_id) return false;
+    if (customerTypeFilter === 'GUEST' && pat?.user_id) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const name = (pat?.full_name || '').toLowerCase();
+      const phone = (pat?.phone_e164 || '').toLowerCase();
+      const email = (pat?.email || '').toLowerCase();
+      return name.includes(q) || phone.includes(q) || email.includes(q);
+    }
+    return true;
+  });
+
+  // Filtered Prescriptions (Prescriptions Tab)
+  const filteredPrescriptions = (prescriptions || []).filter((enq) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const code = (enq?.enquiry_code || '').toLowerCase();
+      const name = (enq?.patients?.full_name || '').toLowerCase();
+      const phone = (enq?.patients?.phone_e164 || '').toLowerCase();
+      return code.includes(q) || name.includes(q) || phone.includes(q);
+    }
+    return true;
+  });
+
+  // Filtered Payments (Payments Tab)
+  const filteredPayments = (payments || []).filter((pay) => {
+    if (paymentFilter !== 'ALL') {
+      if (paymentFilter === 'PAID' && pay?.payment_status !== 'PAID') return false;
+      if (paymentFilter === 'PENDING' && pay?.payment_status !== 'PENDING') return false;
+      if (paymentFilter === 'FAILED' && pay?.payment_status !== 'FAILED') return false;
+      if (paymentFilter === 'COD' && (pay?.payment_method || '').toUpperCase() !== 'COD') return false;
+      if (paymentFilter === 'ONLINE' && (pay?.payment_method || '').toUpperCase() === 'COD') return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const id = (pay?.id || '').toLowerCase();
+      const orderId = (pay?.razorpay_order_id || '').toLowerCase();
+      const payId = (pay?.razorpay_payment_id || '').toLowerCase();
+      const custName = (pay?.patients?.full_name || pay?.orders?.customer_name || '').toLowerCase();
+      return id.includes(q) || orderId.includes(q) || payId.includes(q) || custName.includes(q);
+    }
+    return true;
+  });
+
   // KPI STATS
   const totalRevenue = dateFilteredOrders
-    .filter((o) => o.payment_status === 'PAID')
-    .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+    .filter((o) => o?.payment_status === 'PAID')
+    .reduce((acc, o) => acc + Number(o?.total_amount || 0), 0);
 
   const todayStart = new Date(new Date().setHours(0,0,0,0));
-  const todayOrders = orders.filter((o) => new Date(o.created_at) >= todayStart);
+  const todayOrders = (orders || []).filter((o) => new Date(o?.created_at) >= todayStart);
   const todayRevenue = todayOrders
-    .filter((o) => o.payment_status === 'PAID')
-    .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+    .filter((o) => o?.payment_status === 'PAID')
+    .reduce((acc, o) => acc + Number(o?.total_amount || 0), 0);
+
+  const onlineRevenueCollected = dateFilteredOrders
+    .filter((o) => {
+      const payObj = o?.payments?.[0] || {};
+      const payMethod = (payObj.payment_method || o?.payment_method || '').toUpperCase();
+      return payMethod !== 'COD' && o?.payment_status === 'PAID';
+    })
+    .reduce((acc, o) => acc + Number(o?.total_amount || 0), 0);
 
   const codPendingCollection = dateFilteredOrders
     .filter((o) => {
-      const payObj = o.payments?.[0] || {};
-      const payMethod = (payObj.payment_method || o.payment_method || '').toUpperCase();
-      const payMode = (payObj.payment_mode || o.payment_mode || '').toUpperCase();
-      return (payMethod === 'COD' || payMode === 'COD') && o.payment_status === 'PENDING';
+      const payObj = o?.payments?.[0] || {};
+      const payMethod = (payObj.payment_method || o?.payment_method || '').toUpperCase();
+      const payMode = (payObj.payment_mode || o?.payment_mode || '').toUpperCase();
+      return (payMethod === 'COD' || payMode === 'COD') && o?.payment_status === 'PENDING';
     })
-    .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+    .reduce((acc, o) => acc + Number(o?.total_amount || 0), 0);
 
   const codCollected = dateFilteredOrders
     .filter((o) => {
-      const payObj = o.payments?.[0] || {};
-      const payMethod = (payObj.payment_method || o.payment_method || '').toUpperCase();
-      const payMode = (payObj.payment_mode || o.payment_mode || '').toUpperCase();
-      return (payMethod === 'COD' || payMode === 'COD') && o.payment_status === 'PAID';
+      const payObj = o?.payments?.[0] || {};
+      const payMethod = (payObj.payment_method || o?.payment_method || '').toUpperCase();
+      const payMode = (payObj.payment_mode || o?.payment_mode || '').toUpperCase();
+      return (payMethod === 'COD' || payMode === 'COD') && o?.payment_status === 'PAID';
     })
-    .reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
+    .reduce((acc, o) => acc + Number(o?.total_amount || 0), 0);
 
-  const successfulPaymentsCount = dateFilteredOrders.filter((o) => o.payment_status === 'PAID').length;
-  const pendingPaymentsCount = dateFilteredOrders.filter((o) => o.payment_status === 'PENDING').length;
-  const failedPaymentsCount = dateFilteredOrders.filter((o) => o.payment_status === 'FAILED').length;
+  const successfulPaymentsCount = dateFilteredOrders.filter((o) => o?.payment_status === 'PAID').length;
+  const pendingPaymentsCount = dateFilteredOrders.filter((o) => o?.payment_status === 'PENDING').length;
+  const failedPaymentsCount = dateFilteredOrders.filter((o) => o?.payment_status === 'FAILED').length;
+  const cancelledOrdersCount = dateFilteredOrders.filter((o) => o?.order_status === 'CANCELLED').length;
 
-  const registeredPatientsCount = patients.filter((p) => p.user_id).length;
-  const guestEnquiriesCount = prescriptions.length;
-  const pendingReviewsCount = prescriptions.filter((p) => p.status === 'pending_review').length;
+  const registeredPatientsCount = (patients || []).filter((p) => p?.user_id).length;
+  const guestEnquiriesCount = (prescriptions || []).length;
+  const pendingReviewsCount = (prescriptions || []).filter((p) => p?.status === 'pending_review').length;
 
   // SESSION CHECK SPINNER
   if (isCheckingSession) {
@@ -727,11 +789,11 @@ export default function AdminDashboardPage() {
         <nav className="p-4 space-y-1 flex-1">
           {[
             { id: 'overview', label: 'Overview', icon: Activity },
-            { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: orders.length },
-            { id: 'customers', label: 'Customers', icon: Users, badge: patients.length },
+            { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: (orders || []).length },
+            { id: 'customers', label: 'Customers', icon: Users, badge: (patients || []).length },
             { id: 'prescriptions', label: 'Prescriptions', icon: FileText, badge: pendingReviewsCount > 0 ? pendingReviewsCount : null },
-            { id: 'promotions', label: 'Offers & Promotions', icon: Tag, badge: promoCodes.length },
-            { id: 'coins', label: 'Health Coins & Rewards', icon: Coins, badge: walletAccounts.length },
+            { id: 'promotions', label: 'Offers & Promotions', icon: Tag, badge: (promoCodes || []).length },
+            { id: 'coins', label: 'Health Coins & Rewards', icon: Coins, badge: (walletAccounts || []).length },
             { id: 'payments', label: 'Payments', icon: PaymentIcon },
             { id: 'analytics', label: 'Revenue Analytics', icon: BarChart2 },
             { id: 'activity', label: 'Activity Logs', icon: Layers },
@@ -2287,5 +2349,63 @@ export default function AdminDashboardPage() {
       )}
 
     </div>
+  );
+}
+
+class AdminErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Admin Dashboard rendering error caught by ErrorBoundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center space-y-4 shadow-2xl">
+            <div className="w-12 h-12 bg-rose-950 border border-rose-800 rounded-2xl flex items-center justify-center mx-auto text-rose-400">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white">Ops Control Runtime Exception</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                A non-fatal interface rendering error occurred while updating the telemetry view.
+              </p>
+            </div>
+            {this.state.error?.message && (
+              <div className="p-3 bg-slate-950 rounded-xl text-left border border-slate-800 font-mono text-[11px] text-rose-300 break-words">
+                {this.state.error.message}
+              </div>
+            )}
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+              className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs rounded-xl transition-colors cursor-pointer shadow-lg shadow-purple-900/30"
+            >
+              Reload Admin Control Center
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function AdminDashboardPageWithErrorBoundary() {
+  return (
+    <AdminErrorBoundary>
+      <AdminDashboardPage />
+    </AdminErrorBoundary>
   );
 }
