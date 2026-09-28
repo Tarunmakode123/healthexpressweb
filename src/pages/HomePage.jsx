@@ -1,5 +1,6 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
+import WhyChooseHealthExpress from '../components/sections/WhyChooseHealthExpress';
 import ProblemSection from '../components/sections/ProblemSection';
 import HowItWorksSection from '../components/sections/HowItWorksSection';
 import ServicesSection from '../components/sections/ServicesSection';
@@ -20,6 +21,9 @@ export default function HomePage({ onOpenUploadModal, onOpenCalculatorModal }) {
     <div className="space-y-0 relative">
       {/* 1. WHO ARE YOU? -> Hero */}
       <HeroSection onOpenUploadModal={onOpenUploadModal} />
+
+      {/* WHY CHOOSE HEALTH EXPRESS -> 6 Visual Icon Highlights */}
+      <WhyChooseHealthExpress />
 
       {/* 2. WHY DO I NEED YOU? -> Problem */}
       <ProblemSection />
