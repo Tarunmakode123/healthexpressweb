@@ -19,6 +19,7 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
   // Find service by slug or fallback to first
   const service = ALL_SERVICES.find(s => s.slug === slug) || ALL_SERVICES[0];
   const category = CATEGORIES.find(c => c.id === service.category_id) || CATEGORIES[0];
+  const whatsappMsg = `Namaste Health Express! I am interested in inquiring / booking "${service.name}". Please share test details, pricing, turnaround time, and home sample collection availability.`;
 
   // Track SERVICE_VIEW analytics event
   React.useEffect(() => {
