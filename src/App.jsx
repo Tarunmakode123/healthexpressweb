@@ -42,7 +42,10 @@ function ScrollToTop() {
   return null;
 }
 
-export default function App() {
+function MainLayout() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [activeCalcSlug, setActiveCalcSlug] = useState('bmi-calculator');
@@ -67,66 +70,75 @@ export default function App() {
   }, []);
 
   return (
+    <>
+      <ScrollToTop />
+      {!isAdminRoute && <HealthExpressIntro />}
+      <div className={`min-h-screen flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900 antialiased ${isAdminRoute ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'}`}>
+        
+        {/* Responsive Header Navbar (Public Consumer Pages Only) */}
+        {!isAdminRoute && (
+          <Navbar onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />
+        )}
+
+        {/* Main Content Area */}
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />} />
+            <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/surgeries" element={<SurgeriesPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/surgeries/:slug" element={<SurgeryDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/health-library" element={<HealthLibraryPage />} />
+            <Route path="/health-library/:slug" element={<ArticleDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/health-calculators" element={<HealthCalculatorsPage onOpenCalculatorModal={handleOpenCalcModal} />} />
+            <Route path="/health-calculators/:slug" element={<CalculatorDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/about" element={<AboutPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/providers" element={<ProvidersPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/legal/:type" element={<LegalPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/signup" element={<AuthPage />} />
+            <Route path="/account" element={<CustomerDashboardPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/*" element={<AdminDashboardPage />} />
+          </Routes>
+        </main>
+
+        {/* Public Website Footer & Floating Widgets (Public Consumer Pages Only) */}
+        {!isAdminRoute && (
+          <>
+            <Footer onOpenUploadModal={handleOpenUploadModal} />
+            <CareManagerCTA />
+            <HealthExpressAssistant onOpenUploadModal={handleOpenUploadModal} />
+          </>
+        )}
+
+        {/* Global Slide-over Cart & Modals */}
+        <CartDrawer />
+
+        <CalculatorModal 
+          isOpen={isCalcModalOpen}
+          calculatorSlug={activeCalcSlug}
+          onClose={handleCloseCalcModal}
+        />
+
+        <PrescriptionModal 
+          isOpen={isUploadModalOpen} 
+          onClose={handleCloseUploadModal} 
+        />
+
+      </div>
+    </>
+  );
+}
+
+export default function App() {
+  return (
     <AuthProvider>
       <CartProvider>
         <Router>
-          <ScrollToTop />
-          <HealthExpressIntro />
-          <div className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-purple-100 selection:text-purple-900 antialiased">
-            
-            {/* Responsive Header Navbar */}
-            <Navbar onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />
-
-            {/* Main Content Area */}
-            <main className="flex-1">
-              <Routes>
-                <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />} />
-                <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
-                <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
-                <Route path="/surgeries" element={<SurgeriesPage onOpenUploadModal={handleOpenUploadModal} />} />
-                <Route path="/surgeries/:slug" element={<SurgeryDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
-                <Route path="/health-library" element={<HealthLibraryPage />} />
-                <Route path="/health-library/:slug" element={<ArticleDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
-                <Route path="/health-calculators" element={<HealthCalculatorsPage onOpenCalculatorModal={handleOpenCalcModal} />} />
-                <Route path="/health-calculators/:slug" element={<CalculatorDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
-                <Route path="/about" element={<AboutPage onOpenUploadModal={handleOpenUploadModal} />} />
-                <Route path="/providers" element={<ProvidersPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/legal/:type" element={<LegalPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/login" element={<AuthPage />} />
-                <Route path="/signup" element={<AuthPage />} />
-                <Route path="/account" element={<CustomerDashboardPage />} />
-                <Route path="/admin" element={<AdminDashboardPage />} />
-              </Routes>
-            </main>
-
-            {/* Footer */}
-            <Footer onOpenUploadModal={handleOpenUploadModal} />
-
-            {/* Floating Care Manager Direct Phone CTA */}
-            <CareManagerCTA />
-
-            {/* Slide-over Health Basket Cart Drawer */}
-            <CartDrawer />
-
-            {/* Global Interactive Health Calculator Popup Modal */}
-            <CalculatorModal 
-              isOpen={isCalcModalOpen}
-              calculatorSlug={activeCalcSlug}
-              onClose={handleCloseCalcModal}
-            />
-
-            {/* Global Upload Prescription WhatsApp Modal */}
-            <PrescriptionModal 
-              isOpen={isUploadModalOpen} 
-              onClose={handleCloseUploadModal} 
-            />
-
-            {/* Global AI Healthcare Service Assistant */}
-            <HealthExpressAssistant onOpenUploadModal={handleOpenUploadModal} />
-
-          </div>
+          <MainLayout />
         </Router>
       </CartProvider>
     </AuthProvider>

@@ -609,7 +609,7 @@ export default function AdminDashboardPage() {
   // SESSION CHECK SPINNER
   if (isCheckingSession) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center p-4 bg-slate-900 text-purple-300">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900 text-purple-300">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
           <span className="text-xs font-bold tracking-wide">Verifying Admin Session & RBAC...</span>
@@ -621,7 +621,7 @@ export default function AdminDashboardPage() {
   // DEDICATED ADMIN LOGIN UI (UNAUTHENTICATED)
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[88vh] flex items-center justify-center p-4 bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-900">
         <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-6 text-left border border-purple-200 animate-in fade-in duration-200">
           <div className="text-center space-y-3">
             <div className="w-16 h-16 rounded-2xl bg-purple-100 border border-purple-200 flex items-center justify-center mx-auto p-2 overflow-hidden shadow-xs">
