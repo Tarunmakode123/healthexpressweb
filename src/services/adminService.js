@@ -293,7 +293,7 @@ export async function fetchAnalyticsEvents(limit = 100) {
 }
 
 // ============================================================
-// ADMIN PROMO CODE / COUPON MANAGEMENT SERVICES
+// ADMIN PROMO CODE / COUPON MANAGEMENT SERVICES WITH SCOPE
 // ============================================================
 
 let localAdminPromosStore = [...DEMO_PROMO_CODES];
@@ -341,6 +341,9 @@ export async function createAdminPromoCode(promoData) {
     discount_value: Number(promoData.discount_value),
     min_order_amount: Number(promoData.min_order_amount || 0),
     max_discount: promoData.max_discount ? Number(promoData.max_discount) : null,
+    applicable_scope: promoData.applicable_scope || 'all',
+    applicable_categories: Array.isArray(promoData.applicable_categories) ? promoData.applicable_categories : [],
+    applicable_items: Array.isArray(promoData.applicable_items) ? promoData.applicable_items : [],
     valid_from: promoData.valid_from || new Date().toISOString(),
     valid_until: promoData.valid_until || null,
     usage_limit: promoData.usage_limit ? parseInt(promoData.usage_limit, 10) : null,
@@ -385,6 +388,9 @@ export async function updateAdminPromoCode(id, promoData) {
     discount_value: Number(promoData.discount_value),
     min_order_amount: Number(promoData.min_order_amount || 0),
     max_discount: promoData.max_discount ? Number(promoData.max_discount) : null,
+    applicable_scope: promoData.applicable_scope || 'all',
+    applicable_categories: Array.isArray(promoData.applicable_categories) ? promoData.applicable_categories : [],
+    applicable_items: Array.isArray(promoData.applicable_items) ? promoData.applicable_items : [],
     valid_from: promoData.valid_from || new Date().toISOString(),
     valid_until: promoData.valid_until || null,
     usage_limit: promoData.usage_limit ? parseInt(promoData.usage_limit, 10) : null,
@@ -437,7 +443,7 @@ export async function toggleAdminPromoCodeStatus(id, isActive) {
 }
 
 /**
- * Delete Promo Code from Admin Panel (Safety check handles foreign keys)
+ * Delete Promo Code from Admin Panel
  */
 export async function deleteAdminPromoCode(id) {
   if (!id) return { success: false, error: 'Missing promo code ID.' };

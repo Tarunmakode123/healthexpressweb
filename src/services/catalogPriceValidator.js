@@ -1,10 +1,9 @@
 import { ALL_SERVICES } from '../data/services.js';
 import { DEMO_PROMO_CODES, calculateDiscountAmount } from './promoService.js';
-import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
 
 /**
- * Validates cart items against canonical catalog data, evaluates optional promoCode server-side,
- * and recalculates trusted total payable amount.
+ * Validates cart items against canonical catalog data, evaluates optional promoCode server-side
+ * with explicit scope eligibility matching, and recalculates trusted total payable amount.
  * PREVENTS CLIENT-SIDE PRICE & DISCOUNT TAMPERING
  */
 export function validateCartTotal(items, promoCode = null) {
@@ -96,17 +95,25 @@ export function validateCartTotal(items, promoCode = null) {
         promoError = 'This promo code has expired.';
       } else if (promo.usage_limit && promo.used_count >= promo.usage_limit) {
         promoError = 'This promo code has reached its usage limit.';
-      } else if (verifiedSubtotal < minAmount) {
-        promoError = `Add ₹${minAmount - verifiedSubtotal} more to use promo code ${promo.code}.`;
       } else {
-        promoDiscount = calculateDiscountAmount(verifiedSubtotal, promo);
-        promoCodeApplied = {
-          id: promo.id,
-          code: promo.code,
-          discount_type: promo.discount_type,
-          discount_value: promo.discount_value,
-          discount_amount: promoDiscount
-        };
+        const { eligibleSubtotal, discountAmount, isScopeMatched } = calculateDiscountAmount(verifiedSubtotal, promo, validatedItems);
+
+        if (!isScopeMatched || eligibleSubtotal <= 0) {
+          promoError = `Promo code ${promo.code} is not applicable to the items in your cart.`;
+        } else if (eligibleSubtotal < minAmount) {
+          promoError = `Add ₹${minAmount - eligibleSubtotal} more of eligible items to use promo code ${promo.code}.`;
+        } else {
+          promoDiscount = discountAmount;
+          promoCodeApplied = {
+            id: promo.id,
+            code: promo.code,
+            discount_type: promo.discount_type,
+            discount_value: promo.discount_value,
+            applicable_scope: promo.applicable_scope || 'all',
+            eligible_subtotal: eligibleSubtotal,
+            discount_amount: promoDiscount
+          };
+        }
       }
     } else {
       promoError = `Invalid promo code: ${normalizedCode}`;

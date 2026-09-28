@@ -12,6 +12,9 @@ export const DEMO_PROMO_CODES = [
     discount_value: 50,
     min_order_amount: 299,
     max_discount: null,
+    applicable_scope: 'all',
+    applicable_categories: [],
+    applicable_items: [],
     valid_from: new Date(Date.now() - 86400000).toISOString(),
     valid_until: new Date(Date.now() + 90 * 86400000).toISOString(),
     usage_limit: 500,
@@ -25,6 +28,9 @@ export const DEMO_PROMO_CODES = [
     discount_value: 10,
     min_order_amount: 199,
     max_discount: 150,
+    applicable_scope: 'all',
+    applicable_categories: [],
+    applicable_items: [],
     valid_from: new Date(Date.now() - 86400000).toISOString(),
     valid_until: new Date(Date.now() + 90 * 86400000).toISOString(),
     usage_limit: 1000,
@@ -33,40 +39,104 @@ export const DEMO_PROMO_CODES = [
   },
   {
     id: 'demo_promo_3',
-    code: 'EXPRESS20',
+    code: 'LABTEST20',
     discount_type: 'percentage',
     discount_value: 20,
-    min_order_amount: 499,
-    max_discount: 250,
+    min_order_amount: 399,
+    max_discount: 200,
+    applicable_scope: 'categories',
+    applicable_categories: ['Lab Tests', 'lab-tests', 'Diagnostic Service'],
+    applicable_items: [],
     valid_from: new Date(Date.now() - 86400000).toISOString(),
     valid_until: new Date(Date.now() + 90 * 86400000).toISOString(),
-    usage_limit: 250,
-    used_count: 8,
+    usage_limit: 300,
+    used_count: 5,
     is_active: true
   }
 ];
 
 /**
- * Calculates discount amount based on subtotal and promo code rules
+ * Determines item eligibility and calculates scope-restricted discount amount
  */
-export function calculateDiscountAmount(subtotal, promo) {
-  if (!promo || !subtotal || subtotal <= 0) return 0;
+export function calculateDiscountAmount(subtotal, promo, items = []) {
+  if (!promo || !subtotal || subtotal <= 0) {
+    return { eligibleSubtotal: 0, discountAmount: 0, isScopeMatched: false };
+  }
+
+  const scope = (promo.applicable_scope || 'all').toLowerCase();
+  const rawCategories = Array.isArray(promo.applicable_categories)
+    ? promo.applicable_categories
+    : typeof promo.applicable_categories === 'string'
+      ? JSON.parse(promo.applicable_categories || '[]')
+      : [];
+  const rawItems = Array.isArray(promo.applicable_items)
+    ? promo.applicable_items
+    : typeof promo.applicable_items === 'string'
+      ? JSON.parse(promo.applicable_items || '[]')
+      : [];
+
+  const appCategories = rawCategories.map((c) => String(c).toLowerCase().trim());
+  const appItems = rawItems.map((i) => String(i).toLowerCase().trim());
+
+  let eligibleSubtotal = 0;
+  let isScopeMatched = false;
+
+  if (scope === 'all' || (appCategories.length === 0 && appItems.length === 0 && scope !== 'categories' && scope !== 'items')) {
+    eligibleSubtotal = subtotal;
+    isScopeMatched = true;
+  } else if (!items || items.length === 0) {
+    // If no individual item breakdown is provided, fall back to subtotal
+    eligibleSubtotal = subtotal;
+    isScopeMatched = true;
+  } else {
+    for (const item of items) {
+      const itemPrice = Number(item.unit_price || item.price || 0);
+      const qty = Math.max(1, parseInt(item.quantity || 1, 10));
+      const itemSubtotal = itemPrice * qty;
+
+      const catName = String(item.category || item.category_name || item.item_type || '').toLowerCase().trim();
+      const itemId = String(item.id || item.product_id || item.slug || '').toLowerCase().trim();
+      const itemName = String(item.name || '').toLowerCase().trim();
+
+      let isEligible = false;
+
+      if (scope === 'categories') {
+        isEligible = appCategories.some((cat) => catName.includes(cat) || cat.includes(catName));
+      } else if (scope === 'items') {
+        isEligible = appItems.some((target) => itemId === target || itemName.includes(target) || target.includes(itemName));
+      }
+
+      if (isEligible) {
+        eligibleSubtotal += itemSubtotal;
+        isScopeMatched = true;
+      }
+    }
+  }
+
+  if (eligibleSubtotal <= 0 || !isScopeMatched) {
+    return { eligibleSubtotal: 0, discountAmount: 0, isScopeMatched: false };
+  }
 
   const type = (promo.discount_type || 'flat').toLowerCase();
   const value = Number(promo.discount_value || 0);
   let discount = 0;
 
   if (type === 'flat') {
-    discount = value;
+    discount = Math.min(value, eligibleSubtotal);
   } else if (type === 'percentage') {
-    discount = (subtotal * value) / 100;
+    discount = (eligibleSubtotal * value) / 100;
     if (promo.max_discount && Number(promo.max_discount) > 0) {
       discount = Math.min(discount, Number(promo.max_discount));
     }
   }
 
-  // Never allow discount to exceed subtotal or make payable amount negative
-  return Math.min(subtotal, Math.max(0, Math.round(discount)));
+  const finalDiscount = Math.min(subtotal, Math.max(0, Math.round(discount)));
+
+  return {
+    eligibleSubtotal,
+    discountAmount: finalDiscount,
+    isScopeMatched: true
+  };
 }
 
 /**
@@ -84,7 +154,7 @@ export async function fetchActivePromotions() {
     const now = new Date().toISOString();
     const { data, error } = await supabase
       .from('promo_codes')
-      .select('id, code, discount_type, discount_value, min_order_amount, max_discount, valid_until')
+      .select('id, code, discount_type, discount_value, min_order_amount, max_discount, applicable_scope, applicable_categories, applicable_items, valid_until')
       .eq('is_active', true)
       .lte('valid_from', now)
       .order('discount_value', { ascending: false });
@@ -199,17 +269,28 @@ export async function validatePromoCode({ promoCode, cartSubtotal, cartItems = [
     };
   }
 
-  const minAmount = Number(promo.min_order_amount || 0);
-  if (cartSubtotal < minAmount) {
-    const needed = minAmount - cartSubtotal;
+  // Evaluate Scope Eligibility
+  const { eligibleSubtotal, discountAmount, isScopeMatched } = calculateDiscountAmount(cartSubtotal, promo, cartItems);
+
+  if (!isScopeMatched || eligibleSubtotal <= 0) {
+    const scopeName = promo.applicable_scope === 'categories' ? 'the selected category' : 'the items in your cart';
     return {
       valid: false,
-      error_code: 'MIN_ORDER_NOT_MET',
-      message: `Add ₹${needed} more to use this promo code.`
+      error_code: 'INELIGIBLE_ITEMS',
+      message: `Promo code ${promo.code} is not applicable to ${scopeName}.`
     };
   }
 
-  const discountAmount = calculateDiscountAmount(cartSubtotal, promo);
+  const minAmount = Number(promo.min_order_amount || 0);
+  if (eligibleSubtotal < minAmount) {
+    const needed = minAmount - eligibleSubtotal;
+    return {
+      valid: false,
+      error_code: 'MIN_ORDER_NOT_MET',
+      message: `Add ₹${needed} more of eligible items to use promo code ${promo.code}.`
+    };
+  }
+
   const payableAmount = Math.max(0, cartSubtotal - discountAmount);
 
   return {
@@ -219,6 +300,8 @@ export async function validatePromoCode({ promoCode, cartSubtotal, cartItems = [
     discount_type: promo.discount_type,
     discount_value: promo.discount_value,
     max_discount: promo.max_discount,
+    applicable_scope: promo.applicable_scope || 'all',
+    eligible_subtotal: eligibleSubtotal,
     discount_amount: discountAmount,
     subtotal: cartSubtotal,
     payable_amount: payableAmount,

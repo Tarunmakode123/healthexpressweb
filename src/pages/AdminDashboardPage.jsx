@@ -4,7 +4,7 @@ import {
   RefreshCw, CheckCircle2, AlertCircle, Clock, Search, Filter, 
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X,
   BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck, Menu, Settings,
-  CreditCard as PaymentIcon, Bell, Tag, Percent, Plus
+  CreditCard as PaymentIcon, Bell, Tag, Percent, Plus, Layers3
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
@@ -25,6 +25,7 @@ import {
   toggleAdminPromoCodeStatus,
   deleteAdminPromoCode
 } from '../services/adminService';
+import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
 
 export default function AdminDashboardPage() {
@@ -73,12 +74,16 @@ export default function AdminDashboardPage() {
   // PROMO MODAL STATES
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [editingPromo, setEditingPromo] = useState(null);
+  const [promoSearchItem, setPromoSearchItem] = useState('');
   const [promoFormData, setPromoFormData] = useState({
     code: '',
     discount_type: 'flat',
     discount_value: '',
     min_order_amount: '299',
     max_discount: '',
+    applicable_scope: 'all',
+    applicable_categories: [],
+    applicable_items: [],
     valid_from: '',
     valid_until: '',
     usage_limit: '',
@@ -238,6 +243,16 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    if (promoFormData.applicable_scope === 'categories' && promoFormData.applicable_categories.length === 0) {
+      showToast('Please select at least one applicable category.', 'error');
+      return;
+    }
+
+    if (promoFormData.applicable_scope === 'items' && promoFormData.applicable_items.length === 0) {
+      showToast('Please select at least one applicable product/service.', 'error');
+      return;
+    }
+
     if (editingPromo) {
       const res = await updateAdminPromoCode(editingPromo.id, promoFormData);
       if (res.success) {
@@ -282,18 +297,46 @@ export default function AdminDashboardPage() {
 
   const handleOpenEditPromoModal = (promo) => {
     setEditingPromo(promo);
+    const rawCat = Array.isArray(promo.applicable_categories) ? promo.applicable_categories : (typeof promo.applicable_categories === 'string' ? JSON.parse(promo.applicable_categories || '[]') : []);
+    const rawItm = Array.isArray(promo.applicable_items) ? promo.applicable_items : (typeof promo.applicable_items === 'string' ? JSON.parse(promo.applicable_items || '[]') : []);
+
     setPromoFormData({
       code: promo.code || '',
       discount_type: promo.discount_type || 'flat',
       discount_value: promo.discount_value || '',
       min_order_amount: promo.min_order_amount || '0',
       max_discount: promo.max_discount || '',
+      applicable_scope: promo.applicable_scope || 'all',
+      applicable_categories: rawCat,
+      applicable_items: rawItm,
       valid_from: promo.valid_from ? promo.valid_from.slice(0, 10) : '',
       valid_until: promo.valid_until ? promo.valid_until.slice(0, 10) : '',
       usage_limit: promo.usage_limit || '',
       is_active: promo.is_active !== undefined ? promo.is_active : true
     });
     setIsPromoModalOpen(true);
+  };
+
+  // Toggle Category Checkbox Selection
+  const toggleCategorySelection = (catName) => {
+    setPromoFormData((prev) => {
+      const exists = prev.applicable_categories.includes(catName);
+      const updated = exists
+        ? prev.applicable_categories.filter((c) => c !== catName)
+        : [...prev.applicable_categories, catName];
+      return { ...prev, applicable_categories: updated };
+    });
+  };
+
+  // Toggle Item Checkbox Selection
+  const toggleItemSelection = (itemId) => {
+    setPromoFormData((prev) => {
+      const exists = prev.applicable_items.includes(itemId);
+      const updated = exists
+        ? prev.applicable_items.filter((i) => i !== itemId)
+        : [...prev.applicable_items, itemId];
+      return { ...prev, applicable_items: updated };
+    });
   };
 
   // Load 360 Customer Detail Modal
@@ -344,46 +387,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Status Updaters
-  const handleOrderStatusChange = async (orderId, newStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, order_status: newStatus } : o))
-    );
-    const res = await updateAdminOrderStatus(orderId, newStatus);
-    if (res.success) showToast(`Order status updated to ${newStatus}.`);
-    else showToast(`Failed to update status: ${res.error}`, 'error');
-  };
-
-  const handleEnquiryStatusChange = async (enquiryId, newStatus) => {
-    setPrescriptions((prev) =>
-      prev.map((p) => (p.id === enquiryId ? { ...p, status: newStatus } : p))
-    );
-    const res = await updateAdminEnquiryStatus(enquiryId, newStatus);
-    if (res.success) showToast(`Prescription review status updated to ${newStatus}.`);
-    else showToast(`Failed to update enquiry status: ${res.error}`, 'error');
-  };
-
-  // Secure Prescription File View Handler
-  const handleViewPrescriptionFile = async (fileObj) => {
-    const filePath = fileObj?.file_path || fileObj?.filePath;
-    if (!filePath) {
-      showToast('File path is unavailable for this prescription.', 'error');
-      return;
-    }
-
-    try {
-      const res = await getPrescriptionSignedUrl(filePath, 300);
-      if (res.success && res.signedUrl) {
-        window.open(res.signedUrl, '_blank', 'noopener,noreferrer');
-      } else {
-        showToast(`Unable to preview file: ${res.error}`, 'error');
-      }
-    } catch (err) {
-      console.error('Prescription file view exception:', err);
-      showToast(`Error accessing prescription file: ${err.message}`, 'error');
-    }
-  };
-
   // Date Filter Logic
   const isDateInFilter = (dateString, filter) => {
     if (filter === 'ALL') return true;
@@ -419,7 +422,6 @@ export default function AdminDashboardPage() {
   // Filtered Orders
   const dateFilteredOrders = orders.filter((o) => isDateInFilter(o.created_at, dateRangeFilter));
   const filteredOrders = dateFilteredOrders.filter((ord) => {
-    // Payment Status / Method Filter
     if (orderFilter !== 'ALL') {
       if (orderFilter === 'COD') {
         const payMethod = (ord.payments?.[0]?.payment_method || ord.payment_method || '').toUpperCase();
@@ -436,7 +438,6 @@ export default function AdminDashboardPage() {
       }
     }
 
-    // Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const code = ord.order_code?.toLowerCase() || '';
@@ -446,23 +447,6 @@ export default function AdminDashboardPage() {
     }
     return true;
   });
-
-  // Filtered Patients
-  const filteredPatients = patients.filter((pat) => {
-    if (customerTypeFilter === 'REGISTERED' && !pat.user_id) return false;
-    if (customerTypeFilter === 'GUEST' && pat.user_id) return false;
-
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    const name = pat.full_name?.toLowerCase() || '';
-    const phone = pat.phone_e164?.toLowerCase() || '';
-    const email = pat.email?.toLowerCase() || '';
-    return name.includes(q) || phone.includes(q) || email.includes(q);
-  });
-
-  // Pagination Slice
-  const paginatedOrders = filteredOrders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  const totalOrderPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1;
 
   // KPI STATS
   const totalRevenue = dateFilteredOrders
@@ -780,7 +764,7 @@ export default function AdminDashboardPage() {
             <div className="text-3xl font-black text-white">{promoCodes.filter(p => p.is_active).length}</div>
             <div className="text-[11px] text-slate-400 font-medium flex items-center justify-between">
               <span>Total Promos: {promoCodes.length}</span>
-              <span>Unlimited: {promoCodes.filter(p => !p.usage_limit).length}</span>
+              <span>All Products: {promoCodes.filter(p => (p.applicable_scope || 'all') === 'all').length}</span>
             </div>
           </div>
 
@@ -807,7 +791,7 @@ export default function AdminDashboardPage() {
                   <span>Promo Codes & Coupon Management</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Create, edit, activate, or deactivate promotional coupons. Changes apply instantly to customer checkout without redeploying code.
+                  Create, edit, activate, or deactivate promotional coupons with explicit category or item eligibility scopes.
                 </p>
               </div>
 
@@ -820,6 +804,9 @@ export default function AdminDashboardPage() {
                     discount_value: '',
                     min_order_amount: '299',
                     max_discount: '',
+                    applicable_scope: 'all',
+                    applicable_categories: [],
+                    applicable_items: [],
                     valid_from: new Date().toISOString().slice(0, 10),
                     valid_until: '',
                     usage_limit: '',
@@ -841,6 +828,7 @@ export default function AdminDashboardPage() {
                     <tr>
                       <th className="p-4">Code</th>
                       <th className="p-4">Discount</th>
+                      <th className="p-4">Applies To</th>
                       <th className="p-4">Min Order</th>
                       <th className="p-4">Usage</th>
                       <th className="p-4">Valid Until</th>
@@ -851,58 +839,81 @@ export default function AdminDashboardPage() {
                   <tbody className="divide-y divide-slate-700/60 font-medium">
                     {promoCodes.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="p-8 text-center text-slate-400 italic">
+                        <td colSpan="8" className="p-8 text-center text-slate-400 italic">
                           No promo codes created yet. Click "Create Promo Code" to add a new offer.
                         </td>
                       </tr>
                     ) : (
-                      promoCodes.map((p) => (
-                        <tr key={p.id} className="hover:bg-slate-700/40 transition-colors">
-                          <td className="p-4 font-black text-purple-300 text-sm">{p.code}</td>
-                          <td className="p-4 font-extrabold text-white">
-                            {p.discount_type === 'flat' ? `₹${p.discount_value} OFF` : `${p.discount_value}% OFF`}
-                            {p.max_discount ? ` (Max ₹${p.max_discount})` : ''}
-                          </td>
-                          <td className="p-4">₹{p.min_order_amount || 0}</td>
-                          <td className="p-4">
-                            <span className="font-bold text-slate-200">
-                              {p.used_count || 0} / {p.usage_limit || '∞'}
-                            </span>
-                          </td>
-                          <td className="p-4 text-slate-300">
-                            {p.valid_until ? new Date(p.valid_until).toLocaleDateString('en-IN') : 'Lifetime'}
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                              p.is_active ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600'
-                            }`}>
-                              {p.is_active ? 'ACTIVE' : 'INACTIVE'}
-                            </span>
-                          </td>
-                          <td className="p-4 text-right space-x-2">
-                            <button
-                              onClick={() => handleTogglePromoStatus(p.id, !p.is_active)}
-                              className={`px-3 py-1 rounded-xl text-[11px] font-bold cursor-pointer transition-colors ${
-                                p.is_active ? 'bg-amber-950/80 text-amber-300 border border-amber-800' : 'bg-emerald-950/80 text-emerald-300 border border-emerald-800'
-                              }`}
-                            >
-                              {p.is_active ? 'Disable' : 'Enable'}
-                            </button>
-                            <button
-                              onClick={() => handleOpenEditPromoModal(p)}
-                              className="px-3 py-1 rounded-xl bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-700 text-[11px] font-bold cursor-pointer transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeletePromo(p.id)}
-                              className="px-3 py-1 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 text-[11px] font-bold cursor-pointer transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                      promoCodes.map((p) => {
+                        const scope = p.applicable_scope || 'all';
+                        const cats = Array.isArray(p.applicable_categories) ? p.applicable_categories : (typeof p.applicable_categories === 'string' ? JSON.parse(p.applicable_categories || '[]') : []);
+                        const itms = Array.isArray(p.applicable_items) ? p.applicable_items : (typeof p.applicable_items === 'string' ? JSON.parse(p.applicable_items || '[]') : []);
+
+                        return (
+                          <tr key={p.id} className="hover:bg-slate-700/40 transition-colors">
+                            <td className="p-4 font-black text-purple-300 text-sm">{p.code}</td>
+                            <td className="p-4 font-extrabold text-white">
+                              {p.discount_type === 'flat' ? `₹${p.discount_value} OFF` : `${p.discount_value}% OFF`}
+                              {p.max_discount ? ` (Max ₹${p.max_discount})` : ''}
+                            </td>
+                            <td className="p-4">
+                              {scope === 'all' && (
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-950/80 text-purple-300 border border-purple-800">
+                                  All Products
+                                </span>
+                              )}
+                              {scope === 'categories' && (
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-950/80 text-indigo-300 border border-indigo-800">
+                                  {cats.length > 0 ? cats.slice(0, 2).join(', ') + (cats.length > 2 ? ` (+${cats.length - 2})` : '') : 'Categories'}
+                                </span>
+                              )}
+                              {scope === 'items' && (
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-cyan-950/80 text-cyan-300 border border-cyan-800">
+                                  {itms.length} Selected Services
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4">₹{p.min_order_amount || 0}</td>
+                            <td className="p-4">
+                              <span className="font-bold text-slate-200">
+                                {p.used_count || 0} / {p.usage_limit || '∞'}
+                              </span>
+                            </td>
+                            <td className="p-4 text-slate-300">
+                              {p.valid_until ? new Date(p.valid_until).toLocaleDateString('en-IN') : 'Lifetime'}
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                p.is_active ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-700 text-slate-400 border border-slate-600'
+                              }`}>
+                                {p.is_active ? 'ACTIVE' : 'INACTIVE'}
+                              </span>
+                            </td>
+                            <td className="p-4 text-right space-x-2">
+                              <button
+                                onClick={() => handleTogglePromoStatus(p.id, !p.is_active)}
+                                className={`px-3 py-1 rounded-xl text-[11px] font-bold cursor-pointer transition-colors ${
+                                  p.is_active ? 'bg-amber-950/80 text-amber-300 border border-amber-800' : 'bg-emerald-950/80 text-emerald-300 border border-emerald-800'
+                                }`}
+                              >
+                                {p.is_active ? 'Disable' : 'Enable'}
+                              </button>
+                              <button
+                                onClick={() => handleOpenEditPromoModal(p)}
+                                className="px-3 py-1 rounded-xl bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-700 text-[11px] font-bold cursor-pointer transition-colors"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeletePromo(p.id)}
+                                className="px-3 py-1 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 text-[11px] font-bold cursor-pointer transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -974,6 +985,9 @@ export default function AdminDashboardPage() {
                       discount_value: '',
                       min_order_amount: '299',
                       max_discount: '',
+                      applicable_scope: 'all',
+                      applicable_categories: [],
+                      applicable_items: [],
                       valid_from: new Date().toISOString().slice(0, 10),
                       valid_until: '',
                       usage_limit: '',
@@ -985,19 +999,9 @@ export default function AdminDashboardPage() {
                 >
                   <span className="flex items-center gap-2">
                     <Tag className="w-4 h-4 text-purple-400" />
-                    <span>Create Promo Coupon</span>
+                    <span>Create Scope Promo Coupon</span>
                   </span>
                   <Plus className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setActiveNav('orders')}
-                  className="w-full p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-2xl text-left text-xs text-slate-300 font-bold transition-all flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShoppingBag className="w-4 h-4 text-purple-400" />
-                    <span>Manage Orders ({orders.length})</span>
-                  </span>
-                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -1008,14 +1012,14 @@ export default function AdminDashboardPage() {
 
       {/* CREATE / EDIT PROMO MODAL */}
       {isPromoModalOpen && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0">
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="w-full max-w-xl bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0 my-8">
             <div className="p-5 bg-gradient-to-r from-purple-950 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
                 <Tag className="w-6 h-6 text-purple-400" />
                 <div>
                   <h3 className="text-lg font-black text-white">{editingPromo ? 'Edit Promo Code' : 'Create New Promo Code'}</h3>
-                  <p className="text-xs text-purple-300 font-medium">Configure discount rule and validity</p>
+                  <p className="text-xs text-purple-300 font-medium">Set scope eligibility, discount value & validity</p>
                 </div>
               </div>
               <button onClick={() => setIsPromoModalOpen(false)} className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
@@ -1023,7 +1027,7 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSavePromo} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleSavePromo} className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
               <div>
                 <label className="block text-slate-300 font-bold mb-1">Promo Code *</label>
                 <input
@@ -1031,9 +1035,114 @@ export default function AdminDashboardPage() {
                   required
                   value={promoFormData.code}
                   onChange={(e) => setPromoFormData({ ...promoFormData, code: e.target.value.toUpperCase() })}
-                  placeholder="e.g., HEALTH50"
+                  placeholder="e.g., LABTEST20"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-black uppercase text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
                 />
+              </div>
+
+              {/* APPLIES TO / ELIGIBILITY SCOPE SECTION */}
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                <label className="block text-purple-300 font-extrabold uppercase text-[11px] tracking-wider flex items-center gap-1.5">
+                  <Layers3 className="w-4 h-4 text-purple-400" />
+                  <span>Applies To / Eligibility Scope *</span>
+                </label>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPromoFormData({ ...promoFormData, applicable_scope: 'all' })}
+                    className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      promoFormData.applicable_scope === 'all'
+                        ? 'bg-purple-900/80 border-purple-500 text-white font-black'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Entire Cart
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPromoFormData({ ...promoFormData, applicable_scope: 'categories' })}
+                    className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      promoFormData.applicable_scope === 'categories'
+                        ? 'bg-purple-900/80 border-purple-500 text-white font-black'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Categories
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPromoFormData({ ...promoFormData, applicable_scope: 'items' })}
+                    className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      promoFormData.applicable_scope === 'items'
+                        ? 'bg-purple-900/80 border-purple-500 text-white font-black'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Specific Services
+                  </button>
+                </div>
+
+                {/* Specific Categories Picker */}
+                {promoFormData.applicable_scope === 'categories' && (
+                  <div className="space-y-2 pt-2 border-t border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Select Eligible Categories:</span>
+                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
+                      {CATEGORIES.map((cat) => {
+                        const isChecked = promoFormData.applicable_categories.includes(cat.name);
+                        return (
+                          <label key={cat.id} className="flex items-center gap-2 p-2 bg-slate-900 rounded-xl border border-slate-800 cursor-pointer hover:border-purple-600">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleCategorySelection(cat.name)}
+                              className="rounded text-purple-600 focus:ring-purple-500"
+                            />
+                            <span className="text-xs font-bold text-white">{cat.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Specific Services Picker */}
+                {promoFormData.applicable_scope === 'items' && (
+                  <div className="space-y-2 pt-2 border-t border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Select Eligible Services:</span>
+                      <input
+                        type="text"
+                        value={promoSearchItem}
+                        onChange={(e) => setPromoSearchItem(e.target.value)}
+                        placeholder="Filter services..."
+                        className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-white"
+                      />
+                    </div>
+                    <div className="space-y-1 max-h-44 overflow-y-auto p-1 border border-slate-800 rounded-xl bg-slate-900">
+                      {ALL_SERVICES.filter((s) => !promoSearchItem || s.name.toLowerCase().includes(promoSearchItem.toLowerCase())).map((service) => {
+                        const serviceKey = service.id || service.slug;
+                        const isChecked = promoFormData.applicable_items.includes(serviceKey);
+                        return (
+                          <label key={serviceKey} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-800 cursor-pointer text-slate-300">
+                            <span className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => toggleItemSelection(serviceKey)}
+                                className="rounded text-purple-600 focus:ring-purple-500"
+                              />
+                              <span className="text-xs font-semibold text-white">{service.name}</span>
+                            </span>
+                            <span className="text-[10px] font-bold text-purple-400">₹{service.discount_price || service.price}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -1140,228 +1249,6 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* CONFIRMATION MODAL FOR COD COLLECTION */}
-      {codConfirmOrder && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-slate-900 border border-amber-500/40 rounded-3xl p-6 shadow-2xl space-y-4 text-left">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
-                <Truck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-black text-white">Collect Cash on Delivery Payment</h3>
-                <p className="text-xs text-amber-300/80">Order Reference: {codConfirmOrder.order_code}</p>
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
-              <div>Customer: <strong className="text-white">{codConfirmOrder.customer_name}</strong></div>
-              <div>Phone: <strong className="text-slate-200">{codConfirmOrder.customer_phone}</strong></div>
-              <div>Amount Collected: <strong className="text-emerald-400 text-sm">₹{codConfirmOrder.total_amount}</strong></div>
-            </div>
-
-            <p className="text-xs text-slate-400">
-              This action will invoke the server-side RPC function <code className="text-amber-300 font-mono">mark_cod_payment_collected()</code> to update the database state to PAID and CONFIRMED.
-            </p>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                disabled={isCollectingCod}
-                onClick={() => setCodConfirmOrder(null)}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={isCollectingCod}
-                onClick={executeMarkCodCollected}
-                className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-slate-950 font-black text-xs cursor-pointer transition-colors flex items-center gap-2"
-              >
-                {isCollectingCod ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                <span>Confirm Collection</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ORDER DETAILS MODAL DRAWER */}
-      {selectedOrder && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0">
-            <div className="p-5 bg-gradient-to-r from-purple-950 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <ShoppingBag className="w-6 h-6 text-purple-400" />
-                <div>
-                  <h3 className="text-lg font-black text-white">Order Details — {selectedOrder.order_code}</h3>
-                  <p className="text-xs text-purple-300 font-medium">Created on {new Date(selectedOrder.created_at).toLocaleString('en-IN')}</p>
-                </div>
-              </div>
-              <button onClick={() => setSelectedOrder(null)} className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto text-xs text-slate-200">
-              <div className="grid grid-cols-2 gap-4 bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
-                <div>
-                  <div className="text-slate-400 font-bold text-[10px] uppercase">Customer Name</div>
-                  <div className="font-extrabold text-white text-sm mt-0.5">{selectedOrder.customer_name}</div>
-                  <div className="text-slate-300 mt-1">{selectedOrder.customer_phone}</div>
-                  {selectedOrder.customer_email && <div className="text-slate-400 text-[11px]">{selectedOrder.customer_email}</div>}
-                </div>
-                <div>
-                  <div className="text-slate-400 font-bold text-[10px] uppercase">Payment & Method</div>
-                  <div className="font-black text-emerald-400 text-sm mt-0.5">₹{selectedOrder.total_amount}</div>
-                  <div className="text-amber-300 font-bold mt-1 uppercase text-[11px]">Method: {selectedOrder.payment_method || selectedOrder.payments?.[0]?.payment_method || 'ONLINE'}</div>
-                  <div className="text-slate-400 text-[10px]">Payment Status: <strong className="text-white">{selectedOrder.payment_status}</strong></div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-black text-white uppercase text-xs tracking-wider mb-2">Purchased Items Breakdown</h4>
-                <div className="bg-slate-800/80 rounded-2xl border border-slate-700 overflow-hidden divide-y divide-slate-700">
-                  {Array.isArray(selectedOrder.items) && selectedOrder.items.map((it, idx) => (
-                    <div key={idx} className="p-3 flex items-center justify-between">
-                      <div>
-                        <div className="font-bold text-white">{it.name}</div>
-                        <div className="text-[10px] text-slate-400">Qty: {it.quantity} • Unit Price: ₹{it.unit_price}</div>
-                      </div>
-                      <div className="font-black text-purple-300">₹{it.total_price || it.unit_price * it.quantity}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {selectedOrder.payments?.[0] && (
-                <div>
-                  <h4 className="font-black text-white uppercase text-xs tracking-wider mb-2">Razorpay Gateway Metadata</h4>
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-[11px] text-purple-300 space-y-1">
-                    <div>Razorpay Order ID: {selectedOrder.payments[0].razorpay_order_id}</div>
-                    {selectedOrder.payments[0].razorpay_payment_id && <div>Razorpay Payment ID: {selectedOrder.payments[0].razorpay_payment_id}</div>}
-                    <div>Mode: {selectedOrder.payments[0].payment_mode}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-between items-center">
-              <button
-                onClick={() => handleOpenCustomer360(selectedOrder.patient_id)}
-                className="px-4 py-2 bg-purple-900 hover:bg-purple-800 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
-              >
-                View Customer 360° Profile
-              </button>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CUSTOMER 360° PROFILE MODAL DRAWER */}
-      {selectedPatientId && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-3xl bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0">
-            <div className="p-5 bg-gradient-to-r from-purple-950 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <Users className="w-6 h-6 text-purple-400" />
-                <div>
-                  <h3 className="text-lg font-black text-white">Customer 360° Profile</h3>
-                  <p className="text-xs text-purple-300 font-medium">Complete Patient History & Activity Telemetry</p>
-                </div>
-              </div>
-              <button onClick={() => { setSelectedPatientId(null); setCustomer360Data(null); }} className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto text-xs text-slate-200">
-              {isLoadingCustomer ? (
-                <div className="py-12 flex flex-col items-center justify-center gap-3">
-                  <RefreshCw className="w-7 h-7 animate-spin text-purple-500" />
-                  <span className="font-bold text-xs text-purple-300">Loading Customer 360° Data...</span>
-                </div>
-              ) : customer360Data ? (
-                <>
-                  <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Customer Name</div>
-                      <div className="font-black text-white text-sm mt-0.5">{customer360Data.profile?.full_name || 'Guest'}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Phone Number</div>
-                      <div className="font-bold text-slate-200 mt-0.5">{customer360Data.profile?.phone_e164}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Account Type</div>
-                      <div className="font-extrabold text-purple-300 mt-0.5">{customer360Data.profile?.user_id ? 'REGISTERED' : 'GUEST'}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">City</div>
-                      <div className="font-bold text-slate-300 mt-0.5">{customer360Data.profile?.city || 'Bengaluru'}</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="font-black text-white uppercase text-xs tracking-wider">Customer Orders ({customer360Data.orders.length})</h4>
-                    {customer360Data.orders.length === 0 ? (
-                      <p className="text-slate-400 italic text-[11px] p-3 bg-slate-900/60 rounded-xl">No orders placed by this customer.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {customer360Data.orders.map((o) => (
-                          <div key={o.id} className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-between">
-                            <div>
-                              <span className="font-black text-purple-300">{o.order_code}</span> • <span className="font-bold text-white">₹{o.total_amount}</span>
-                              <div className="text-[10px] text-slate-400">{new Date(o.created_at).toLocaleString('en-IN')}</div>
-                            </div>
-                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-[10px] font-bold">{o.payment_status}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="font-black text-white uppercase text-xs tracking-wider">Prescriptions Uploaded ({customer360Data.enquiries.length})</h4>
-                    {customer360Data.enquiries.length === 0 ? (
-                      <p className="text-slate-400 italic text-[11px] p-3 bg-slate-900/60 rounded-xl">No prescription uploads found.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {customer360Data.enquiries.map((e) => (
-                          <div key={e.id} className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex items-center justify-between">
-                            <div>
-                              <span className="font-black text-amber-300">{e.enquiry_code}</span> • <span className="text-slate-300">{e.notes || 'Prescription upload'}</span>
-                              <div className="text-[10px] text-slate-400">{new Date(e.created_at).toLocaleString('en-IN')}</div>
-                            </div>
-                            <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-[10px] font-bold">{e.status}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <p className="text-xs text-slate-400 text-center py-6">Customer data unavailable.</p>
-              )}
-            </div>
-
-            <div className="p-4 bg-slate-950 border-t border-slate-800 text-right">
-              <button
-                onClick={() => { setSelectedPatientId(null); setCustomer360Data(null); }}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}

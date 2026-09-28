@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — PROMO CODE & COUPON MANAGEMENT SYSTEM
--- Production-Hardened Database Migration
+-- Production-Hardened Database Migration with Scope Eligibility
 -- ============================================================
 
 -- 1. TABLE: public.promo_codes
@@ -11,6 +11,9 @@ create table if not exists public.promo_codes (
   discount_value numeric not null check (discount_value > 0),
   min_order_amount numeric default 0 check (min_order_amount >= 0),
   max_discount numeric null check (max_discount is null or max_discount > 0),
+  applicable_scope text default 'all' not null check (applicable_scope in ('all', 'categories', 'items')),
+  applicable_categories jsonb default '[]'::jsonb not null,
+  applicable_items jsonb default '[]'::jsonb not null,
   valid_from timestamptz default now() not null,
   valid_until timestamptz null,
   usage_limit integer null check (usage_limit is null or usage_limit > 0),
@@ -19,6 +22,11 @@ create table if not exists public.promo_codes (
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null
 );
+
+-- Ensure columns exist if table was created earlier
+alter table public.promo_codes add column if not exists applicable_scope text default 'all' not null check (applicable_scope in ('all', 'categories', 'items'));
+alter table public.promo_codes add column if not exists applicable_categories jsonb default '[]'::jsonb not null;
+alter table public.promo_codes add column if not exists applicable_items jsonb default '[]'::jsonb not null;
 
 -- Index for code lookup and active status
 create index if not exists idx_promo_codes_code on public.promo_codes(code);
@@ -69,13 +77,8 @@ create policy "Admins can view promo code usage" on public.promo_code_usage
     public.check_is_admin() = true
   );
 
--- NOTE: No public INSERT policy on promo_code_usage.
--- Insertion is handled strictly & securely via SECURITY DEFINER function record_promo_code_usage_atomic.
-
 -- ============================================================
 -- ATOMIC PROMO CODE USAGE INCREMENT RPC FUNCTION
--- Hardened with valid_from and valid_until validation.
--- Strictly restricted to authenticated & service_role (anon revoked).
 -- ============================================================
 
 create or replace function public.record_promo_code_usage_atomic(
@@ -124,7 +127,7 @@ begin
       updated_at = now()
   where id = p_code_id;
 
-  -- 3. Insert usage audit record (bypasses RLS safely via SECURITY DEFINER)
+  -- 3. Insert usage audit record
   insert into public.promo_code_usage (promo_code_id, order_id, patient_id, discount_applied)
   values (p_code_id, p_order_id, p_patient_id, p_discount_applied);
 
