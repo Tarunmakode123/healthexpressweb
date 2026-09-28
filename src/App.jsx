@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import CartDrawer from './components/cart/CartDrawer';
@@ -99,7 +99,7 @@ function MainLayout() {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/signup" element={<AuthPage />} />
-            <Route path="/account" element={<CustomerDashboardPage />} />
+            <Route path="/account" element={<Navigate to="/admin" replace />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/*" element={<AdminDashboardPage />} />
           </Routes>

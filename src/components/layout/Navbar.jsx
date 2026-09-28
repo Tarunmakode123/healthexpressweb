@@ -125,12 +125,12 @@ export default function Navbar({ onOpenUploadModal }) {
                   {showProfileMenu && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-purple-100 p-2 z-50 space-y-1 animate-in fade-in duration-100 text-left">
                       <Link
-                        to={user?.email === 'admin@healthexpress.in' ? '/admin' : '/account'}
+                        to="/admin"
                         onClick={() => setShowProfileMenu(false)}
                         className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2"
                       >
                         <User className="w-3.5 h-3.5 text-purple-600" />
-                        <span>{user?.email === 'admin@healthexpress.in' ? 'Admin Ops Control' : 'My Account Dashboard'}</span>
+                        <span>Admin Dashboard</span>
                       </Link>
                       <button
                         onClick={() => {
