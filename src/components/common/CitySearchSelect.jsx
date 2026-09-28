@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, ChevronDown, Check, Search } from 'lucide-react';
+import { MapPin, ChevronDown, Check, Plus, Search } from 'lucide-react';
 import { INDIAN_CITIES } from '../../data/indianCities';
 
-export default function CitySearchSelect({ value, onChange, placeholder = "Select or type operational city..." }) {
+export default function CitySearchSelect({ value, onChange, placeholder = "Search or type operational city..." }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState(value || '');
   const wrapperRef = useRef(null);
@@ -46,7 +46,7 @@ export default function CitySearchSelect({ value, onChange, placeholder = "Selec
   const handleInputChange = (e) => {
     const val = e.target.value;
     setSearchTerm(val);
-    onChange(val);
+    onChange(val); // Real-time value update ensures typed custom text is never lost
     if (!isOpen) setIsOpen(true);
   };
 
@@ -55,6 +55,11 @@ export default function CitySearchSelect({ value, onChange, placeholder = "Selec
     onChange(city);
     setIsOpen(false);
   };
+
+  const hasExactMatch = React.useMemo(() => {
+    const trimmed = searchTerm.trim().toLowerCase();
+    return INDIAN_CITIES.some((c) => c.toLowerCase() === trimmed);
+  }, [searchTerm]);
 
   return (
     <div ref={wrapperRef} className="relative w-full">
@@ -81,7 +86,23 @@ export default function CitySearchSelect({ value, onChange, placeholder = "Selec
 
       {/* Floating Dropdown List */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-purple-200 rounded-2xl shadow-xl max-h-56 overflow-y-auto py-1 animate-fadeIn divide-y divide-purple-50">
+        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-purple-200 rounded-2xl shadow-xl max-h-60 overflow-y-auto py-1 animate-fadeIn divide-y divide-purple-50">
+          
+          {/* Custom Typed City Option if user typed something not in exact match */}
+          {searchTerm.trim().length > 0 && !hasExactMatch && (
+            <button
+              type="button"
+              onClick={() => handleSelectCity(searchTerm.trim())}
+              className="w-full text-left px-4 py-2.5 text-xs font-semibold bg-purple-50/80 text-purple-900 hover:bg-purple-100 flex items-center justify-between transition-colors cursor-pointer border-b border-purple-100"
+            >
+              <span className="flex items-center gap-2 truncate">
+                <Plus className="w-3.5 h-3.5 text-purple-700 shrink-0" />
+                Use custom city: <strong className="text-purple-950 font-bold max-w-[200px] truncate">"{searchTerm.trim()}"</strong>
+              </span>
+              <span className="text-[10px] text-purple-700 font-bold bg-purple-200/60 px-2 py-0.5 rounded-full shrink-0">Custom</span>
+            </button>
+          )}
+
           {filteredCities.length > 0 ? (
             filteredCities.map((city, index) => {
               const isSelected = searchTerm.toLowerCase() === city.toLowerCase();
@@ -92,7 +113,7 @@ export default function CitySearchSelect({ value, onChange, placeholder = "Selec
                   onClick={() => handleSelectCity(city)}
                   className={`w-full text-left px-4 py-2.5 text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                     isSelected 
-                      ? 'bg-purple-50 text-purple-900 font-bold' 
+                      ? 'bg-purple-100/70 text-purple-900 font-bold' 
                       : 'text-slate-700 hover:bg-purple-50/70 hover:text-purple-800'
                   }`}
                 >
@@ -106,7 +127,7 @@ export default function CitySearchSelect({ value, onChange, placeholder = "Selec
             })
           ) : (
             <div className="px-4 py-3 text-xs text-slate-500 text-center">
-              No matching city found. You can type <strong className="text-purple-900">"{searchTerm}"</strong> to use it directly.
+              No list match found. You can use <strong className="text-purple-900">"{searchTerm}"</strong> as your city.
             </div>
           )}
         </div>
