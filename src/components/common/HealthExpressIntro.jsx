@@ -85,7 +85,7 @@ export default function HealthExpressIntro() {
           preload="metadata"
           onEnded={handleVideoEnded}
           onError={handleVideoError}
-          className="w-full h-full object-cover pointer-events-none select-none"
+          className="w-full h-full object-contain md:object-cover pointer-events-none select-none"
         />
       </div>
 

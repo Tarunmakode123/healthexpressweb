@@ -4,6 +4,7 @@ import {
   MessageSquare, Sparkles, Zap, FlaskConical, Camera, Home, Dna, ArrowRight, Activity, Clock, Pill, HeartPulse
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import CitySearchSelect from '../components/common/CitySearchSelect';
 
 export default function ProvidersPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -433,13 +434,11 @@ export default function ProvidersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-extrabold text-slate-800 mb-1">Operational City</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-extrabold text-slate-800 mb-1">Operational City *</label>
+                  <CitySearchSelect
                     value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="e.g., Bengaluru"
-                    className="w-full px-4 py-3 rounded-2xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white shadow-2xs"
+                    onChange={(selectedCity) => setFormData({ ...formData, city: selectedCity })}
+                    placeholder="Search city (e.g. Indore, Bengaluru)..."
                   />
                 </div>
               </div>
