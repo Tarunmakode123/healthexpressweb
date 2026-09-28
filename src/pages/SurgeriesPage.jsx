@@ -242,40 +242,43 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
             </div>
           </div>
 
-          {/* Clean Categorized Grid */}
+          {/* Clean Categorized Grid - Zero Word Repetition */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {POPULAR_SURGERIES_CATEGORIES.map((catGroup, idx) => (
               <div 
                 key={idx}
-                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4 text-left hover:shadow-md transition-shadow"
+                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between text-left hover:shadow-md transition-shadow"
               >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 className="text-base font-extrabold text-purple-900">{catGroup.category}</h3>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    {catGroup.items.length} Procedures
-                  </span>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 className="text-base font-extrabold text-purple-900">{catGroup.category}</h3>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                      {catGroup.items.length} Procedures
+                    </span>
+                  </div>
+
+                  <div className="divide-y divide-slate-100">
+                    {catGroup.items.map((item) => (
+                      <Link 
+                        key={item.slug}
+                        to={`/surgeries/${item.slug}`} 
+                        className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-purple-50/80 text-slate-800 hover:text-purple-950 font-medium text-xs transition-all group"
+                      >
+                        <span className="group-hover:font-bold transition-all">{item.name}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:text-purple-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  {catGroup.items.map((item) => (
-                    <div 
-                      key={item.slug}
-                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-purple-50/80 transition-colors group cursor-pointer"
-                      onClick={() => handleWhatsAppConsultation(item.name)}
-                    >
-                      <Link 
-                        to={`/surgeries/${item.slug}`} 
-                        className="text-xs font-bold text-slate-800 group-hover:text-purple-900 hover:underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {item.name}
-                      </Link>
-                      <span className="text-[11px] font-semibold text-purple-700 group-hover:text-purple-950 flex items-center gap-1 transition-all shrink-0">
-                        Get Estimate
-                        <ChevronRight className="w-3.5 h-3.5 text-purple-500 group-hover:translate-x-0.5 transition-transform" />
-                      </span>
-                    </div>
-                  ))}
+                <div className="pt-4 border-t border-slate-100 mt-4">
+                  <button
+                    onClick={() => handleWhatsAppConsultation(catGroup.category)}
+                    className="w-full py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-purple-100"
+                  >
+                    <span>Get Cost Estimate for {catGroup.category}</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-purple-700" />
+                  </button>
                 </div>
               </div>
             ))}
