@@ -131,11 +131,6 @@ export default function CustomerDashboardPage() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <div className="px-4 py-2 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-extrabold text-xs flex items-center gap-2">
-                <Coins className="w-4 h-4 text-amber-400" />
-                <span>{walletBalance.toLocaleString()} Health Coins</span>
-              </div>
-
               <button
                 onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
                 className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all"
@@ -170,7 +165,6 @@ export default function CustomerDashboardPage() {
         <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-1">
           {[
             { id: 'overview', label: 'Overview', icon: Activity },
-            { id: 'wallet', label: `Health Coins (${walletBalance.toLocaleString()})`, icon: Coins },
             { id: 'records', label: `Health Records (${stats.totalFiles})`, icon: FileText },
             { id: 'prescriptions', label: `Prescriptions (${records.length})`, icon: Sparkles },
             { id: 'orders', label: `My Orders (${orders.length})`, icon: ShoppingBag }
@@ -198,13 +192,7 @@ export default function CustomerDashboardPage() {
         {activeTab === 'overview' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             {/* Quick Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white p-5 rounded-3xl border border-purple-100 shadow-xs space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Health Coins</span>
-                <p className="text-3xl font-black text-amber-600">🪙 {walletBalance.toLocaleString()}</p>
-                <p className="text-[10px] text-slate-400 font-medium">≈ ₹{Math.floor(walletBalance / 10)} redeemable value</p>
-              </div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-white p-5 rounded-3xl border border-purple-100 shadow-xs space-y-1">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Health Files</span>
                 <p className="text-3xl font-black text-purple-950">{stats.totalFiles}</p>
@@ -269,108 +257,6 @@ export default function CustomerDashboardPage() {
                 )}
               </div>
 
-              {/* Health Coins Rewards Card */}
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-200/80 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-extrabold text-amber-950 flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-amber-600" />
-                    <span>Health Coins Balance</span>
-                  </h3>
-                  <button 
-                    onClick={() => setActiveTab('wallet')}
-                    className="text-xs font-bold text-amber-800 hover:text-amber-950 flex items-center gap-1"
-                  >
-                    <span>View Ledger</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl border border-amber-200/90 shadow-2xs space-y-2">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-3xl font-black text-amber-600">🪙 {walletBalance.toLocaleString()} Coins</span>
-                    <span className="text-xs font-extrabold text-slate-700 bg-amber-100 px-3 py-1 rounded-full">
-                      ≈ ₹{Math.floor(walletBalance / 10)} Value
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600">
-                    Use your Health Coins during checkout for discounts on diagnostic lab tests, surgeries, and health check packages.
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: HEALTH COINS WALLET LEDGER */}
-        {activeTab === 'wallet' && (
-          <div className="bg-white rounded-3xl p-6 border border-purple-100 shadow-sm space-y-6 animate-in fade-in duration-200 text-left">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                  <Coins className="w-6 h-6 text-amber-500" />
-                  <span>Health Coins & Rewards Wallet</span>
-                </h2>
-                <p className="text-xs text-slate-500">Track your welcome rewards, promotional credits, and checkout coin redemptions.</p>
-              </div>
-
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-left flex items-center gap-4">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Available Balance</span>
-                  <p className="text-2xl font-black text-amber-950">🪙 {walletBalance.toLocaleString()} Coins</p>
-                </div>
-                <div className="pl-4 border-l border-amber-200">
-                  <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Approx. Value</span>
-                  <p className="text-lg font-black text-emerald-700">₹{Math.floor(walletBalance / 10)}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Transaction History Table */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
-                <History className="w-4 h-4 text-purple-700" />
-                <span>Transaction History Ledger ({walletTransactions.length})</span>
-              </h3>
-
-              {walletTransactions.length === 0 ? (
-                <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
-                  <Coins className="w-8 h-8 text-amber-300 mx-auto" />
-                  <p className="text-xs font-bold text-slate-600">No coin transactions recorded yet.</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {walletTransactions.map((tx) => {
-                    const isCredit = tx.coins > 0;
-                    return (
-                      <div key={tx.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs hover:border-purple-200 transition-all">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                              tx.transaction_type === 'signup_reward' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
-                              tx.transaction_type === 'redeemed' ? 'bg-rose-100 text-rose-800' :
-                              tx.transaction_type === 'refund' ? 'bg-emerald-100 text-emerald-800' :
-                              'bg-purple-100 text-purple-800'
-                            }`}>
-                              {tx.transaction_type.replace('_', ' ')}
-                            </span>
-                            <span className="font-extrabold text-slate-900">{tx.description || 'Health Coins Activity'}</span>
-                          </div>
-                          <p className="text-[11px] text-slate-400 font-medium">
-                            {new Date(tx.created_at).toLocaleString()} • Balance: {tx.balance_before} → <strong>{tx.balance_after}</strong>
-                          </p>
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          <span className={`text-base font-black ${isCredit ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {isCredit ? `+${tx.coins}` : tx.coins} Coins
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </div>
         )}
