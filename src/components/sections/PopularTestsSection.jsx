@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Sparkles, MessageCircle, ArrowRight, CheckCircle2, ShieldCheck, Droplet, Activity, Sun, Target, Heart, UserCheck, Shield, ShoppingBag } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { Search, Sparkles, ArrowRight, ShieldCheck, Droplet, Activity, Sun, Target, Heart, UserCheck, Shield, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { useCart } from '../../context/CartContext';
 
 export default function PopularTestsSection() {
   const [searchQuery, setSearchQuery] = useState('');
   const { addToCart } = useCart();
+  const scrollContainerRef = useRef(null);
 
   const popularServices = [
     {
@@ -85,51 +86,72 @@ export default function PopularTestsSection() {
     );
   }, [searchQuery]);
 
-  const handleOpenAssistant = () => {
-    window.dispatchEvent(new CustomEvent('open-health-express-assistant', {
-      detail: { initialQuery: "Hello! I am looking for a specific diagnostic test or checkup package." }
-    }));
+  const handleScroll = (direction) => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
   };
 
   return (
-    <section className="py-20 md:py-28 bg-white border-t border-slate-100" id="tests">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <section className="py-16 md:py-24 bg-white border-t border-slate-100" id="tests">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100 border border-purple-200 text-xs font-extrabold uppercase tracking-widest text-purple-700 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>POPULAR DIAGNOSTIC TESTS</span>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-2 text-left max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-100 border border-purple-200 text-xs font-extrabold uppercase tracking-widest text-purple-700 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+              <span>POPULAR DIAGNOSTIC TESTS</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Looking for a specific test?
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
+              Search diagnostic tests and checkup packages available across verified partner labs in Bengaluru.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-            Looking for a specific test?
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600 font-medium max-w-xl mx-auto leading-relaxed">
-            Search diagnostic tests and checkup packages available across our verified partner laboratories in Bengaluru.
-          </p>
+
+          {/* Slider Navigation Buttons */}
+          <div className="flex items-center gap-2 self-start md:self-auto">
+            <button 
+              onClick={() => handleScroll('left')}
+              className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
+              aria-label="Previous test"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => handleScroll('right')}
+              className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
+              aria-label="Next test"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Search Bar & Suggestion Chips */}
-        <div className="max-w-2xl mx-auto space-y-4">
+        <div className="max-w-xl space-y-3 text-left">
           <div className="relative">
-            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search CBC, thyroid, vitamin D, lipid, full body..."
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-purple-600 outline-none shadow-xs"
+              className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 text-xs font-medium text-slate-900 focus:ring-2 focus:ring-purple-600 outline-none shadow-xs"
             />
           </div>
 
           {/* Suggestion Chips */}
-          <div className="flex items-center justify-center gap-2 flex-wrap text-xs">
-            <span className="text-slate-400 font-bold">Quick suggestions:</span>
+          <div className="flex items-center gap-1.5 flex-wrap text-xs">
+            <span className="text-slate-400 font-bold text-[11px]">Quick suggestions:</span>
             {['CBC', 'HbA1c', 'Vitamin D', 'Thyroid', 'Lipid Profile', 'Full Body'].map((chip) => (
               <button
                 key={chip}
                 onClick={() => setSearchQuery(chip)}
-                className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-900 font-bold transition-colors"
+                className="px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-900 font-bold text-[11px] transition-colors cursor-pointer"
               >
                 {chip}
               </button>
@@ -137,8 +159,12 @@ export default function PopularTestsSection() {
           </div>
         </div>
 
-        {/* Filtered Test Results Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Horizontal Slider Track */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 scrollbar-none text-left"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {filteredTests.map((service) => {
             const IconComp = service.icon;
             return (
@@ -152,7 +178,7 @@ export default function PopularTestsSection() {
                   originalPrice: service.id === 'full-body-checkup' ? 2499 : 599,
                   turnaround: '6-12 Hours'
                 })}
-                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group cursor-pointer flex flex-col justify-between space-y-4 text-left relative overflow-hidden"
+                className="w-[280px] sm:w-[310px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all group cursor-pointer flex flex-col justify-between space-y-4 relative overflow-hidden"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -168,13 +194,13 @@ export default function PopularTestsSection() {
                     <h4 className="text-base font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors">
                       {service.title}
                     </h4>
-                    <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed line-clamp-2">
                       {service.desc}
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900">
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-extrabold text-purple-700 group-hover:text-purple-900">
                   <span className="flex items-center gap-1">
                     <ShoppingBag className="w-3.5 h-3.5" />
                     <span>Book & Add to Basket</span>
@@ -185,8 +211,6 @@ export default function PopularTestsSection() {
             );
           })}
         </div>
-
-
 
       </div>
     </section>

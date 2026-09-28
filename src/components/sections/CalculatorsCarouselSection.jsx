@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Sparkles, ArrowRight, Scale, Flame, Zap, Target, Activity, Droplet, 
@@ -12,6 +12,7 @@ const iconMap = {
 
 export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
   const [activeCategory, setActiveCategory] = useState('all');
+  const scrollContainerRef = useRef(null);
 
   const filteredCalculators = activeCategory === 'all' 
     ? CALCULATORS 
@@ -25,13 +26,20 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
     }
   };
 
+  const handleScroll = (direction) => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="py-16 sm:py-24 bg-gradient-to-b from-white via-purple-50/20 to-slate-50 border-t border-b border-purple-100/60 relative overflow-hidden" id="calculators">
       
       {/* Background Accent Blur */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-purple-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 text-left">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 text-left">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -49,13 +57,33 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
             </p>
           </div>
 
-          <Link
-            to="/health-calculators"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-purple-700/20 transition-all hover:scale-105 shrink-0"
-          >
-            <span>Explore Full Tool Library</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="flex items-center gap-3 self-start md:self-auto shrink-0">
+            <Link
+              to="/health-calculators"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-purple-700/20 transition-all hover:scale-105"
+            >
+              <span>Explore All Tools</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            {/* Slider Navigation Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button 
+                onClick={() => handleScroll('left')}
+                className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
+                aria-label="Previous calculator"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => handleScroll('right')}
+                className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
+                aria-label="Next calculator"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Category Pills Filter */}
@@ -85,8 +113,12 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
           ))}
         </div>
 
-        {/* Carousel Grid Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Horizontal Slider Track */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {filteredCalculators.map((calc) => {
             const IconComponent = iconMap[calc.iconName] || Calculator;
 
@@ -94,7 +126,7 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
               <div
                 key={calc.id}
                 onClick={() => handleCardClick(calc.slug)}
-                className="bg-white rounded-3xl p-6 border border-purple-100 shadow-md shadow-purple-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between space-y-5 text-left transform hover:-translate-y-1 relative overflow-hidden"
+                className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 border border-purple-100 shadow-md shadow-purple-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between space-y-5 text-left transform hover:-translate-y-1 relative overflow-hidden"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">

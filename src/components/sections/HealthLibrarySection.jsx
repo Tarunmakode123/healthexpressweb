@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Clock } from 'lucide-react';
+import { ArrowRight, BookOpen, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { HEALTH_ARTICLES } from '../../data/articles';
 
 export default function HealthLibrarySection() {
+  const scrollContainerRef = useRef(null);
+
   const topicClusters = [
     'Diagnostics',
     'Health Tests',
@@ -12,13 +14,20 @@ export default function HealthLibrarySection() {
     'Home Care'
   ];
 
+  const handleScroll = (direction) => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="py-16 md:py-24 bg-purple-50/20 border-t border-purple-100/40" id="health-library">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl text-left">
             <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
               HEALTH LIBRARY
             </div>
@@ -30,7 +39,7 @@ export default function HealthLibrarySection() {
             </p>
 
             {/* Topic Clusters */}
-            <div className="flex flex-wrap items-center gap-2 pt-4">
+            <div className="flex flex-wrap items-center gap-2 pt-3">
               {topicClusters.map((cluster) => (
                 <span
                   key={cluster}
@@ -42,22 +51,46 @@ export default function HealthLibrarySection() {
             </div>
           </div>
 
-          <Link
-            to="/health-library"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-900 shrink-0 group"
-          >
-            <span>Explore Health Library</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
+            <Link
+              to="/health-library"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-900 group"
+            >
+              <span>Explore Health Library</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            {/* Slider Navigation Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button 
+                onClick={() => handleScroll('left')}
+                className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
+                aria-label="Previous article"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => handleScroll('right')}
+                className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
+                aria-label="Next article"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Article Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Horizontal Slider Track */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex items-stretch gap-6 overflow-x-auto snap-x snap-mandatory py-2 px-1 scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {HEALTH_ARTICLES.map((article) => (
             <Link
               key={article.id}
               to={`/health-library/${article.slug}`}
-              className="group bg-white rounded-3xl overflow-hidden border border-purple-100 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+              className="w-[280px] sm:w-[310px] flex-shrink-0 snap-start group bg-white rounded-3xl overflow-hidden border border-purple-100 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-left"
             >
               <div>
                 <div className="relative h-44 overflow-hidden bg-slate-100">
