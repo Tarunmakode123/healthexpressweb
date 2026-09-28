@@ -1,9 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { validatePromoCode, fetchActivePromotions, calculateDiscountAmount } from '../services/promoService.js';
+import { fetchWalletSettings, fetchWalletData, calculateCoinDiscount, DEFAULT_WALLET_SETTINGS } from '../services/walletService.js';
+import { useAuth } from './AuthContext.jsx';
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
+  const { user } = useAuth();
+
   const [cartItems, setCartItems] = useState(() => {
     try {
       const saved = localStorage.getItem('healthExpressCart');
@@ -24,6 +28,14 @@ export function CartProvider({ children }) {
   const [promoError, setPromoError] = useState(null);
   const [availablePromos, setAvailablePromos] = useState([]);
 
+  // HEALTH COINS STATES
+  const [walletBalance, setWalletBalance] = useState(1000);
+  const [walletSettings, setWalletSettings] = useState(DEFAULT_WALLET_SETTINGS);
+  const [coinsRequested, setCoinsRequested] = useState(0);
+  const [coinDiscount, setCoinDiscount] = useState(0);
+  const [coinsError, setCoinsError] = useState(null);
+  const [isCoinsApplied, setIsCoinsApplied] = useState(false);
+
   useEffect(() => {
     try {
       localStorage.setItem('healthExpressCart', JSON.stringify(cartItems));
@@ -32,14 +44,33 @@ export function CartProvider({ children }) {
     }
   }, [cartItems]);
 
-  // Load active promotions from database/service for "Available Offers" drawer component
+  // Load active promotions & wallet settings on mount
   useEffect(() => {
     fetchActivePromotions().then((res) => {
       if (res.success && res.promotions) {
         setAvailablePromos(res.promotions);
       }
     }).catch(() => {});
+
+    fetchWalletSettings().then((res) => {
+      if (res.success && res.settings) {
+        setWalletSettings(res.settings);
+      }
+    }).catch(() => {});
   }, []);
+
+  // Fetch user wallet data when user changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchWalletData(user.id).then((res) => {
+        if (res.success) {
+          setWalletBalance(res.balance);
+        }
+      }).catch(() => {});
+    } else {
+      setWalletBalance(1000); // Demo default
+    }
+  }, [user?.id]);
 
   // Compute Subtotals
   const itemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -69,6 +100,44 @@ export function CartProvider({ children }) {
       setPromoDiscount(0);
     }
   }, [subtotal, appliedPromo]);
+
+  // Re-calculate coins discount whenever subtotal, promo, or requested coins change
+  useEffect(() => {
+    if (isCoinsApplied && coinsRequested > 0) {
+      if (subtotal <= 0) {
+        setIsCoinsApplied(false);
+        setCoinsRequested(0);
+        setCoinDiscount(0);
+        setCoinsError(null);
+      } else {
+        // Check promo stacking rule
+        if (promoDiscount > 0 && !walletSettings.allow_stacking_with_promo) {
+          setCoinsError('Health Coins cannot be combined with Promo Codes.');
+          setCoinDiscount(0);
+        } else {
+          const res = calculateCoinDiscount({
+            subtotal,
+            coinsRequested,
+            walletBalance,
+            settings: walletSettings,
+            promoDiscount,
+            cartItems
+          });
+
+          if (!res.isValid) {
+            setCoinsError(res.error);
+            setCoinDiscount(0);
+          } else {
+            setCoinDiscount(res.coinDiscount);
+            setCoinsError(null);
+          }
+        }
+      }
+    } else {
+      setCoinDiscount(0);
+      setCoinsError(null);
+    }
+  }, [subtotal, promoDiscount, isCoinsApplied, coinsRequested, walletBalance, walletSettings, cartItems]);
 
   const addToCart = (service) => {
     if (!service) return;
@@ -151,6 +220,10 @@ export function CartProvider({ children }) {
     setAppliedPromo(null);
     setPromoDiscount(0);
     setPromoError(null);
+    setIsCoinsApplied(false);
+    setCoinsRequested(0);
+    setCoinDiscount(0);
+    setCoinsError(null);
   };
 
   const applyPromoCode = async (codeStr) => {
@@ -165,6 +238,13 @@ export function CartProvider({ children }) {
       });
 
       if (res.valid) {
+        // If stacking not allowed, prompt user or remove coins
+        if (isCoinsApplied && !walletSettings.allow_stacking_with_promo) {
+          setIsCoinsApplied(false);
+          setCoinsRequested(0);
+          setCoinDiscount(0);
+        }
+
         setAppliedPromo({
           id: res.promo_id,
           code: res.code,
@@ -197,11 +277,56 @@ export function CartProvider({ children }) {
     setPromoError(null);
   };
 
+  // HEALTH COINS HANDLERS
+  const applyCoins = (amount) => {
+    setCoinsError(null);
+    const targetCoins = amount !== undefined ? Number(amount) : Math.min(walletBalance, walletSettings.maximum_coins_per_order || 500);
+
+    if (promoDiscount > 0 && !walletSettings.allow_stacking_with_promo) {
+      setCoinsError('Health Coins cannot be combined with Promo Codes.');
+      return { success: false, error: 'Health Coins cannot be combined with Promo Codes.' };
+    }
+
+    const res = calculateCoinDiscount({
+      subtotal,
+      coinsRequested: targetCoins,
+      walletBalance,
+      settings: walletSettings,
+      promoDiscount,
+      cartItems
+    });
+
+    if (!res.isValid) {
+      setCoinsError(res.error);
+      return { success: false, error: res.error };
+    }
+
+    setIsCoinsApplied(true);
+    setCoinsRequested(targetCoins);
+    setCoinDiscount(res.coinDiscount);
+    setCoinsError(null);
+    return { success: true, coinDiscount: res.coinDiscount, coinsUsed: res.coinsUsed };
+  };
+
+  const removeCoins = () => {
+    setIsCoinsApplied(false);
+    setCoinsRequested(0);
+    setCoinDiscount(0);
+    setCoinsError(null);
+  };
+
+  const refreshWalletBalance = async () => {
+    if (user?.id) {
+      const res = await fetchWalletData(user.id);
+      if (res.success) setWalletBalance(res.balance);
+    }
+  };
+
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
   const toggleCart = () => setIsCartOpen((prev) => !prev);
 
-  const finalPayable = Math.max(0, subtotal - promoDiscount);
+  const finalPayable = Math.max(0, subtotal - promoDiscount - coinDiscount);
 
   return (
     <CartContext.Provider
@@ -227,6 +352,15 @@ export function CartProvider({ children }) {
         availablePromos,
         applyPromoCode,
         removePromoCode,
+        walletBalance,
+        walletSettings,
+        coinsRequested,
+        coinDiscount,
+        coinsError,
+        isCoinsApplied,
+        applyCoins,
+        removeCoins,
+        refreshWalletBalance,
         finalPayable
       }}
     >

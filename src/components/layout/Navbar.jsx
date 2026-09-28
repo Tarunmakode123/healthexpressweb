@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, ShoppingBag } from 'lucide-react';
+import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, ShoppingBag, Coins } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -11,7 +11,7 @@ export default function Navbar({ onOpenUploadModal }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
   const { user, isLoggedIn, logout } = useAuth();
-  const { itemCount, openCart } = useCart();
+  const { itemCount, openCart, walletBalance } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,38 +110,49 @@ export default function Navbar({ onOpenUploadModal }) {
             </button>
 
             {isLoggedIn ? (
-              <div className="relative">
-                <button
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-900 bg-purple-100 hover:bg-purple-200 transition-all border border-purple-200 shadow-xs flex items-center gap-2"
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/account"
+                  className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-black flex items-center gap-1.5 transition-all shadow-2xs"
+                  title="Your Health Coins Balance"
                 >
-                  <div className="w-5 h-5 rounded-full bg-purple-700 text-white flex items-center justify-center text-[10px] font-bold">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <span>{user?.name ? user.name.split(' ')[0] : 'Account'}</span>
-                </button>
+                  <Coins className="w-4 h-4 text-amber-600" />
+                  <span>{walletBalance !== undefined ? walletBalance.toLocaleString() : 1000} Coins</span>
+                </Link>
 
-                {showProfileMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-purple-100 p-2 z-50 space-y-1 animate-in fade-in duration-100">
-                    <Link
-                      to="/account"
-                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2"
-                    >
-                      <User className="w-3.5 h-3.5 text-purple-600" />
-                      <span>My Account Dashboard</span>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setShowProfileMenu(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
-                    >
-                      <LogOut className="w-3.5 h-3.5 text-rose-500" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                )}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-900 bg-purple-100 hover:bg-purple-200 transition-all border border-purple-200 shadow-xs flex items-center gap-2 cursor-pointer"
+                  >
+                    <div className="w-5 h-5 rounded-full bg-purple-700 text-white flex items-center justify-center text-[10px] font-bold">
+                      {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span>{user?.name ? user.name.split(' ')[0] : 'Account'}</span>
+                  </button>
+
+                  {showProfileMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-purple-100 p-2 z-50 space-y-1 animate-in fade-in duration-100 text-left">
+                      <Link
+                        to="/account"
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2"
+                      >
+                        <User className="w-3.5 h-3.5 text-purple-600" />
+                        <span>My Account Dashboard</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setShowProfileMenu(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <Link

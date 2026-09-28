@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, 
-  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw, Truck, Tag, Percent
+  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw, Truck, Tag, Percent, Coins
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -35,23 +35,24 @@ export default function CartDrawer() {
     availablePromos,
     applyPromoCode,
     removePromoCode,
-    finalPayable
+    walletBalance,
+    walletSettings,
+    coinsRequested,
+    coinDiscount,
+    coinsError,
+    isCoinsApplied,
+    applyCoins,
+    removeCoins,
+    finalPayable 
   } = useCart();
 
-  const { user, isLoggedIn } = useAuth();
+  const { user } = useAuth();
 
-  const [checkoutStep, setCheckoutStep] = useState('cart'); // 'cart' | 'checkout' | 'success'
-  const [paymentMethodChoice, setPaymentMethodChoice] = useState('online'); // 'online' | 'cod'
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [confirmedOrder, setConfirmedOrder] = useState(null);
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const [pendingDemoOrder, setPendingDemoOrder] = useState(null);
-
-  // Promo Code Form Input State
   const [promoInput, setPromoInput] = useState('');
-  const [promoSuccessMsg, setPromoSuccessMsg] = useState(null);
-
+  const [checkoutStep, setCheckoutStep] = useState('cart'); // 'cart' | 'checkout' | 'success'
+  const [paymentMethodChoice, setPaymentMethodChoice] = useState('cod'); // 'cod' | 'online'
+  
+  // Checkout Form State
   const [patientData, setPatientData] = useState({
     name: '',
     phone: '',
@@ -59,45 +60,45 @@ export default function CartDrawer() {
     address: 'Bengaluru'
   });
 
-  // Pre-fill user details if logged in
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [confirmedOrder, setConfirmedOrder] = useState(null);
+
+  // Demo Payment Modal State
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [pendingDemoOrder, setPendingDemoOrder] = useState(null);
+
+  // Sync patient name/phone from auth if available
   useEffect(() => {
     if (user) {
       setPatientData((prev) => ({
         ...prev,
-        name: user.name || prev.name,
-        phone: user.phone || prev.phone,
-        email: user.email || prev.email
+        name: prev.name || user.name || '',
+        phone: prev.phone || user.phone || '',
+        email: prev.email || user.email || ''
       }));
     }
   }, [user]);
 
   if (!isCartOpen) return null;
 
-  // Handle manual Promo Code submission
   const handleApplyPromo = async (e) => {
     if (e) e.preventDefault();
     if (!promoInput.trim()) return;
 
-    setPromoSuccessMsg(null);
-    const result = await applyPromoCode(promoInput.trim());
-    if (result.success) {
-      setPromoSuccessMsg(result.message);
+    const res = await applyPromoCode(promoInput.trim());
+    if (res.success) {
       setPromoInput('');
     }
   };
 
-  // Handle direct click on Available Offer badge
   const handleApplyAvailableOffer = async (code) => {
+    setPromoInput(code);
+    await applyPromoCode(code);
     setPromoInput('');
-    setPromoSuccessMsg(null);
-    const result = await applyPromoCode(code);
-    if (result.success) {
-      setPromoSuccessMsg(result.message);
-    }
   };
 
-  // Handle Order Submit (COD or Online Payment)
-  const handleSubmitCheckout = async (e) => {
+  const handleCheckoutOrder = async (e) => {
     if (e) e.preventDefault();
     setErrorMessage(null);
 
@@ -124,6 +125,8 @@ export default function CartDrawer() {
       });
     }).catch(() => {});
 
+    const coinsToUse = isCoinsApplied ? coinsRequested : 0;
+
     try {
       // ----------------------------------------------------
       // COD (CASH ON DELIVERY / PAY ON COLLECTION) FLOW
@@ -136,6 +139,9 @@ export default function CartDrawer() {
           city: patientData.address,
           items: cartItems,
           promoCode: appliedPromo?.code || null,
+          coinsToUse: coinsToUse,
+          walletBalance: walletBalance,
+          walletSettings: walletSettings,
           userId: user?.id || null,
           paymentMethod: 'COD'
         });
@@ -162,10 +168,12 @@ export default function CartDrawer() {
       // ----------------------------------------------------
       // ONLINE PAYMENT FLOW (RAZORPAY LIVE OR DEMO MODE)
       // ----------------------------------------------------
-      // 1. Create official Razorpay Order via server API endpoint (/api/create-razorpay-order)
       const rzpServerRes = await createRazorpayOrderServer({
         items: cartItems,
         promoCode: appliedPromo?.code || null,
+        coinsToUse: coinsToUse,
+        walletBalance: walletBalance,
+        walletSettings: walletSettings,
         customerName: patientData.name,
         customerPhone: patientData.phone,
         customerEmail: patientData.email
@@ -179,7 +187,6 @@ export default function CartDrawer() {
         isLiveServerOrder = true;
       }
 
-      // 2. Create internal order in Supabase database
       const orderRes = await createInternalOrder({
         customerName: patientData.name,
         customerPhone: patientData.phone,
@@ -187,6 +194,9 @@ export default function CartDrawer() {
         city: patientData.address,
         items: cartItems,
         promoCode: appliedPromo?.code || null,
+        coinsToUse: coinsToUse,
+        walletBalance: walletBalance,
+        walletSettings: walletSettings,
         userId: user?.id || null,
         paymentMethod: 'ONLINE',
         razorpayOrderId: realRzpOrderId
@@ -220,12 +230,12 @@ export default function CartDrawer() {
             isPaymentHandled = true;
             setErrorMessage(null);
 
-            // Server-side Payment Verification
             const verifyRes = await verifyAndConfirmPayment({
               orderId: orderRes.order_id,
               promoCodeId: appliedPromo?.id || null,
               patientId: orderRes.patient_id || null,
               promoDiscount: promoDiscount,
+              coinsUsed: coinsToUse,
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
@@ -256,12 +266,6 @@ export default function CartDrawer() {
               }).catch(() => {});
             } else {
               setErrorMessage(verifyRes.error || 'Payment verification failed on server.');
-
-              import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
-                logAnalyticsEvent('PAYMENT_FAILED', {
-                  metadata: { order_code: orderRes.order_code, error: verifyRes.error }
-                });
-              }).catch(() => {});
             }
             setIsProcessingPayment(false);
           },
@@ -276,11 +280,6 @@ export default function CartDrawer() {
               setIsProcessingPayment(false);
               if (!isPaymentHandled) {
                 setErrorMessage('Payment process was cancelled by user. No money was charged.');
-                import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
-                  logAnalyticsEvent('PAYMENT_CANCELLED', {
-                    metadata: { order_code: orderRes.order_code }
-                  });
-                }).catch(() => {});
               }
             }
           }
@@ -289,7 +288,6 @@ export default function CartDrawer() {
         const razorpayInstance = new window.Razorpay(options);
         razorpayInstance.on('payment.failed', function (resp) {
           isPaymentHandled = true;
-          console.error('Razorpay Payment Failed:', resp.error);
           setErrorMessage(`Payment Failed: ${resp.error.description || 'Transaction declined.'}`);
           setIsProcessingPayment(false);
         });
@@ -309,7 +307,6 @@ export default function CartDrawer() {
     }
   };
 
-  // Callback when Demo Payment succeeds inside RazorpayDemoModal
   const handleDemoPaymentSuccess = async (demoPayload) => {
     if (!pendingDemoOrder) return;
 
@@ -321,6 +318,7 @@ export default function CartDrawer() {
       promoCodeId: appliedPromo?.id || null,
       patientId: pendingDemoOrder.patient_id || null,
       promoDiscount: promoDiscount,
+      coinsUsed: isCoinsApplied ? coinsRequested : 0,
       razorpayOrderId: demoPayload.razorpay_order_id,
       razorpayPaymentId: demoPayload.razorpay_payment_id,
       razorpaySignature: demoPayload.razorpay_signature,
@@ -349,7 +347,6 @@ export default function CartDrawer() {
   return (
     <>
       <div className="fixed inset-0 z-[99999] overflow-hidden pointer-events-auto">
-        {/* Dark Overlay Backdrop */}
         <div 
           onClick={closeCart}
           className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-300" 
@@ -388,7 +385,6 @@ export default function CartDrawer() {
             {/* Drawer Body Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
-              {/* Error Banner */}
               {errorMessage && (
                 <div className="bg-rose-50 border border-rose-200 p-3.5 rounded-2xl flex items-start gap-2 text-rose-900 text-xs font-semibold animate-in fade-in duration-200">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
@@ -439,6 +435,13 @@ export default function CartDrawer() {
                       </div>
                     )}
 
+                    {confirmedOrder?.coins_used > 0 && (
+                      <div className="flex justify-between text-amber-700 font-bold">
+                        <span>Health Coins Used:</span>
+                        <span>🪙 {confirmedOrder.coins_used} (-₹{confirmedOrder.coin_discount})</span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-slate-700 font-semibold">
                       <span>Customer Name:</span>
                       <span className="font-bold">{confirmedOrder?.customer_name || patientData.name}</span>
@@ -448,59 +451,21 @@ export default function CartDrawer() {
                       <span>Phone:</span>
                       <span className="font-bold">{confirmedOrder?.customer_phone || patientData.phone}</span>
                     </div>
-
-                    <div className="flex justify-between items-baseline pt-2 border-t border-slate-200">
-                      <span className="font-extrabold text-slate-900">Total Amount Paid:</span>
-                      <span className="text-xl font-black text-purple-950">₹{confirmedOrder?.total_amount || finalPayable}</span>
-                    </div>
                   </div>
 
-                  <div className="pt-2 flex flex-col gap-2">
-                    <button
-                      onClick={() => {
-                        const msg = `Hello Health Express! I placed Order *${confirmedOrder?.order_code || 'HEX-ORD'}* (${confirmedOrder?.payment_method === 'COD' ? 'Cash on Delivery' : 'Paid Online'}) for ₹${confirmedOrder?.total_amount || finalPayable}. Please confirm phlebotomist/nurse slot details.`;
-                        openWhatsApp(msg);
-                      }}
-                      className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
-                    >
-                      <MessageSquare className="w-4 h-4 fill-current" />
-                      <span>Send Order Receipt to Care Manager on WhatsApp</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        clearCart();
-                        setCheckoutStep('cart');
-                        setConfirmedOrder(null);
-                        closeCart();
-                      }}
-                      className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs"
-                    >
-                      Done & Close Basket
-                    </button>
-                  </div>
-                </div>
-              ) : cartItems.length === 0 ? (
-                <div className="text-center py-16 space-y-4 my-auto">
-                  <div className="w-16 h-16 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mx-auto border border-purple-100">
-                    <ShoppingBag className="w-8 h-8" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-lg font-extrabold text-slate-900">Your Basket is Empty</h4>
-                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                      Add blood tests, health packages, home nursing, or scans from our directory to schedule care.
-                    </p>
-                  </div>
                   <button
-                    onClick={closeCart}
-                    className="px-6 py-3 rounded-2xl bg-purple-700 text-white font-extrabold text-xs shadow-md hover:bg-purple-800 transition-colors"
+                    onClick={() => {
+                      setCheckoutStep('cart');
+                      closeCart();
+                    }}
+                    className="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white font-black text-xs rounded-2xl transition-colors cursor-pointer"
                   >
-                    Browse Healthcare Services
+                    Done & Return to Site
                   </button>
                 </div>
               ) : checkoutStep === 'checkout' ? (
                 /* Checkout Form Step */
-                <form onSubmit={handleSubmitCheckout} className="space-y-5 text-left">
+                <form onSubmit={handleCheckoutOrder} className="space-y-5 text-left">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <span className="text-xs font-extrabold text-purple-900 uppercase tracking-wider">
                       STEP 2 OF 2 • PATIENT & PAYMENT DETAILS
@@ -565,8 +530,6 @@ export default function CartDrawer() {
                   <div className="space-y-1.5 pt-1">
                     <label className="block text-xs font-bold text-slate-800">Choose Payment Method *</label>
                     <div className="grid grid-cols-2 gap-2.5">
-                      
-                      {/* Option 1: Cash on Delivery / Pay on Collection */}
                       <div
                         onClick={() => setPaymentMethodChoice('cod')}
                         className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
@@ -587,7 +550,6 @@ export default function CartDrawer() {
                         <p className="text-[10px] text-slate-500 font-medium leading-tight">Pay Cash / UPI at sample collection</p>
                       </div>
 
-                      {/* Option 2: Pay Online via Razorpay */}
                       <div
                         onClick={() => setPaymentMethodChoice('online')}
                         className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
@@ -607,7 +569,6 @@ export default function CartDrawer() {
                         </div>
                         <p className="text-[10px] text-slate-500 font-medium leading-tight">UPI, GPay, PhonePe, Cards, Net Banking</p>
                       </div>
-
                     </div>
                   </div>
 
@@ -622,6 +583,13 @@ export default function CartDrawer() {
                       <div className="flex justify-between text-purple-900 font-extrabold">
                         <span>Promo Code ({appliedPromo.code})</span>
                         <span>-₹{promoDiscount}</span>
+                      </div>
+                    )}
+
+                    {isCoinsApplied && coinDiscount > 0 && (
+                      <div className="flex justify-between text-amber-800 font-extrabold">
+                        <span>Health Coins ({coinsRequested} Coins)</span>
+                        <span>-₹{coinDiscount}</span>
                       </div>
                     )}
 
@@ -712,7 +680,6 @@ export default function CartDrawer() {
                             )}
                           </div>
 
-                          {/* Quantity Counter */}
                           <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
                             <button
                               onClick={() => updateQuantity(item.id, -1)}
@@ -733,6 +700,76 @@ export default function CartDrawer() {
                     ))}
                   </div>
 
+                  {/* 🪙 HEALTH EXPRESS COINS SECTION */}
+                  {walletSettings?.redemption_enabled !== false && (
+                    <div className="bg-amber-50/60 rounded-3xl p-4 border border-amber-200/80 space-y-3 text-left">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-amber-950 flex items-center gap-1.5 uppercase tracking-wider">
+                          <Coins className="w-4 h-4 text-amber-600" />
+                          <span>Health Express Coins</span>
+                        </span>
+                        {isCoinsApplied && (
+                          <span className="text-[10px] font-black text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full border border-amber-300 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-amber-700" />
+                            <span>COINS APPLIED</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {isCoinsApplied ? (
+                        <div className="bg-white p-3.5 rounded-2xl border border-amber-200 shadow-2xs flex items-center justify-between gap-3">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-black text-xs text-amber-950 uppercase tracking-wide">
+                                🪙 {coinsRequested} Coins Used
+                              </span>
+                              <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">
+                                -₹{coinDiscount} OFF
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 font-medium">Health Coins discount deducted from basket total.</p>
+                          </div>
+                          <button
+                            onClick={removeCoins}
+                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 text-xs font-extrabold transition-colors shrink-0"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="bg-white p-3.5 rounded-2xl border border-amber-100/90 shadow-2xs flex items-center justify-between gap-3">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-slate-900 flex items-center gap-1">
+                              <span>You have</span>
+                              <strong className="text-amber-700 font-extrabold">{walletBalance.toLocaleString()} Coins</strong>
+                              <span className="text-slate-400 font-normal text-[11px]">
+                                (≈ ₹{Math.floor(walletBalance / (walletSettings?.coins_per_rupee || 10))})
+                              </span>
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-medium">
+                              Max usable: {walletSettings?.maximum_coins_per_order || 500} Coins (₹{Math.floor((walletSettings?.maximum_coins_per_order || 500) / (walletSettings?.coins_per_rupee || 10))}) per order
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => applyCoins()}
+                            disabled={walletBalance < (walletSettings?.minimum_coins_to_redeem || 100)}
+                            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-slate-950 font-black text-xs transition-colors shrink-0 shadow-xs cursor-pointer"
+                          >
+                            Use Coins
+                          </button>
+                        </div>
+                      )}
+
+                      {coinsError && (
+                        <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5 pt-0.5 animate-in fade-in">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{coinsError}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* 🏷️ PROMO CODE / OFFERS SECTION */}
                   <div className="bg-purple-50/60 rounded-3xl p-4 border border-purple-100/90 space-y-3.5 text-left">
                     <div className="flex items-center justify-between">
@@ -748,7 +785,6 @@ export default function CartDrawer() {
                       )}
                     </div>
 
-                    {/* Applied State View */}
                     {appliedPromo ? (
                       <div className="bg-white p-3.5 rounded-2xl border border-purple-200 shadow-2xs flex items-center justify-between gap-3">
                         <div className="space-y-0.5">
@@ -770,7 +806,6 @@ export default function CartDrawer() {
                         </button>
                       </div>
                     ) : (
-                      /* Manual Promo Code Input Form */
                       <form onSubmit={handleApplyPromo} className="flex gap-2">
                         <input
                           type="text"
@@ -791,7 +826,6 @@ export default function CartDrawer() {
                       </form>
                     )}
 
-                    {/* Promo Error Message */}
                     {promoError && (
                       <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5 pt-0.5 animate-in fade-in">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -799,7 +833,6 @@ export default function CartDrawer() {
                       </div>
                     )}
 
-                    {/* Available Offers Badges */}
                     {!appliedPromo && availablePromos && availablePromos.length > 0 && (
                       <div className="space-y-2 pt-1 border-t border-purple-100/80">
                         <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Available Offers:</span>
@@ -828,7 +861,7 @@ export default function CartDrawer() {
 
             </div>
 
-            {/* Drawer Footer Summary (Only in Cart step) */}
+            {/* Drawer Footer Summary */}
             {cartItems.length > 0 && checkoutStep === 'cart' && (
               <div className="p-6 bg-slate-50 border-t border-slate-200/80 space-y-4 text-left">
                 
@@ -847,6 +880,12 @@ export default function CartDrawer() {
                     <div className="flex justify-between text-purple-900 font-black">
                       <span>Promo Discount ({appliedPromo.code})</span>
                       <span>-₹{promoDiscount}</span>
+                    </div>
+                  )}
+                  {isCoinsApplied && coinDiscount > 0 && (
+                    <div className="flex justify-between text-amber-800 font-extrabold">
+                      <span>Health Coins Discount ({coinsRequested} Coins)</span>
+                      <span>-₹{coinDiscount}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-slate-600 font-semibold">
@@ -881,7 +920,6 @@ export default function CartDrawer() {
         </div>
       </div>
 
-      {/* Demo Payment Modal */}
       <RazorpayDemoModal
         isOpen={isDemoModalOpen}
         onClose={() => setIsDemoModalOpen(false)}

@@ -22,6 +22,17 @@ export function AuthProvider({ children }) {
       if (error) {
         console.warn('Guest record linking notice:', error.message);
       }
+
+      // Automatically claim idempotent signup reward for patient
+      const { data: patient } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', activeSession.user.id)
+        .maybeSingle();
+
+      if (patient?.id) {
+        await supabase.rpc('claim_signup_reward_atomic', { p_patient_id: patient.id });
+      }
     } catch (err) {
       console.warn('Guest record linking exception:', err);
     }

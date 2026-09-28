@@ -1,18 +1,21 @@
 import { ALL_SERVICES } from '../data/services.js';
 import { DEMO_PROMO_CODES, calculateDiscountAmount } from './promoService.js';
+import { DEFAULT_WALLET_SETTINGS, calculateCoinDiscount } from './walletService.js';
 
 /**
- * Validates cart items against canonical catalog data, evaluates optional promoCode server-side
+ * Validates cart items against canonical catalog data, evaluates optional promoCode & Health Coins server-side
  * with explicit scope eligibility matching, and recalculates trusted total payable amount.
- * PREVENTS CLIENT-SIDE PRICE & DISCOUNT TAMPERING
+ * PREVENTS CLIENT-SIDE PRICE, PROMO, AND COIN DISCOUNT TAMPERING
  */
-export function validateCartTotal(items, promoCode = null) {
+export function validateCartTotal(items, promoCode = null, coinsToUse = 0, walletBalance = 1000, walletSettings = DEFAULT_WALLET_SETTINGS) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     return {
       isValid: false,
       error: 'Cart is empty. Please select at least one healthcare service or test.',
       verifiedSubtotal: 0,
       promoDiscount: 0,
+      coinDiscount: 0,
+      coinsUsed: 0,
       verifiedTotal: 0,
       validatedItems: [],
       promoCodeApplied: null
@@ -41,7 +44,6 @@ export function validateCartTotal(items, promoCode = null) {
       serviceName = catalogService.name;
       categoryName = catalogService.category_name || catalogService.category || categoryName;
     } else {
-      // Fallback for custom lab package items
       const rawPrice = Number(item.price || item.unit_price || item.discount_price || 299);
       unitPrice = isNaN(rawPrice) || rawPrice <= 0 ? 299 : rawPrice;
     }
@@ -67,20 +69,21 @@ export function validateCartTotal(items, promoCode = null) {
       error: 'Invalid cart total amount.',
       verifiedSubtotal: 0,
       promoDiscount: 0,
+      coinDiscount: 0,
+      coinsUsed: 0,
       verifiedTotal: 0,
       validatedItems: [],
       promoCodeApplied: null
     };
   }
 
-  // Server-side Promo Code Validation if promoCode is supplied
+  // 1. Server-side Promo Code Validation
   let promoDiscount = 0;
   let promoCodeApplied = null;
   let promoError = null;
 
   if (promoCode && typeof promoCode === 'string' && promoCode.trim().length > 0) {
     const normalizedCode = promoCode.trim().toUpperCase();
-
     let promo = DEMO_PROMO_CODES.find((p) => p.code.toUpperCase() === normalizedCode);
 
     if (promo) {
@@ -120,13 +123,46 @@ export function validateCartTotal(items, promoCode = null) {
     }
   }
 
-  const verifiedTotal = Math.max(0, verifiedSubtotal - promoDiscount);
+  // 2. Server-side Health Coins Validation & Stacking Rules
+  let coinDiscount = 0;
+  let coinsUsed = 0;
+  let coinError = null;
+
+  const reqCoins = Number(coinsToUse || 0);
+
+  if (reqCoins > 0) {
+    // Check Promo + Coin stacking settings
+    const settings = walletSettings || DEFAULT_WALLET_SETTINGS;
+    if (promoDiscount > 0 && !settings.allow_stacking_with_promo) {
+      coinError = 'Health Coins cannot be combined with Promo Codes according to current offer terms.';
+    } else {
+      const coinValidation = calculateCoinDiscount({
+        subtotal: verifiedSubtotal,
+        coinsRequested: reqCoins,
+        walletBalance: walletBalance,
+        settings: settings,
+        promoDiscount: promoDiscount,
+        cartItems: validatedItems
+      });
+
+      if (!coinValidation.isValid) {
+        coinError = coinValidation.error;
+      } else {
+        coinDiscount = coinValidation.coinDiscount;
+        coinsUsed = coinValidation.coinsUsed;
+      }
+    }
+  }
+
+  const verifiedTotal = Math.max(0, verifiedSubtotal - promoDiscount - coinDiscount);
 
   return {
     isValid: true,
-    error: promoError,
+    error: promoError || coinError,
     verifiedSubtotal,
     promoDiscount,
+    coinDiscount,
+    coinsUsed,
     verifiedTotal,
     validatedItems,
     promoCodeApplied

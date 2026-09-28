@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
 import { DEMO_PROMO_CODES } from './promoService.js';
+import { DEFAULT_WALLET_SETTINGS } from './walletService.js';
 
 /**
  * Verifies Admin login credentials against Supabase Auth & Database RBAC
@@ -462,6 +463,175 @@ export async function deleteAdminPromoCode(id) {
     if (error) return { success: false, error: error.message };
     return { success: true };
   } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// ============================================================
+// HEALTH COINS & REWARDS — ADMIN MANAGEMENT SERVICES
+// ============================================================
+
+let localAdminWalletSettings = { ...DEFAULT_WALLET_SETTINGS };
+
+/**
+ * Fetch Wallet Settings for Admin Configuration Form
+ */
+export async function fetchAdminWalletSettings() {
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: true, data: localAdminWalletSettings };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('wallet_settings')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) {
+      return { success: true, data: localAdminWalletSettings };
+    }
+
+    const rawCats = Array.isArray(data.applicable_categories) ? data.applicable_categories : (typeof data.applicable_categories === 'string' ? JSON.parse(data.applicable_categories || '[]') : []);
+    const rawItems = Array.isArray(data.applicable_items) ? data.applicable_items : (typeof data.applicable_items === 'string' ? JSON.parse(data.applicable_items || '[]') : []);
+
+    return {
+      success: true,
+      data: {
+        ...DEFAULT_WALLET_SETTINGS,
+        ...data,
+        applicable_categories: rawCats,
+        applicable_items: rawItems
+      }
+    };
+  } catch (err) {
+    console.error('Fetch admin wallet settings exception:', err);
+    return { success: true, data: localAdminWalletSettings };
+  }
+}
+
+/**
+ * Update global Wallet Configuration Settings from Admin Panel
+ */
+export async function updateAdminWalletSettings(settingsData) {
+  const payload = {
+    signup_reward_enabled: Boolean(settingsData.signup_reward_enabled),
+    signup_reward_coins: Number(settingsData.signup_reward_coins || 1000),
+    coins_per_rupee: Number(settingsData.coins_per_rupee || 10),
+    minimum_coins_to_redeem: Number(settingsData.minimum_coins_to_redeem || 100),
+    maximum_coins_per_order: Number(settingsData.maximum_coins_per_order || 500),
+    minimum_order_amount: Number(settingsData.minimum_order_amount || 299),
+    allow_stacking_with_promo: Boolean(settingsData.allow_stacking_with_promo),
+    coin_expiry_enabled: Boolean(settingsData.coin_expiry_enabled),
+    default_expiry_days: Number(settingsData.default_expiry_days || 90),
+    redemption_enabled: Boolean(settingsData.redemption_enabled),
+    applicable_scope: settingsData.applicable_scope || 'all',
+    applicable_categories: Array.isArray(settingsData.applicable_categories) ? settingsData.applicable_categories : [],
+    applicable_items: Array.isArray(settingsData.applicable_items) ? settingsData.applicable_items : [],
+    updated_at: new Date().toISOString()
+  };
+
+  if (!isSupabaseConfigured || !supabase) {
+    localAdminWalletSettings = { ...localAdminWalletSettings, ...payload };
+    return { success: true, data: localAdminWalletSettings };
+  }
+
+  try {
+    const { data: existing } = await supabase.from('wallet_settings').select('id').limit(1).maybeSingle();
+
+    let result;
+    if (existing?.id) {
+      result = await supabase.from('wallet_settings').update(payload).eq('id', existing.id).select().single();
+    } else {
+      result = await supabase.from('wallet_settings').insert([payload]).select().single();
+    }
+
+    if (result.error) return { success: false, error: result.error.message };
+    return { success: true, data: result.data };
+  } catch (err) {
+    console.error('Update admin wallet settings exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch all Customer Wallet Accounts for Admin Management
+ */
+export async function fetchAdminWalletAccounts() {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      success: true,
+      data: [
+        {
+          id: 'w-demo-1',
+          patient_id: 'p-demo-1',
+          coin_balance: 1000,
+          patients: { name: 'Rajesh Sharma', phone: '+919876543210', email: 'rajesh@example.com' },
+          created_at: new Date().toISOString()
+        }
+      ]
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('wallet_accounts')
+      .select('*, patients(*)')
+      .order('coin_balance', { ascending: false });
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, data: data || [] };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Fetch all Wallet Transaction Ledgers for Admin Audit
+ */
+export async function fetchAdminWalletTransactions() {
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: true, data: [] };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('wallet_transactions')
+      .select('*, patients(*)')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, data: data || [] };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Perform manual +Add or -Deduct Health Coins adjustment for a customer
+ */
+export async function adjustCustomerCoins({ patientId, coins, type, description }) {
+  if (!patientId || !coins || !type || !description) {
+    return { success: false, error: 'Patient ID, coins amount, type, and reason are required.' };
+  }
+
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: true, message: 'Demo coin adjustment successful.' };
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('admin_adjust_wallet_coins_atomic', {
+      p_patient_id: patientId,
+      p_coins: Number(coins),
+      p_type: type,
+      p_description: description.trim()
+    });
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, ...data };
+  } catch (err) {
+    console.error('adjustCustomerCoins exception:', err);
     return { success: false, error: err.message };
   }
 }

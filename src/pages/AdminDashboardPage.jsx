@@ -4,7 +4,7 @@ import {
   RefreshCw, CheckCircle2, AlertCircle, Clock, Search, Filter, 
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X,
   BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck, Menu, Settings,
-  CreditCard as PaymentIcon, Bell, Tag, Percent, Plus, Layers3
+  CreditCard as PaymentIcon, Bell, Tag, Percent, Plus, Layers3, Coins, Gift, History, Award
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
@@ -23,7 +23,12 @@ import {
   createAdminPromoCode,
   updateAdminPromoCode,
   toggleAdminPromoCodeStatus,
-  deleteAdminPromoCode
+  deleteAdminPromoCode,
+  fetchAdminWalletSettings,
+  updateAdminWalletSettings,
+  fetchAdminWalletAccounts,
+  fetchAdminWalletTransactions,
+  adjustCustomerCoins
 } from '../services/adminService';
 import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
@@ -71,10 +76,13 @@ export default function AdminDashboardPage() {
   const [codConfirmOrder, setCodConfirmOrder] = useState(null);
   const [isCollectingCod, setIsCollectingCod] = useState(false);
 
-  // PROMO MODAL STATES
+  // PROMO MODAL STATES & DYNAMIC INPUTS
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [editingPromo, setEditingPromo] = useState(null);
   const [promoSearchItem, setPromoSearchItem] = useState('');
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
+  const [customItemInput, setCustomItemInput] = useState('');
+
   const [promoFormData, setPromoFormData] = useState({
     code: '',
     discount_type: 'flat',
@@ -89,6 +97,41 @@ export default function AdminDashboardPage() {
     usage_limit: '',
     is_active: true
   });
+
+  // HEALTH COINS ADMIN STATES
+  const [walletSettingsForm, setWalletSettingsForm] = useState({
+    signup_reward_enabled: true,
+    signup_reward_coins: 1000,
+    coins_per_rupee: 10,
+    minimum_coins_to_redeem: 100,
+    maximum_coins_per_order: 500,
+    minimum_order_amount: 299,
+    allow_stacking_with_promo: true,
+    coin_expiry_enabled: false,
+    default_expiry_days: 90,
+    redemption_enabled: true,
+    applicable_scope: 'all',
+    applicable_categories: [],
+    applicable_items: []
+  });
+  const [walletAccounts, setWalletAccounts] = useState([]);
+  const [walletTransactions, setWalletTransactions] = useState([]);
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [selectedAdjustPatient, setSelectedAdjustPatient] = useState(null);
+  const [adjustFormData, setAdjustFormData] = useState({
+    coins: '',
+    type: 'admin_credit',
+    description: ''
+  });
+
+  // Dynamically aggregate all categories across master dataset & live orders
+  const allDynamicCategories = Array.from(
+    new Set([
+      ...CATEGORIES.map((c) => c.name),
+      ...ALL_SERVICES.map((s) => s.category_name || s.category).filter(Boolean),
+      ...promoFormData.applicable_categories
+    ])
+  );
 
   // ROUTE PROTECTION: Check active Supabase Auth session and check_is_admin() RPC on mount
   useEffect(() => {
@@ -191,13 +234,16 @@ export default function AdminDashboardPage() {
     setDataError(null);
 
     try {
-      const [ordRes, payRes, presRes, patRes, promoRes, evtRes] = await Promise.all([
+      const [ordRes, payRes, presRes, patRes, promoRes, evtRes, setRes, accRes, txRes] = await Promise.all([
         fetchAdminOrders(),
         fetchAdminPayments(),
         fetchAdminPrescriptions(),
         fetchAdminPatients(),
         fetchAdminPromoCodes(),
-        fetchAnalyticsEvents(100)
+        fetchAnalyticsEvents(100),
+        fetchAdminWalletSettings(),
+        fetchAdminWalletAccounts(),
+        fetchAdminWalletTransactions()
       ]);
 
       const errors = [];
@@ -217,6 +263,9 @@ export default function AdminDashboardPage() {
       else errors.push(promoRes.error || 'Unable to fetch promo codes.');
 
       if (evtRes.success) setAnalyticsEvents(evtRes.data || []);
+      if (setRes.success) setWalletSettingsForm(setRes.data || {});
+      if (accRes.success) setWalletAccounts(accRes.data || []);
+      if (txRes.success) setWalletTransactions(txRes.data || []);
 
       if (errors.length > 0) {
         setDataError(errors.join(' | '));
@@ -244,12 +293,12 @@ export default function AdminDashboardPage() {
     }
 
     if (promoFormData.applicable_scope === 'categories' && promoFormData.applicable_categories.length === 0) {
-      showToast('Please select at least one applicable category.', 'error');
+      showToast('Please select or add at least one applicable category.', 'error');
       return;
     }
 
     if (promoFormData.applicable_scope === 'items' && promoFormData.applicable_items.length === 0) {
-      showToast('Please select at least one applicable product/service.', 'error');
+      showToast('Please select or add at least one applicable product/service.', 'error');
       return;
     }
 
@@ -314,6 +363,8 @@ export default function AdminDashboardPage() {
       usage_limit: promo.usage_limit || '',
       is_active: promo.is_active !== undefined ? promo.is_active : true
     });
+    setCustomCategoryInput('');
+    setCustomItemInput('');
     setIsPromoModalOpen(true);
   };
 
@@ -328,6 +379,19 @@ export default function AdminDashboardPage() {
     });
   };
 
+  // Add Custom Category write-in
+  const handleAddCustomCategory = () => {
+    if (!customCategoryInput.trim()) return;
+    const cleanCat = customCategoryInput.trim();
+    if (!promoFormData.applicable_categories.includes(cleanCat)) {
+      setPromoFormData((prev) => ({
+        ...prev,
+        applicable_categories: [...prev.applicable_categories, cleanCat]
+      }));
+    }
+    setCustomCategoryInput('');
+  };
+
   // Toggle Item Checkbox Selection
   const toggleItemSelection = (itemId) => {
     setPromoFormData((prev) => {
@@ -337,6 +401,19 @@ export default function AdminDashboardPage() {
         : [...prev.applicable_items, itemId];
       return { ...prev, applicable_items: updated };
     });
+  };
+
+  // Add Custom Item/Product ID write-in
+  const handleAddCustomItem = () => {
+    if (!customItemInput.trim()) return;
+    const cleanItem = customItemInput.trim();
+    if (!promoFormData.applicable_items.includes(cleanItem)) {
+      setPromoFormData((prev) => ({
+        ...prev,
+        applicable_items: [...prev.applicable_items, cleanItem]
+      }));
+    }
+    setCustomItemInput('');
   };
 
   // Load 360 Customer Detail Modal
@@ -417,6 +494,50 @@ export default function AdminDashboardPage() {
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
     }
     return true;
+  };
+
+  // HEALTH COINS HANDLERS
+  const handleSaveWalletSettings = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      const res = await updateAdminWalletSettings(walletSettingsForm);
+      if (res.success) {
+        showToast('Health Coins & Rewards settings updated successfully.');
+      } else {
+        showToast(`Failed to update wallet settings: ${res.error}`, 'error');
+      }
+    } catch (err) {
+      showToast(`Wallet settings update exception: ${err.message}`, 'error');
+    }
+  };
+
+  const handleExecuteAdjustCoins = async (e) => {
+    if (e) e.preventDefault();
+    if (!selectedAdjustPatient || !adjustFormData.coins || !adjustFormData.description.trim()) {
+      showToast('Please enter patient, coins amount, and reason.', 'error');
+      return;
+    }
+
+    try {
+      const res = await adjustCustomerCoins({
+        patientId: selectedAdjustPatient.id,
+        coins: adjustFormData.coins,
+        type: adjustFormData.type,
+        description: adjustFormData.description
+      });
+
+      if (res.success) {
+        showToast(`Successfully adjusted ${adjustFormData.coins} coins for ${selectedAdjustPatient.name || 'customer'}.`);
+        setIsAdjustModalOpen(false);
+        setSelectedAdjustPatient(null);
+        setAdjustFormData({ coins: '', type: 'admin_credit', description: '' });
+        await loadAdminData();
+      } else {
+        showToast(`Coin adjustment failed: ${res.error}`, 'error');
+      }
+    } catch (err) {
+      showToast(`Coin adjustment exception: ${err.message}`, 'error');
+    }
   };
 
   // Filtered Orders
@@ -812,6 +933,8 @@ export default function AdminDashboardPage() {
                     usage_limit: '',
                     is_active: true
                   });
+                  setCustomCategoryInput('');
+                  setCustomItemInput('');
                   setIsPromoModalOpen(true);
                 }}
                 className="px-5 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
@@ -922,6 +1045,199 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
+        {/* NAV SECTION: HEALTH COINS & REWARDS */}
+        {activeNav === 'coins' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Coins Issued</span>
+                <p className="text-2xl font-black text-amber-400">
+                  🪙 {walletTransactions.filter(t => t.coins > 0).reduce((acc, t) => acc + Number(t.coins), 0).toLocaleString()}
+                </p>
+                <p className="text-[10px] text-slate-400">Welcome rewards & credits</p>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Coins Redeemed</span>
+                <p className="text-2xl font-black text-rose-400">
+                  🪙 {Math.abs(walletTransactions.filter(t => t.coins < 0).reduce((acc, t) => acc + Number(t.coins), 0)).toLocaleString()}
+                </p>
+                <p className="text-[10px] text-slate-400">Redeemed on orders</p>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Wallets</span>
+                <p className="text-2xl font-black text-purple-300">{walletAccounts.length}</p>
+                <p className="text-[10px] text-slate-400">Customer reward accounts</p>
+              </div>
+
+              <div className="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Liability (₹ Equivalent)</span>
+                <p className="text-2xl font-black text-emerald-400">
+                  ₹{Math.floor(walletAccounts.reduce((acc, w) => acc + Number(w.coin_balance || 0), 0) / (walletSettingsForm.coins_per_rupee || 10)).toLocaleString()}
+                </p>
+                <p className="text-[10px] text-slate-400">Based on active balances</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-5 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-base font-black text-white">Health Coins Configuration Settings</h3>
+                </div>
+                <span className="text-xs font-bold text-amber-400 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-800">
+                  Live Global Rules
+                </span>
+              </div>
+
+              <form onSubmit={handleSaveWalletSettings} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase text-amber-300 mb-2">Enable Signup Reward</label>
+                    <button
+                      type="button"
+                      onClick={() => setWalletSettingsForm({ ...walletSettingsForm, signup_reward_enabled: !walletSettingsForm.signup_reward_enabled })}
+                      className={`w-full py-2.5 rounded-xl border font-black text-xs transition-all ${
+                        walletSettingsForm.signup_reward_enabled ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-900 text-slate-500 border-slate-800'
+                      }`}
+                    >
+                      {walletSettingsForm.signup_reward_enabled ? 'SIGNUP REWARD ON' : 'DISABLED'}
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1">Signup Reward Coins</label>
+                    <input
+                      type="number"
+                      required
+                      value={walletSettingsForm.signup_reward_coins}
+                      onChange={(e) => setWalletSettingsForm({ ...walletSettingsForm, signup_reward_coins: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-black text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1">Coins per ₹1 Conversion Rate</label>
+                    <input
+                      type="number"
+                      required
+                      value={walletSettingsForm.coins_per_rupee}
+                      onChange={(e) => setWalletSettingsForm({ ...walletSettingsForm, coins_per_rupee: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-black text-xs"
+                    />
+                    <span className="text-[10px] text-slate-400 font-medium pt-1 block">e.g. 10 coins = ₹1</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-950/80 rounded-2xl border border-slate-800">
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1">Minimum Order Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={walletSettingsForm.minimum_order_amount}
+                      onChange={(e) => setWalletSettingsForm({ ...walletSettingsForm, minimum_order_amount: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-black text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1">Max Coins Per Order</label>
+                    <input
+                      type="number"
+                      value={walletSettingsForm.maximum_coins_per_order}
+                      onChange={(e) => setWalletSettingsForm({ ...walletSettingsForm, maximum_coins_per_order: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-black text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase text-slate-300 mb-1">Min Coins to Redeem</label>
+                    <input
+                      type="number"
+                      value={walletSettingsForm.minimum_coins_to_redeem}
+                      onChange={(e) => setWalletSettingsForm({ ...walletSettingsForm, minimum_coins_to_redeem: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-black text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-extrabold uppercase text-amber-300 mb-2">Allow Stacking with Promo</label>
+                    <button
+                      type="button"
+                      onClick={() => setWalletSettingsForm({ ...walletSettingsForm, allow_stacking_with_promo: !walletSettingsForm.allow_stacking_with_promo })}
+                      className={`w-full py-2.5 rounded-xl border font-black text-xs transition-all ${
+                        walletSettingsForm.allow_stacking_with_promo ? 'bg-purple-600 text-white border-purple-500' : 'bg-slate-900 text-slate-500 border-slate-800'
+                      }`}
+                    >
+                      {walletSettingsForm.allow_stacking_with_promo ? 'PROMO + COINS ALLOWED' : 'ONE DISCOUNT ONLY'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+                  >
+                    Save Wallet Settings
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-base font-black text-white">Customer Wallets & Balances</h3>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="bg-slate-900 text-slate-400 font-extrabold uppercase border-b border-slate-700">
+                    <tr>
+                      <th className="p-4">Customer Name</th>
+                      <th className="p-4">Phone / WhatsApp</th>
+                      <th className="p-4">Current Coins</th>
+                      <th className="p-4">Rupee Equivalent</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 font-medium">
+                    {walletAccounts.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="p-8 text-center text-slate-400 italic">No customer wallets created yet.</td>
+                      </tr>
+                    ) : (
+                      walletAccounts.map((w) => (
+                        <tr key={w.id} className="hover:bg-slate-700/40 transition-colors">
+                          <td className="p-4 font-bold text-white">{w.patients?.name || 'Customer'}</td>
+                          <td className="p-4 text-slate-300">{w.patients?.phone || 'N/A'}</td>
+                          <td className="p-4 font-black text-amber-400 text-sm">🪙 {Number(w.coin_balance || 0).toLocaleString()}</td>
+                          <td className="p-4 font-bold text-emerald-400">₹{Math.floor(Number(w.coin_balance || 0) / (walletSettingsForm.coins_per_rupee || 10))}</td>
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => {
+                                setSelectedAdjustPatient(w.patients);
+                                setIsAdjustModalOpen(true);
+                              }}
+                              className="px-3.5 py-1.5 rounded-xl bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-700 text-xs font-extrabold transition-colors cursor-pointer"
+                            >
+                              Adjust Balance
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* NAV SECTION 1: OVERVIEW */}
         {activeNav === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -993,6 +1309,8 @@ export default function AdminDashboardPage() {
                       usage_limit: '',
                       is_active: true
                     });
+                    setCustomCategoryInput('');
+                    setCustomItemInput('');
                     setIsPromoModalOpen(true);
                   }}
                   className="w-full p-3 bg-purple-900/40 hover:bg-purple-900/60 border border-purple-700/60 rounded-2xl text-left text-xs text-purple-200 font-bold transition-all flex items-center justify-between"
@@ -1085,42 +1403,63 @@ export default function AdminDashboardPage() {
                   </button>
                 </div>
 
-                {/* Specific Categories Picker */}
+                {/* Specific Categories Picker + Dynamic Custom Category Write-In */}
                 {promoFormData.applicable_scope === 'categories' && (
-                  <div className="space-y-2 pt-2 border-t border-slate-800">
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Select Eligible Categories:</span>
+                  <div className="space-y-3 pt-2 border-t border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Select or Add Eligible Categories:</span>
+                    
                     <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
-                      {CATEGORIES.map((cat) => {
-                        const isChecked = promoFormData.applicable_categories.includes(cat.name);
+                      {allDynamicCategories.map((catName) => {
+                        const isChecked = promoFormData.applicable_categories.includes(catName);
                         return (
-                          <label key={cat.id} className="flex items-center gap-2 p-2 bg-slate-900 rounded-xl border border-slate-800 cursor-pointer hover:border-purple-600">
+                          <label key={catName} className="flex items-center gap-2 p-2 bg-slate-900 rounded-xl border border-slate-800 cursor-pointer hover:border-purple-600">
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={() => toggleCategorySelection(cat.name)}
+                              onChange={() => toggleCategorySelection(catName)}
                               className="rounded text-purple-600 focus:ring-purple-500"
                             />
-                            <span className="text-xs font-bold text-white">{cat.name}</span>
+                            <span className="text-xs font-bold text-white truncate">{catName}</span>
                           </label>
                         );
                       })}
                     </div>
+
+                    {/* DYNAMIC CUSTOM CATEGORY WRITE-IN INPUT */}
+                    <div className="flex gap-2 pt-1 border-t border-slate-800/80">
+                      <input
+                        type="text"
+                        value={customCategoryInput}
+                        onChange={(e) => setCustomCategoryInput(e.target.value)}
+                        placeholder="Add new custom category (e.g. Teleconsultation)..."
+                        className="flex-1 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCustomCategory}
+                        disabled={!customCategoryInput.trim()}
+                        className="px-3 py-1.5 rounded-xl bg-purple-900 hover:bg-purple-800 disabled:opacity-40 text-purple-200 text-xs font-bold transition-colors shrink-0"
+                      >
+                        + Add Category
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {/* Specific Services Picker */}
+                {/* Specific Services Picker + Dynamic Custom Product ID Write-In */}
                 {promoFormData.applicable_scope === 'items' && (
-                  <div className="space-y-2 pt-2 border-t border-slate-800">
+                  <div className="space-y-3 pt-2 border-t border-slate-800">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">Select Eligible Services:</span>
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Select or Add Eligible Services:</span>
                       <input
                         type="text"
                         value={promoSearchItem}
                         onChange={(e) => setPromoSearchItem(e.target.value)}
-                        placeholder="Filter services..."
+                        placeholder="Filter catalog..."
                         className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-white"
                       />
                     </div>
+
                     <div className="space-y-1 max-h-44 overflow-y-auto p-1 border border-slate-800 rounded-xl bg-slate-900">
                       {ALL_SERVICES.filter((s) => !promoSearchItem || s.name.toLowerCase().includes(promoSearchItem.toLowerCase())).map((service) => {
                         const serviceKey = service.id || service.slug;
@@ -1140,6 +1479,25 @@ export default function AdminDashboardPage() {
                           </label>
                         );
                       })}
+                    </div>
+
+                    {/* DYNAMIC CUSTOM SERVICE / PRODUCT ID WRITE-IN INPUT */}
+                    <div className="flex gap-2 pt-1 border-t border-slate-800/80">
+                      <input
+                        type="text"
+                        value={customItemInput}
+                        onChange={(e) => setCustomItemInput(e.target.value)}
+                        placeholder="Add new custom service/product ID (e.g. mri-brain)..."
+                        className="flex-1 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCustomItem}
+                        disabled={!customItemInput.trim()}
+                        className="px-3 py-1.5 rounded-xl bg-purple-900 hover:bg-purple-800 disabled:opacity-40 text-purple-200 text-xs font-bold transition-colors shrink-0"
+                      >
+                        + Add Service ID
+                      </button>
                     </div>
                   </div>
                 )}
@@ -1246,6 +1604,84 @@ export default function AdminDashboardPage() {
                   className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-colors cursor-pointer"
                 >
                   {editingPromo ? 'Update Promo Code' : 'Save & Publish Promo Code'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADJUST HEALTH COINS BALANCE MODAL */}
+      {isAdjustModalOpen && selectedAdjustPatient && (
+        <div className="fixed inset-0 z-[250000] bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl text-left">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Coins className="w-5 h-5 text-amber-400" />
+                <span>Adjust Customer Health Coins</span>
+              </h3>
+              <button onClick={() => setIsAdjustModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
+              <p>Customer: <strong className="text-white font-bold">{selectedAdjustPatient.name || 'Member'}</strong></p>
+              <p>Phone: <span className="text-purple-300 font-mono">{selectedAdjustPatient.phone || 'N/A'}</span></p>
+            </div>
+
+            <form onSubmit={handleExecuteAdjustCoins} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Adjustment Action *</label>
+                <select
+                  value={adjustFormData.type}
+                  onChange={(e) => setAdjustFormData({ ...adjustFormData, type: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold focus:outline-none"
+                >
+                  <option value="admin_credit">+ Add Coins (Admin Credit)</option>
+                  <option value="admin_debit">- Deduct Coins (Admin Debit)</option>
+                  <option value="adjustment">Manual Balance Adjustment</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Number of Coins *</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={adjustFormData.coins}
+                  onChange={(e) => setAdjustFormData({ ...adjustFormData, coins: e.target.value })}
+                  placeholder="e.g. 500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Reason / Support Note *</label>
+                <textarea
+                  required
+                  rows="3"
+                  value={adjustFormData.description}
+                  onChange={(e) => setAdjustFormData({ ...adjustFormData, description: e.target.value })}
+                  placeholder="e.g., Customer Support Adjustment for delayed sample collection"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsAdjustModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl cursor-pointer"
+                >
+                  Confirm Adjustment
                 </button>
               </div>
             </form>

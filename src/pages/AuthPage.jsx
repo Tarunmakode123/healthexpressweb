@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Phone, User, ArrowRight, CheckCircle2, ShieldCheck, 
-  Sparkles, AlertCircle, RefreshCw, ChevronLeft
+  Sparkles, AlertCircle, RefreshCw, ChevronLeft, Gift, Coins
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import { POPULAR_COUNTRY_CODES, validateAndNormalizeInternationalPhone } from '../utils/phone';
 
@@ -12,6 +13,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, signup, isLoggedIn, user } = useAuth();
+  const { walletSettings } = useCart();
 
   // Mode: 'signin' or 'signup'
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
@@ -317,8 +319,21 @@ export default function AuthPage() {
         </div>
 
         {/* Right Side: Dedicated Mobile OTP Auth Form */}
-        <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-center space-y-6">
+        <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-center space-y-6 text-left">
           
+          {/* Dynamic Welcome Reward Banner */}
+          {walletSettings?.signup_reward_enabled !== false && (
+            <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-3.5 rounded-2xl text-slate-950 font-black text-xs flex items-center justify-between shadow-xs border border-amber-400 animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <Gift className="w-5 h-5 text-slate-950 shrink-0" />
+                <span>Get {walletSettings?.signup_reward_coins || 1000} Health Coins when you join Health Express!</span>
+              </div>
+              <span className="bg-slate-950 text-amber-300 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full shrink-0">
+                Instant
+              </span>
+            </div>
+          )}
+
           {/* Sign In / Sign Up Mode Switcher */}
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-4">

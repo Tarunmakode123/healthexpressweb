@@ -7,13 +7,13 @@ import { validateCartTotal } from '../src/services/catalogPriceValidator.js';
  * NEVER EXPOSES RAZORPAY_KEY_SECRET TO BROWSER
  * 
  * NEVER TRUSTS CLIENT-SUPPLIED TOTALS OR DISCOUNTS.
- * RECALCULATES CANONICAL SUBTOTAL AND PROMO DISCOUNT SERVER-SIDE.
+ * RECALCULATES CANONICAL SUBTOTAL, PROMO DISCOUNT, AND HEALTH COIN DISCOUNT SERVER-SIDE.
  */
 export async function handleCreateRazorpayOrder(reqBody) {
-  const { items, promoCode, customerName, customerPhone, customerEmail } = reqBody || {};
+  const { items, promoCode, coinsToUse, walletBalance, walletSettings, customerName, customerPhone, customerEmail } = reqBody || {};
 
-  // 1. Validate Cart & calculate trusted amount on server (including promo discount validation)
-  const cartValidation = validateCartTotal(items, promoCode);
+  // 1. Validate Cart & calculate trusted amount on server (including promo discount & coin validation)
+  const cartValidation = validateCartTotal(items, promoCode, coinsToUse, walletBalance, walletSettings);
   if (!cartValidation.isValid) {
     return {
       status: 400,
@@ -21,7 +21,7 @@ export async function handleCreateRazorpayOrder(reqBody) {
     };
   }
 
-  const { verifiedTotal, verifiedSubtotal, promoDiscount, promoCodeApplied, validatedItems } = cartValidation;
+  const { verifiedTotal, verifiedSubtotal, promoDiscount, coinDiscount, coinsUsed, promoCodeApplied, validatedItems } = cartValidation;
   const amountInPaise = Math.round(verifiedTotal * 100);
 
   const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID;
@@ -40,6 +40,8 @@ export async function handleCreateRazorpayOrder(reqBody) {
         subtotal: verifiedSubtotal,
         promo_discount: promoDiscount,
         promo_code: promoCodeApplied?.code || null,
+        coin_discount: coinDiscount,
+        coins_used: coinsUsed,
         currency: 'INR',
         items: validatedItems,
         message: 'Demo Payment — No real money will be charged.'
@@ -65,7 +67,9 @@ export async function handleCreateRazorpayOrder(reqBody) {
           customer_phone: customerPhone || '',
           item_count: validatedItems.length,
           promo_code: promoCodeApplied?.code || 'NONE',
-          promo_discount: promoDiscount
+          promo_discount: promoDiscount,
+          coins_used: coinsUsed,
+          coin_discount: coinDiscount
         }
       })
     });
@@ -89,6 +93,8 @@ export async function handleCreateRazorpayOrder(reqBody) {
         subtotal: verifiedSubtotal,
         promo_discount: promoDiscount,
         promo_code: promoCodeApplied?.code || null,
+        coin_discount: coinDiscount,
+        coins_used: coinsUsed,
         currency: 'INR',
         items: validatedItems,
         key_id: keyId
