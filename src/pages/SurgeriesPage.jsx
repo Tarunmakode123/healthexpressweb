@@ -17,6 +17,22 @@ const iconMap = {
   HeartPulse: Heart, UserCheck, Eye, Sparkles, CheckCircle2, Dna
 };
 
+const categoryIconMap = {
+  'Transplant': ShieldCheck,
+  'IVF & Fertility': Dna,
+  'Spine Surgery': Activity,
+  'Orthopaedics': Bone,
+  'Cardiac': Heart,
+  'General Surgery': Stethoscope,
+  'Urology': Shield,
+  'Ophthalmology': Eye,
+  'Oncology': ShieldAlert,
+  'Gynaecology': Heart,
+  'Plastic & Reconstructive Surgery': Sparkles,
+  'Aesthetics & Cosmetic Surgery': Sparkles,
+  'Hair & Aesthetic Treatments': UserCheck
+};
+
 export default function SurgeriesPage({ onOpenUploadModal }) {
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [selectedSpeciality, setSelectedSpeciality] = useState(null);
@@ -238,68 +254,98 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
         </section>
 
         {/* 5. POPULAR SURGERIES SECTION */}
-        <section className="space-y-8" id="popular-surgeries">
+        <section className="space-y-10" id="popular-surgeries">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-xs font-extrabold text-purple-900 tracking-wide shadow-2xs">
+              ⚡ HIGH DEMAND SPECIALITIES & PROCEDURES
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
               Explore Popular Surgery & Treatment Options
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium">
-              Explore commonly searched surgical procedures across major specialities.
+            
+            <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-2xl mx-auto">
+              Browse commonly requested surgical procedures across major medical specialities. Select any procedure to compare hospital packages, specialist availability, and transparent cost estimates.
             </p>
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 text-purple-900 border border-purple-200/80 text-xs font-semibold shadow-2xs">
+
+            <div className="pt-1 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-purple-50/90 text-purple-950 border border-purple-200/80 text-xs font-semibold shadow-2xs text-left sm:text-center">
               <span>💡 Surgery costs vary by hospital tier & insurance. Connect with our Care Desk for customized package estimates.</span>
             </div>
           </div>
 
-          {/* Clean Categorized Grid - Zero Word Repetition */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {POPULAR_SURGERIES_CATEGORIES.map((catGroup, idx) => (
-              <div 
-                key={idx}
-                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between text-left hover:shadow-md transition-shadow"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-base font-extrabold text-purple-900">{catGroup.category}</h3>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                      {catGroup.items.length} Procedures
-                    </span>
+          {/* Premium Categorized Grid - Equalized Card Heights & Dynamic Icon Mapping */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {POPULAR_SURGERIES_CATEGORIES.map((catGroup, idx) => {
+              // Select custom Lucide icon for each category
+              const CategoryIcon = categoryIconMap[catGroup.category] || Stethoscope;
+
+              return (
+                <div 
+                  key={idx}
+                  className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:shadow-purple-900/5 hover:border-purple-300 transition-all duration-300 flex flex-col justify-between h-full group text-left relative overflow-hidden"
+                >
+                  {/* Subtle hover gradient backdrop */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50/50 rounded-full blur-2xl -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                  <div className="space-y-4 flex-1 flex flex-col">
+                    {/* Category Header with Icon & Count Badge */}
+                    <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100/90">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-2xl bg-purple-100/70 border border-purple-200/60 flex items-center justify-center text-purple-700 shrink-0 group-hover:scale-105 group-hover:bg-purple-700 group-hover:text-white transition-all duration-300 shadow-2xs">
+                          <CategoryIcon className="w-5.5 h-5.5" />
+                        </div>
+                        <div>
+                          <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-purple-950 transition-colors leading-snug">
+                            {catGroup.category}
+                          </h3>
+                          <span className="text-[11px] font-bold text-slate-400">
+                            {catGroup.items.length} {catGroup.items.length === 1 ? 'Procedure' : 'Procedures'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] uppercase font-extrabold text-purple-700 bg-purple-50 border border-purple-100/80 px-2.5 py-1 rounded-full shrink-0 shadow-2xs">
+                        {catGroup.items.length} Proc
+                      </span>
+                    </div>
+
+                    {/* Procedure List with Flexible Vertical Distribution */}
+                    <div className="divide-y divide-slate-100/80 flex-1 flex flex-col justify-around py-1">
+                      {catGroup.items.map((item) => (
+                        <Link 
+                          key={item.slug}
+                          to={`/surgeries/${item.slug}`} 
+                          className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-purple-50/80 text-slate-700 hover:text-purple-950 font-semibold text-xs sm:text-sm transition-all group/item"
+                        >
+                          <span className="group-hover/item:translate-x-0.5 transition-transform">{item.name}</span>
+                          <ChevronRight className="w-4 h-4 text-slate-300 opacity-40 group-hover/item:opacity-100 group-hover/item:text-purple-700 group-hover/item:translate-x-1 transition-all shrink-0 ml-2" />
+                        </Link>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="divide-y divide-slate-100">
-                    {catGroup.items.map((item) => (
-                      <Link 
-                        key={item.slug}
-                        to={`/surgeries/${item.slug}`} 
-                        className="flex items-center justify-between py-2.5 px-2 rounded-xl hover:bg-purple-50/80 text-slate-800 hover:text-purple-950 font-medium text-xs transition-all group"
-                      >
-                        <span className="group-hover:font-bold transition-all">{item.name}</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:text-purple-700 group-hover:translate-x-0.5 transition-all shrink-0" />
-                      </Link>
-                    ))}
+                  {/* Card Bottom CTA Button - Always Pinned to Bottom */}
+                  <div className="pt-4 border-t border-slate-100/90 mt-4">
+                    <button
+                      onClick={() => handleWhatsAppConsultation(catGroup.category)}
+                      className="w-full py-3 px-4 rounded-2xl bg-purple-50/90 hover:bg-purple-700 text-purple-900 hover:text-white border border-purple-200/80 hover:border-purple-700 text-xs sm:text-sm font-extrabold transition-all duration-300 flex items-center justify-between group/btn cursor-pointer shadow-2xs active:scale-98"
+                    >
+                      <span>Explore {catGroup.category} Treatments</span>
+                      <ArrowRight className="w-4 h-4 text-purple-700 group-hover/btn:text-white group-hover/btn:translate-x-1 transition-all" />
+                    </button>
                   </div>
                 </div>
-
-                <div className="pt-4 border-t border-slate-100 mt-4">
-                  <button
-                    onClick={() => handleWhatsAppConsultation(catGroup.category)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-purple-100"
-                  >
-                    <span>Get Cost Estimate for {catGroup.category}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-purple-700" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="text-center pt-2">
+          {/* Bottom Global Action CTA */}
+          <div className="text-center pt-4">
             <button
               onClick={() => handleWhatsAppConsultation()}
-              className="px-8 py-3 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-extrabold text-xs transition-colors border border-purple-200 inline-flex items-center gap-2 cursor-pointer"
+              className="px-8 py-3.5 rounded-2xl bg-white hover:bg-purple-50 text-purple-900 font-extrabold text-xs sm:text-sm transition-all border border-purple-200 inline-flex items-center gap-2 cursor-pointer shadow-xs hover:shadow-md active:scale-98"
             >
-              <span>Explore All Surgeries</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Explore All Surgeries & Get Specialist Advice</span>
+              <ArrowRight className="w-4 h-4 text-purple-700" />
             </button>
           </div>
         </section>
