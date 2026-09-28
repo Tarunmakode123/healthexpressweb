@@ -727,6 +727,7 @@ export default function AdminDashboardPage() {
             { id: 'customers', label: 'Customers', icon: Users, badge: patients.length },
             { id: 'prescriptions', label: 'Prescriptions', icon: FileText, badge: pendingReviewsCount > 0 ? pendingReviewsCount : null },
             { id: 'promotions', label: 'Offers & Promotions', icon: Tag, badge: promoCodes.length },
+            { id: 'coins', label: 'Health Coins & Rewards', icon: Coins, badge: walletAccounts.length },
             { id: 'payments', label: 'Payments', icon: PaymentIcon },
             { id: 'analytics', label: 'Revenue Analytics', icon: BarChart2 },
             { id: 'activity', label: 'Activity Logs', icon: Layers },
