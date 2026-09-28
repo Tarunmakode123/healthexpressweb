@@ -648,10 +648,12 @@ export default function AdminDashboardPage() {
               <input
                 type="email"
                 required
+                autoComplete="username"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="admin@healthexpress.in"
-                className="w-full px-4 py-3 rounded-xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
+                onInput={(e) => setAdminEmail(e.target.value)}
+                placeholder="Enter admin email address"
+                className="w-full px-4 py-3 rounded-xl border border-purple-200 text-xs font-semibold text-slate-900 bg-white placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white shadow-xs"
               />
             </div>
 
@@ -660,10 +662,12 @@ export default function AdminDashboardPage() {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
+                onInput={(e) => setAdminPassword(e.target.value)}
+                placeholder="Enter admin password"
+                className="w-full px-4 py-3 rounded-xl border border-purple-200 text-xs font-semibold text-slate-900 bg-white placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white shadow-xs"
               />
             </div>
 
