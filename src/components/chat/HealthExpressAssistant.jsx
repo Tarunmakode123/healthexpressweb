@@ -4,7 +4,7 @@ import {
   MessageSquare, X, Send, Sparkles, Phone, Upload, ArrowRight, 
   RotateCcw, ShieldCheck, CheckCircle2, ChevronDown, Activity, ChevronRight, User, PhoneCall
 } from 'lucide-react';
-import { processUserMessageAsync } from '../../services/chatbotEngine';
+import { askGeminiAssistant } from '../../services/geminiService';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
 import { HEX_SPECIFICATION } from '../../data/chatbotKnowledge';
@@ -122,7 +122,7 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
     setMessages((prev) => [...prev, leadConfirmedMsg]);
   };
 
-  // Process user input
+  // Process user input via Hybrid Gemini RAG Engine
   const handleSendMessage = async (textToSend = inputQuery) => {
     const query = textToSend.trim();
     if (!query) return;
@@ -139,10 +139,9 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
     setIsTyping(true);
 
     try {
-      const response = await processUserMessageAsync(query, location.pathname, {
+      const response = await askGeminiAssistant(query, messages, {
         userName: guestName || user?.name,
-        userPhone: guestPhone || user?.phone,
-        history: messages
+        userPhone: guestPhone || user?.phone
       });
 
       const assistantMsg = {
