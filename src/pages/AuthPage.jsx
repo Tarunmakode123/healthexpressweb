@@ -189,11 +189,10 @@ export default function AuthPage() {
         return;
       }
 
-      // Log successful verification and login events
+      // Log canonical login success event
       try {
         const { logAnalyticsEvent } = await import('../utils/analytics.js');
-        await logAnalyticsEvent('OTP_VERIFIED', { userId: authData.session.user.id });
-        await logAnalyticsEvent('LOGIN_SUCCESS', { userId: authData.session.user.id });
+        await logAnalyticsEvent('LOGIN_SUCCESS', { userId: authData.session.user.id, metadata: { auth_method: 'phone_otp', phone: phone_e164 }, deduplicate: true });
       } catch (e) {}
 
       setIsSubmitting(false);

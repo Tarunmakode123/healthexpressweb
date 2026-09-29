@@ -142,8 +142,12 @@ export default function GenericDashboardPage() {
     groupedTimelineVisible[groupLabel].push(item);
   });
 
-  const displayName = user?.name || session?.user?.user_metadata?.full_name || 'Member';
+  const displayName = memberData.patient?.full_name || user?.name || session?.user?.user_metadata?.full_name || null;
   const displayPhone = user?.phone || session?.user?.phone || memberData.patient?.phone_e164 || 'Verified Mobile Number';
+
+  const accountCreatedDateLabel = session?.user?.created_at 
+    ? new Date(session.user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'Today';
 
   // Quick Action Dispatcher
   const handleCTAAction = (actionType) => {
@@ -215,12 +219,12 @@ export default function GenericDashboardPage() {
               className="flex items-center gap-3 p-1.5 pr-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 transition-all cursor-pointer"
             >
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center font-black text-white text-xs shadow-inner">
-                {displayName.charAt(0).toUpperCase()}
+                {displayName ? displayName.charAt(0).toUpperCase() : <User className="w-4 h-4 text-white" />}
               </div>
 
               <div className="text-left hidden sm:block">
-                <div className="text-xs font-bold text-white leading-tight">{displayName}</div>
-                <div className="text-[10px] font-semibold text-purple-300 leading-tight">Verified Member</div>
+                <div className="text-xs font-bold text-white leading-tight">{displayName || 'My Account'}</div>
+                <div className="text-[10px] font-semibold text-purple-300 leading-tight">Verified Account</div>
               </div>
 
               <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
@@ -321,7 +325,7 @@ export default function GenericDashboardPage() {
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                Welcome back, {displayName} 👋
+                {displayName ? `Welcome back, ${displayName} 👋` : 'Welcome back 👋'}
               </h1>
 
               <p className="text-xs sm:text-sm text-purple-200/90 max-w-2xl font-medium leading-relaxed">
@@ -401,7 +405,7 @@ export default function GenericDashboardPage() {
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               </div>
               <p className="text-xs font-black text-slate-900">Account Created</p>
-              <p className="text-[10px] text-slate-500 font-mono">{displayPhone}</p>
+              <p className="text-[10px] text-purple-700 font-bold">{accountCreatedDateLabel}</p>
             </div>
 
             {/* Step 2: Explored Services */}

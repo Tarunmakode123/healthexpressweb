@@ -117,93 +117,137 @@ export function formatTimelineDateGroup(dateStr) {
 }
 
 /**
- * Builds unified, chronological activity timeline stream
+ * CENTRALIZED EVENT PRESENTATION FORMATTER
+ * Translates technical analytics events into human-readable titles and descriptions.
+ */
+export function formatActivityEvent(evt) {
+  const path = evt.page_path || '';
+  let title = 'Website Interaction';
+  let description = 'Explored Health Express portal';
+  let category = 'website';
+  let iconType = 'globe';
+
+  switch (evt.event_type) {
+    case 'OTP_REQUESTED':
+      title = 'OTP Verification Requested';
+      description = 'Requested SMS OTP code for phone login.';
+      category = 'account';
+      iconType = 'phone';
+      break;
+
+    case 'OTP_VERIFIED':
+    case 'LOGIN_SUCCESS':
+      title = 'Account Sign In';
+      description = 'Successfully authenticated via SMS OTP.';
+      category = 'account';
+      iconType = 'shield';
+      break;
+
+    case 'PAGE_VIEW':
+      if (path === '/' || path === '') {
+        title = 'Visited Health Express';
+        description = 'Explored the main Health Express homepage.';
+      } else if (path.includes('/services')) {
+        title = 'Explored Diagnostic Services';
+        description = 'Viewed the Diagnostic Services section.';
+      } else if (path.includes('/health-calculators')) {
+        title = 'Used Health Calculator';
+        description = 'Opened the Health Calculator section.';
+      } else if (path.includes('/surgeries')) {
+        title = 'Viewed Surgery Packages';
+        description = 'Explored surgical procedures and care packages.';
+      } else if (path.includes('/about')) {
+        title = 'Viewed About Health Express';
+        description = 'Learned about Health Express care coordinators.';
+      } else if (path.includes('/contact')) {
+        title = 'Visited Contact Support';
+        description = 'Navigated to Health Express care manager support.';
+      } else if (path.includes('/dashboard')) {
+        title = 'Opened Member Dashboard';
+        description = 'Accessed your personal Health Express dashboard.';
+      } else {
+        title = 'Page View';
+        description = `Visited ${path}`;
+      }
+      category = 'website';
+      iconType = 'eye';
+      break;
+
+    case 'SERVICE_VIEW':
+      title = 'Explored Diagnostic Service';
+      description = evt.metadata?.service_name ? `Viewed ${evt.metadata.service_name}` : `Viewed service details on ${path}`;
+      category = 'website';
+      iconType = 'activity';
+      break;
+
+    case 'HEALTH_CALCULATOR_USED':
+    case 'HEALTH_CALCULATOR_VIEW':
+      title = 'Used Health Calculator';
+      description = evt.metadata?.calculator_name ? `Ran ${evt.metadata.calculator_name}` : 'Calculated personal health assessment metrics.';
+      category = 'website';
+      iconType = 'calculator';
+      break;
+
+    case 'SURGERY_VIEW':
+      title = 'Viewed Surgery Care Package';
+      description = evt.metadata?.surgery_name ? `Explored ${evt.metadata.surgery_name}` : `Explored surgical options on ${path}`;
+      category = 'website';
+      iconType = 'hospital';
+      break;
+
+    case 'PRESCRIPTION_UPLOADED':
+      title = 'Prescription Uploaded';
+      description = evt.metadata?.file_name ? `Submitted prescription file ${evt.metadata.file_name}` : 'Prescription submitted successfully.';
+      category = 'prescriptions';
+      iconType = 'file-text';
+      break;
+
+    case 'ORDER_CREATED':
+      title = 'Order Placed';
+      description = evt.metadata?.order_code ? `Order ${evt.metadata.order_code} created successfully.` : 'Your order has been created.';
+      category = 'orders';
+      iconType = 'shopping-bag';
+      break;
+
+    case 'PAYMENT_SUCCESS':
+      title = 'Payment Successful';
+      description = evt.metadata?.amount ? `Payment of ₹${evt.metadata.amount} completed successfully.` : 'Payment received for diagnostic order.';
+      category = 'payments';
+      iconType = 'credit-card';
+      break;
+
+    case 'LOGOUT':
+      title = 'Signed Out';
+      description = 'Logged out of Health Express session.';
+      category = 'account';
+      iconType = 'log-out';
+      break;
+
+    default:
+      title = evt.event_type.replace(/_/g, ' ');
+      description = `Recorded event on ${path}`;
+      category = 'website';
+  }
+
+  return { title, description, category, iconType };
+}
+
+/**
+ * Builds unified, chronological activity timeline stream with source deduplication
  */
 export function buildUnifiedTimelineStream({ events = [], orders = [], prescriptions = [], enquiries = [], payments = [] } = {}) {
   const unifiedItems = [];
 
-  // 1. Process Analytics Events
+  // 1. Process Analytics Events (using centralized formatter)
   events.forEach(evt => {
-    let title = 'Website Interaction';
-    let description = evt.page_path || 'Explored Health Express';
-    let category = 'website';
-    let iconType = 'globe';
-
-    switch (evt.event_type) {
-      case 'OTP_REQUESTED':
-        title = 'OTP Verification Code Requested';
-        description = 'Requested SMS OTP code for mobile verification';
-        category = 'account';
-        iconType = 'phone';
-        break;
-      case 'OTP_VERIFIED':
-      case 'LOGIN_SUCCESS':
-        title = 'Account Sign In';
-        description = 'Successfully authenticated via SMS OTP';
-        category = 'account';
-        iconType = 'shield';
-        break;
-      case 'PAGE_VIEW':
-        title = 'Page View';
-        description = `Visited ${evt.page_path || 'website'}`;
-        category = 'website';
-        iconType = 'eye';
-        break;
-      case 'SERVICE_VIEW':
-        title = 'Viewed Health Service';
-        description = evt.metadata?.service_name || `Explored service on ${evt.page_path}`;
-        category = 'website';
-        iconType = 'activity';
-        break;
-      case 'HEALTH_CALCULATOR_USED':
-      case 'HEALTH_CALCULATOR_VIEW':
-        title = 'Used Health Calculator';
-        description = `Ran ${evt.metadata?.calculator_name || 'Health Assessment'}`;
-        category = 'website';
-        iconType = 'calculator';
-        break;
-      case 'SURGERY_VIEW':
-        title = 'Viewed Surgery Care Package';
-        description = `Explored surgical procedures on ${evt.page_path}`;
-        category = 'website';
-        iconType = 'hospital';
-        break;
-      case 'PRESCRIPTION_UPLOADED':
-        title = 'Prescription File Uploaded';
-        description = 'Submitted medical prescription for review';
-        category = 'prescriptions';
-        iconType = 'file-text';
-        break;
-      case 'ORDER_CREATED':
-        title = 'Order Initiated';
-        description = `Created order ${evt.metadata?.order_code || ''}`;
-        category = 'orders';
-        iconType = 'shopping-bag';
-        break;
-      case 'PAYMENT_SUCCESS':
-        title = 'Payment Successful';
-        description = `Paid ₹${evt.metadata?.amount || ''} for healthcare order`;
-        category = 'payments';
-        iconType = 'credit-card';
-        break;
-      case 'LOGOUT':
-        title = 'Signed Out';
-        description = 'Logged out of Health Express session';
-        category = 'account';
-        iconType = 'log-out';
-        break;
-      default:
-        title = evt.event_type.replace(/_/g, ' ');
-        category = 'website';
-    }
-
+    const formatted = formatActivityEvent(evt);
     unifiedItems.push({
       id: evt.event_id || `evt_${evt.id}`,
       type: evt.event_type,
-      category,
-      title,
-      description,
-      iconType,
+      category: formatted.category,
+      title: formatted.title,
+      description: formatted.description,
+      iconType: formatted.iconType,
       timestamp: evt.created_at || new Date().toISOString(),
       raw: evt
     });
@@ -216,8 +260,8 @@ export function buildUnifiedTimelineStream({ events = [], orders = [], prescript
       id: `pres_${p.id}`,
       type: 'PRESCRIPTION_RECORD',
       category: 'prescriptions',
-      title: `Prescription Uploaded (${code})`,
-      description: `File: ${p.file_name || 'Medical Document'} • Status: ${(p.enquiries?.status || 'under_review').replace(/_/g, ' ')}`,
+      title: 'Prescription Uploaded',
+      description: `Prescription ${code} submitted successfully. File: ${p.file_name || 'Medical Document'}`,
       iconType: 'file-text',
       timestamp: p.created_at,
       raw: p
@@ -230,8 +274,8 @@ export function buildUnifiedTimelineStream({ events = [], orders = [], prescript
       id: `enq_${e.id}`,
       type: 'ENQUIRY_RECORD',
       category: 'prescriptions',
-      title: `Care Enquiry Submitted (${code})`,
-      description: `Status: ${(e.status || 'pending').replace(/_/g, ' ')}${e.notes ? ` • Note: ${e.notes}` : ''}`,
+      title: 'Care Enquiry Submitted',
+      description: `Enquiry ${code} received. Status: ${(e.status || 'pending').replace(/_/g, ' ')}`,
       iconType: 'message-square',
       timestamp: e.created_at,
       raw: e
@@ -245,8 +289,8 @@ export function buildUnifiedTimelineStream({ events = [], orders = [], prescript
       id: `ord_${o.id}`,
       type: 'ORDER_RECORD',
       category: 'orders',
-      title: `Diagnostic Order (${code})`,
-      description: `Amount: ₹${o.final_amount || o.subtotal || 0} • Status: ${(o.order_status || 'created').replace(/_/g, ' ')} • Payment: ${(o.payment_status || 'pending').replace(/_/g, ' ')}`,
+      title: 'Order Placed',
+      description: `Order ${code} created successfully. Amount: ₹${o.final_amount || o.subtotal || 0}`,
       iconType: 'shopping-bag',
       timestamp: o.created_at,
       raw: o
@@ -259,8 +303,8 @@ export function buildUnifiedTimelineStream({ events = [], orders = [], prescript
       id: `pay_${pay.id}`,
       type: 'PAYMENT_RECORD',
       category: 'payments',
-      title: `Payment ${pay.payment_status?.toUpperCase() || 'RECORD'}`,
-      description: `Amount: ₹${pay.amount || 0} • Method: ${pay.payment_method || 'Online'}`,
+      title: 'Payment Completed',
+      description: `Payment of ₹${pay.amount || 0} completed via ${pay.payment_method || 'Online'}.`,
       iconType: 'credit-card',
       timestamp: pay.created_at,
       raw: pay
@@ -270,18 +314,26 @@ export function buildUnifiedTimelineStream({ events = [], orders = [], prescript
   // Sort unified items strictly descending (newest first)
   unifiedItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  // Group by Date Banner
-  const groupedMap = {};
-  unifiedItems.forEach(item => {
-    const groupKey = formatTimelineDateGroup(item.timestamp);
-    if (!groupedMap[groupKey]) {
-      groupedMap[groupKey] = [];
+  // Source-level Timeline Deduplication: collapse identical items logged within 10 seconds of each other
+  const deduplicatedItems = [];
+  unifiedItems.forEach((item, index) => {
+    if (index === 0) {
+      deduplicatedItems.push(item);
+      return;
     }
-    groupedMap[groupKey].push(item);
+
+    const prev = deduplicatedItems[deduplicatedItems.length - 1];
+    const timeDiff = Math.abs(new Date(item.timestamp).getTime() - new Date(prev.timestamp).getTime());
+
+    // If title and category match and timestamps are within 10 seconds, skip duplicate
+    if (item.title === prev.title && item.category === prev.category && timeDiff < 10000) {
+      return;
+    }
+
+    deduplicatedItems.push(item);
   });
 
   return {
-    allItems: unifiedItems,
-    groupedMap
+    allItems: deduplicatedItems
   };
 }
