@@ -1309,560 +1309,384 @@ function AdminDashboardPage() {
           </div>
         )}
 
-        {/* NAV SECTION 1: OPERATIONAL COMMAND CENTER OVERVIEW */}
+        {/* NAV SECTION 1: COMPACT OPERATIONAL COMMAND CENTER OVERVIEW */}
         {activeNav === 'overview' && (
           <div className="space-y-6">
 
-            {/* SUB-BAR & LAST UPDATED TIMESTAMP */}
+            {/* 1. HEADER SUB-BAR */}
             <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-bold text-slate-200">Ops Command Center Active</span>
-                <span className="text-slate-500">•</span>
-                <span className="text-slate-400">Date Range Filter: <strong className="text-purple-300">{dateRangeFilter}</strong></span>
+              <div className="flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <div>
+                  <h2 className="text-sm font-black text-white uppercase tracking-tight">Operational Overview</h2>
+                  <p className="text-[11px] text-purple-300 font-medium">Real-time snapshot of Health Express operations</p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-4 text-[11px] text-slate-400">
-                <span className="flex items-center gap-1 font-mono">
-                  <Clock className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Last Updated: {lastUpdatedTime}</span>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="text-slate-400 text-[11px] font-mono hidden sm:inline">
+                  Last Updated: {lastUpdatedTime}
                 </span>
                 <button
                   onClick={loadAdminData}
                   disabled={isLoading}
-                  className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-purple-300 font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-200 border border-slate-700 font-bold transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>Sync Telemetry</span>
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-purple-400' : ''}`} />
+                  <span>Refresh</span>
                 </button>
               </div>
             </div>
 
-            {/* RESPONSIVE TWO-ROW PRIMARY KPI GRID (4 cards Top Row, 4 cards Second Row) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 2. PRIMARY KPI SUMMARY GRID (8 COMPACT CARDS IN 2 ROWS) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
               
-              {/* CARD 1: TOTAL REVENUE */}
+              {/* REVENUE */}
               <div
                 onClick={() => setActiveNav('analytics')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group"
+                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-between text-xs text-emerald-400 font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs text-emerald-400 font-extrabold uppercase">
                   <span className="flex items-center gap-1.5">
                     <DollarSign className="w-4 h-4 text-emerald-400" />
-                    <span>Total Revenue</span>
+                    <span>Revenue</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-emerald-300">₹{periodRevenue.toLocaleString('en-IN')}</div>
-                  <div className="flex items-center justify-between text-[11px] mt-1">
-                    <span className="text-slate-400 font-medium">Prior: ₹{prevPeriodRevenue.toLocaleString('en-IN')}</span>
-                    <span className={`font-black flex items-center gap-0.5 ${Number(revenueGrowthPct) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {Number(revenueGrowthPct) >= 0 ? <TrendingUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                      <span>{revenueGrowthPct}%</span>
+                  <div className="text-2xl font-black text-emerald-300">₹{periodRevenue.toLocaleString('en-IN')}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                    <span>Paid Txns: <strong className="text-white">{paidOrdersCount}</strong></span>
+                    <span className={`font-bold ${Number(revenueGrowthPct) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {revenueGrowthPct}% vs prior
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* CARD 2: TOTAL ORDERS */}
+              {/* ORDERS */}
               <div
                 onClick={() => setActiveNav('orders')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group"
+                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-between text-xs text-purple-300 font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs text-purple-300 font-extrabold uppercase">
                   <span className="flex items-center gap-1.5">
                     <ShoppingBag className="w-4 h-4 text-purple-400" />
-                    <span>Total Orders</span>
+                    <span>Orders</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-white">{periodOrders.length}</div>
-                  <div className="text-[11px] text-slate-400 font-medium flex items-center justify-between mt-1">
+                  <div className="text-2xl font-black text-white">{periodOrders.length}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
                     <span>Paid: <strong className="text-emerald-400">{paidOrdersCount}</strong></span>
                     <span>Pending: <strong className="text-amber-400">{pendingOrdersCount}</strong></span>
                   </div>
                 </div>
               </div>
 
-              {/* CARD 3: REGISTERED CUSTOMERS */}
+              {/* CUSTOMERS */}
               <div
                 onClick={() => setActiveNav('customers')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group"
+                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-between text-xs text-sky-400 font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs text-sky-400 font-extrabold uppercase">
                   <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-sky-400" />
                     <span>Customers</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-white">{patients.length}</div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 flex items-center justify-between">
-                    <span>New in Period: <strong className="text-sky-300">+{periodPatientsCount}</strong></span>
-                    <span>Guests: {guestEnquiriesCount}</span>
+                  <div className="text-2xl font-black text-white">{patients.length}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                    <span>New Registered: <strong className="text-sky-300">+{periodPatientsCount}</strong></span>
                   </div>
                 </div>
               </div>
 
-              {/* CARD 4: PRESCRIPTIONS & ENQUIRIES */}
+              {/* PRESCRIPTIONS */}
               <div
                 onClick={() => setActiveNav('prescriptions')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group"
+                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-between text-xs text-indigo-400 font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs text-indigo-400 font-extrabold uppercase">
                   <span className="flex items-center gap-1.5">
                     <FileText className="w-4 h-4 text-indigo-400" />
                     <span>Prescriptions</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-white">{prescriptions.length}</div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 flex items-center justify-between">
-                    <span>Pending: <strong className="text-amber-400">{pendingReviewsCount}</strong></span>
-                    <span>Reviewed: <strong className="text-emerald-400">{prescriptions.length - pendingReviewsCount}</strong></span>
+                  <div className="text-2xl font-black text-white">{prescriptions.length}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                    <span>Pending Review: <strong className="text-amber-400">{pendingReviewsCount}</strong></span>
                   </div>
                 </div>
               </div>
 
-              {/* CARD 5: ACTIVE PROMO CODES */}
+              {/* PAYMENTS */}
+              <div
+                onClick={() => setActiveNav('payments')}
+                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
+              >
+                <div className="flex items-center justify-between text-xs text-teal-400 font-extrabold uppercase">
+                  <span className="flex items-center gap-1.5">
+                    <PaymentIcon className="w-4 h-4 text-teal-400" />
+                    <span>Payments</span>
+                  </span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-white">{periodPayments.length}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                    <span>Successful: <strong className="text-emerald-400">{successfulPaymentsCount}</strong></span>
+                    <span>Failed: <strong className="text-rose-400">{failedPaymentsCount}</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTIVE PROMO CODES */}
               <div
                 onClick={() => setActiveNav('promotions')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group"
+                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-between text-xs text-amber-400 font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs text-amber-400 font-extrabold uppercase">
                   <span className="flex items-center gap-1.5">
                     <Tag className="w-4 h-4 text-amber-400" />
                     <span>Active Promos</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-amber-300">{promoCodes.filter(p => p.is_active).length}</div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 flex items-center justify-between">
+                  <div className="text-2xl font-black text-amber-300">{promoCodes.filter(p => p.is_active).length}</div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
                     <span>Total Promos: {promoCodes.length}</span>
                     <span>Uses: <strong className="text-purple-300">{totalPromoUses}</strong></span>
                   </div>
                 </div>
               </div>
 
-              {/* CARD 6: HEALTH COINS & REWARDS */}
+              {/* HEALTH COINS */}
               <div
                 onClick={() => setActiveNav('coins')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group"
+                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex items-center justify-between text-xs text-amber-300 font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs text-amber-300 font-extrabold uppercase">
                   <span className="flex items-center gap-1.5">
                     <Coins className="w-4 h-4 text-amber-400" />
                     <span>Health Coins</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                 </div>
                 <div>
-                  <div className="text-3xl font-black text-white">{walletAccounts.length} <span className="text-xs text-slate-400 font-normal">wallets</span></div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 flex items-center justify-between">
-                    <span>Total Coins: <strong className="text-amber-400">{totalWalletCoins.toLocaleString('en-IN')}</strong></span>
-                    <span>Value: <strong className="text-emerald-400">₹{walletRupeeValue}</strong></span>
+                  <div className="text-2xl font-black text-white">{walletAccounts.length} <span className="text-xs text-slate-400 font-normal">wallets</span></div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                    <span>Coins: <strong className="text-amber-400">{totalWalletCoins.toLocaleString('en-IN')}</strong></span>
+                    <span>Liability: <strong className="text-emerald-400">₹{walletRupeeValue}</strong></span>
                   </div>
                 </div>
               </div>
 
-              {/* CARD 7: PAYMENTS HEALTH */}
-              <div
-                onClick={() => setActiveNav('payments')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-teal-400 font-extrabold uppercase tracking-wider">
-                  <span className="flex items-center gap-1.5">
-                    <PaymentIcon className="w-4 h-4 text-teal-400" />
-                    <span>Payments</span>
-                  </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-3xl font-black text-white">{periodPayments.length} <span className="text-xs text-slate-400 font-normal">txns</span></div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 flex items-center justify-between">
-                    <span>Success: <strong className="text-emerald-400">{successfulPaymentsCount}</strong></span>
-                    <span>Failed: <strong className="text-rose-400">{failedPaymentsCount}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 8: NEEDS ATTENTION ALERT COUNTER */}
+              {/* NEEDS ATTENTION */}
               <div
                 onClick={() => {
-                  const alertEl = document.getElementById('needs-attention-section');
-                  if (alertEl) alertEl.scrollIntoView({ behavior: 'smooth' });
+                  const el = document.getElementById('needs-attention-box');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className={`border rounded-3xl p-5 space-y-3 shadow-xl transition-all cursor-pointer group ${
+                className={`border rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group ${
                   totalAttentionAlerts > 0
                     ? 'bg-rose-950/40 border-rose-600/60 hover:border-rose-500 animate-pulse'
                     : 'bg-slate-800/90 border-slate-700/80 hover:border-emerald-500/50'
                 }`}
               >
-                <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs font-extrabold uppercase">
                   <span className="flex items-center gap-1.5 text-rose-300">
                     <AlertCircle className={`w-4 h-4 ${totalAttentionAlerts > 0 ? 'text-rose-400' : 'text-emerald-400'}`} />
                     <span>Needs Attention</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                 </div>
                 <div>
-                  <div className={`text-3xl font-black ${totalAttentionAlerts > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {totalAttentionAlerts} <span className="text-xs text-slate-400 font-normal">alerts</span>
+                  <div className={`text-2xl font-black ${totalAttentionAlerts > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {totalAttentionAlerts} <span className="text-xs text-slate-400 font-normal">issues</span>
                   </div>
                   <div className="text-[11px] text-slate-400 font-medium mt-1">
-                    {totalAttentionAlerts > 0 ? 'Action required by operations team' : 'All systems operating cleanly'}
+                    {totalAttentionAlerts > 0 ? 'Urgent action required' : 'All systems operating'}
                   </div>
                 </div>
               </div>
 
             </div>
 
-            {/* REVENUE & ORDERS TREND CHART + ORDER STATUS DISTRIBUTION */}
+            {/* 3. MAIN ANALYTICS CHART & OPERATIONAL SNAPSHOT */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* REVENUE & ORDERS INTERACTIVE TREND CHART */}
+              {/* REVENUE & ORDERS TREND CHART */}
               <div className="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <div className="flex flex-wrap items-center justify-between border-b border-slate-700/80 pb-3 gap-2">
+                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
                   <div>
                     <h3 className="text-base font-black text-white flex items-center gap-2">
                       <BarChart2 className="w-5 h-5 text-purple-400" />
-                      <span>Revenue & Order Growth Trend</span>
+                      <span>Revenue & Orders Trend</span>
                     </h3>
-                    <p className="text-[11px] text-slate-400">Daily revenue breakdown for the selected time window</p>
+                    <p className="text-[11px] text-slate-400">Daily revenue and order volume in period</p>
                   </div>
                   <button onClick={() => setActiveNav('analytics')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                    <span>Full Analytics</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <span>Full Analytics →</span>
                   </button>
                 </div>
 
                 <RevenueTrendSvgChart trendData={buildDailyTrendData(periodOrders)} />
               </div>
 
-              {/* ORDERS BY STATUS BREAKDOWN */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+              {/* OPERATIONAL SNAPSHOT */}
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-5 shadow-xl">
                 <div className="border-b border-slate-700/80 pb-3">
                   <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <ShoppingBag className="w-5 h-5 text-purple-400" />
-                    <span>Orders by Status</span>
+                    <Activity className="w-5 h-5 text-purple-400" />
+                    <span>Operational Snapshot</span>
                   </h3>
-                  <p className="text-[11px] text-slate-400">Distribution across fulfillment states</p>
+                  <p className="text-[11px] text-slate-400">Fulfillment & Payment status distribution</p>
                 </div>
 
-                {periodOrders.length === 0 ? (
-                  <p className="text-xs text-slate-500 text-center py-8">No order status data for selected date range.</p>
-                ) : (
-                  <div className="space-y-3 text-xs">
-                    {[
-                      { label: 'Paid / Confirmed', count: paidOrdersCount, color: 'bg-emerald-500', textColor: 'text-emerald-400' },
-                      { label: 'Pending Processing', count: pendingOrdersCount, color: 'bg-amber-500', textColor: 'text-amber-400' },
-                      { label: 'COD Uncollected', count: codPendingCount, color: 'bg-indigo-500', textColor: 'text-indigo-400' },
-                      { label: 'Failed Payments', count: failedPaymentsCount, color: 'bg-rose-500', textColor: 'text-rose-400' },
-                      { label: 'Cancelled Orders', count: cancelledOrdersCount, color: 'bg-slate-600', textColor: 'text-slate-400' },
-                    ].map((st) => {
-                      const pct = periodOrders.length > 0 ? ((st.count / periodOrders.length) * 100).toFixed(0) : 0;
-                      return (
-                        <div key={st.label} className="space-y-1">
-                          <div className="flex items-center justify-between font-bold">
-                            <span className="text-slate-300">{st.label}</span>
-                            <span className={st.textColor}>{st.count} ({pct}%)</span>
-                          </div>
-                          <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                            <div className={`h-full ${st.color} transition-all duration-500`} style={{ width: `${pct}%` }} />
-                          </div>
+                {/* ORDER STATUS BARS */}
+                <div className="space-y-3 text-xs">
+                  <span className="font-extrabold text-slate-300 uppercase text-[10px] tracking-wider">Order Status Distribution:</span>
+                  {[
+                    { label: 'Paid / Confirmed', count: paidOrdersCount, color: 'bg-emerald-500', textColor: 'text-emerald-400' },
+                    { label: 'Pending Processing', count: pendingOrdersCount, color: 'bg-amber-500', textColor: 'text-amber-400' },
+                    { label: 'Failed / Cancelled', count: failedPaymentsCount + cancelledOrdersCount, color: 'bg-rose-500', textColor: 'text-rose-400' },
+                  ].map((st) => {
+                    const pct = periodOrders.length > 0 ? ((st.count / periodOrders.length) * 100).toFixed(0) : 0;
+                    return (
+                      <div key={st.label} className="space-y-1">
+                        <div className="flex items-center justify-between font-bold">
+                          <span className="text-slate-300">{st.label}</span>
+                          <span className={st.textColor}>{st.count} ({pct}%)</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* REVENUE / PAYMENT METHOD & CUSTOMER ANALYTICS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              {/* PAYMENT COLLECTIONS BREAKDOWN */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <PaymentIcon className="w-5 h-5 text-teal-400" />
-                    <span>Payment Collections & Gateway Health</span>
-                  </h3>
-                  <button onClick={() => setActiveNav('payments')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                    <span>View Payments</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-slate-400 text-[11px] font-bold uppercase">Online Payments</span>
-                    <div className="text-xl font-black text-emerald-400">₹{onlineRevenueCollected.toLocaleString('en-IN')}</div>
-                    <span className="text-[10px] text-slate-500">Razorpay / UPI / Cards</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-slate-400 text-[11px] font-bold uppercase">COD Collected</span>
-                    <div className="text-xl font-black text-purple-300">₹{codCollected.toLocaleString('en-IN')}</div>
-                    <span className="text-[10px] text-slate-500">Cash on Delivery</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-slate-400 text-[11px] font-bold uppercase">COD Pending Collection</span>
-                    <div className="text-xl font-black text-amber-300">₹{codPendingCollection.toLocaleString('en-IN')}</div>
-                    <span className="text-[10px] text-amber-500/80">Pending Field Collection</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-slate-400 text-[11px] font-bold uppercase">Failed Transactions</span>
-                    <div className="text-xl font-black text-rose-400">{failedPaymentsCount}</div>
-                    <span className="text-[10px] text-rose-500/80">Declined / Abandoned</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CUSTOMER GROWTH & DIRECTORY SUMMARY */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <Users className="w-5 h-5 text-sky-400" />
-                    <span>Customer Growth & Velocity</span>
-                  </h3>
-                  <button onClick={() => setActiveNav('customers')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                    <span>Directory (360°)</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <CustomerGrowthSvgChart patientsList={patients} />
-
-                <div className="grid grid-cols-2 gap-3 text-xs pt-1">
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 text-[10px] uppercase font-bold">Registered Members</span>
-                    <div className="text-lg font-black text-white">{registeredPatientsCount}</div>
-                  </div>
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 text-[10px] uppercase font-bold">Guest Prescriptions</span>
-                    <div className="text-lg font-black text-purple-300">{guestEnquiriesCount}</div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* PRESCRIPTION OPERATIONS + HEALTH COINS & REWARDS SUMMARY */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              {/* PRESCRIPTION & ENQUIRY OPERATIONS STREAM */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-indigo-400" />
-                    <span>Prescription Operations Stream</span>
-                  </h3>
-                  <button onClick={() => setActiveNav('prescriptions')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                    <span>Review All ({prescriptions.length})</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {pendingPrescriptionsList.length === 0 ? (
-                  <div className="p-6 bg-slate-950/60 rounded-2xl border border-slate-800 text-center text-xs text-slate-400 space-y-1">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-400 mx-auto" />
-                    <p className="font-bold text-white">No Pending Prescription Reviews</p>
-                    <p className="text-[11px] text-slate-500">All guest prescription uploads have been processed by pharmacists.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Awaiting Pharmacist Action:</span>
-                    {pendingPrescriptionsList.slice(0, 4).map((enq) => (
-                      <div key={enq.id} className="p-3 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-                        <div className="space-y-0.5">
-                          <div className="font-extrabold text-purple-300">{enq.enquiry_code || 'RX-PENDING'}</div>
-                          <div className="text-slate-300 font-semibold">{enq.patients?.full_name || 'Guest Patient'}</div>
-                          <div className="text-[10px] text-slate-500">{new Date(enq.created_at).toLocaleString('en-IN')}</div>
-                        </div>
-                        <button
-                          onClick={() => setActiveNav('prescriptions')}
-                          className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-colors cursor-pointer"
-                        >
-                          Review Rx →
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* HEALTH COINS & REWARDS SUMMARY */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-amber-400" />
-                    <span>Health Coins & Loyalty Rewards</span>
-                  </h3>
-                  <button onClick={() => setActiveNav('coins')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                    <span>View Wallets →</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-slate-400 text-[10px] uppercase font-bold">Active Customer Wallets</span>
-                    <div className="text-2xl font-black text-white">{walletAccounts.length}</div>
-                    <span className="text-[10px] text-slate-500">Registered Accounts</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 space-y-1">
-                    <span className="text-slate-400 text-[10px] uppercase font-bold">Total Issued Balance</span>
-                    <div className="text-2xl font-black text-amber-400">{totalWalletCoins.toLocaleString('en-IN')}</div>
-                    <span className="text-[10px] text-amber-500/80">Coins Outstanding</span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-                  <div>
-                    <div className="font-bold text-slate-200">Estimated Outstanding Liability</div>
-                    <div className="text-[11px] text-slate-400">10 Coins = ₹1 Discount Cap</div>
-                  </div>
-                  <div className="text-xl font-black text-emerald-400">₹{walletRupeeValue}</div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* PROMO CODE ANALYTICS & EXPIRING WARNINGS */}
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                <h3 className="text-base font-black text-white flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-amber-400" />
-                  <span>Promotions & Active Offers Analytics</span>
-                </h3>
-                <button onClick={() => setActiveNav('promotions')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                  <span>Manage Promos</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {promoCodes.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-6">No promo codes created in system.</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  {promoCodes.slice(0, 6).map((promo) => (
-                    <div key={promo.id} className="p-3.5 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="font-black text-purple-300 font-mono tracking-wider">{promo.code}</div>
-                        <div className="text-[11px] text-slate-400 font-semibold">
-                          {promo.discount_type === 'flat' ? `₹${promo.discount_value} FLAT` : `${promo.discount_value}% OFF`}
+                        <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+                          <div className={`h-full ${st.color} transition-all duration-500`} style={{ width: `${pct}%` }} />
                         </div>
                       </div>
-                      <div className="text-right space-y-1">
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${promo.is_active ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-500'}`}>
-                          {promo.is_active ? 'Active' : 'Disabled'}
-                        </span>
-                        <div className="text-[10px] text-slate-500">Used: {promo.used_count || 0} times</div>
-                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* PAYMENT HEALTH METRICS */}
+                <div className="space-y-2 text-xs pt-2 border-t border-slate-800">
+                  <span className="font-extrabold text-slate-300 uppercase text-[10px] tracking-wider">Payment Health:</span>
+                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 font-medium">Online Success:</span>
+                      <div className="font-black text-emerald-400 text-sm">₹{onlineRevenueCollected.toLocaleString('en-IN')}</div>
                     </div>
-                  ))}
+                    <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 font-medium">COD Pending:</span>
+                      <div className="font-black text-amber-300 text-sm">₹{codPendingCollection.toLocaleString('en-IN')}</div>
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* ATTENTION ALERT CENTER ("Needs Attention") */}
-            <div id="needs-attention-section" className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+            {/* 4. NEEDS ATTENTION ALERT BOX */}
+            <div id="needs-attention-box" className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
               <div className="border-b border-slate-700/80 pb-3 flex items-center justify-between">
                 <h3 className="text-base font-black text-white flex items-center gap-2">
                   <AlertCircle className={`w-5 h-5 ${totalAttentionAlerts > 0 ? 'text-rose-400' : 'text-emerald-400'}`} />
-                  <span>Operations Attention Alert Center</span>
+                  <span>Needs Attention</span>
                 </h3>
-                {totalAttentionAlerts > 0 && (
-                  <span className="px-2.5 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 font-black text-xs animate-pulse">
-                    {totalAttentionAlerts} URGENT ITEMS
+                {totalAttentionAlerts > 0 ? (
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-black animate-pulse">
+                    {totalAttentionAlerts} Items Pending
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-black">
+                    ✓ Everything is operational
                   </span>
                 )}
               </div>
 
               {totalAttentionAlerts === 0 ? (
-                <div className="p-6 bg-slate-950/60 rounded-2xl border border-emerald-500/40 text-center text-xs text-emerald-300 space-y-1">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-1" />
-                  <p className="font-extrabold text-sm text-white">Everything Looks Good!</p>
-                  <p className="text-[11px] text-slate-400">No urgent operational items require admin attention right now.</p>
+                <div className="p-4 bg-slate-950/60 rounded-2xl border border-emerald-500/30 flex items-center gap-3 text-xs text-emerald-300">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <span className="font-bold">✓ Everything is operational. No urgent actions require attention right now.</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                   {pendingReviewsCount > 0 && (
-                    <div
-                      onClick={() => setActiveNav('prescriptions')}
-                      className="p-4 bg-rose-950/40 border border-rose-800/60 rounded-2xl space-y-2 cursor-pointer hover:border-rose-500 transition-colors"
-                    >
-                      <div className="font-black text-rose-300 flex items-center gap-1.5">
-                        <FileText className="w-4 h-4 text-rose-400" />
-                        <span>Pending Rx Reviews ({pendingReviewsCount})</span>
+                    <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-2xl flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-extrabold text-rose-300">{pendingReviewsCount} Prescriptions Pending</div>
+                        <div className="text-[10px] text-slate-400">Awaiting pharmacist review</div>
                       </div>
-                      <p className="text-[11px] text-slate-300">Guest prescription uploads awaiting pharmacist review.</p>
-                      <span className="text-[10px] font-bold text-rose-400 underline">Review Prescriptions →</span>
+                      <button
+                        onClick={() => setActiveNav('prescriptions')}
+                        className="px-2.5 py-1.5 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-black text-[11px] shrink-0 transition-colors cursor-pointer"
+                      >
+                        Review Rx →
+                      </button>
                     </div>
                   )}
 
                   {codPendingCount > 0 && (
-                    <div
-                      onClick={() => { setOrderFilter('COD'); setActiveNav('orders'); }}
-                      className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-2xl space-y-2 cursor-pointer hover:border-amber-500 transition-colors"
-                    >
-                      <div className="font-black text-amber-300 flex items-center gap-1.5">
-                        <Truck className="w-4 h-4 text-amber-400" />
-                        <span>COD Cash Collection ({codPendingCount})</span>
+                    <div className="p-3.5 bg-amber-950/40 border border-amber-800/60 rounded-2xl flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-extrabold text-amber-300">{codPendingCount} COD Collections Pending</div>
+                        <div className="text-[10px] text-slate-400">₹{codPendingCollection.toLocaleString('en-IN')} uncollected</div>
                       </div>
-                      <p className="text-[11px] text-slate-300">₹{codPendingCollection.toLocaleString('en-IN')} pending field collection.</p>
-                      <span className="text-[10px] font-bold text-amber-400 underline">Collect Payment →</span>
+                      <button
+                        onClick={() => { setOrderFilter('COD'); setActiveNav('orders'); }}
+                        className="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-[11px] shrink-0 transition-colors cursor-pointer"
+                      >
+                        Collect →
+                      </button>
                     </div>
                   )}
 
                   {failedPaymentsCount > 0 && (
-                    <div
-                      onClick={() => setActiveNav('payments')}
-                      className="p-4 bg-rose-950/40 border border-rose-800/60 rounded-2xl space-y-2 cursor-pointer hover:border-rose-500 transition-colors"
-                    >
-                      <div className="font-black text-rose-300 flex items-center gap-1.5">
-                        <PaymentIcon className="w-4 h-4 text-rose-400" />
-                        <span>Failed Transactions ({failedPaymentsCount})</span>
+                    <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-2xl flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-extrabold text-rose-300">{failedPaymentsCount} Payment Failures</div>
+                        <div className="text-[10px] text-slate-400">Transaction errors recorded</div>
                       </div>
-                      <p className="text-[11px] text-slate-300">Payment gateway failures recorded in database.</p>
-                      <span className="text-[10px] font-bold text-rose-400 underline">Inspect Payments →</span>
+                      <button
+                        onClick={() => setActiveNav('payments')}
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-200 border border-rose-700 font-bold text-[11px] shrink-0 cursor-pointer"
+                      >
+                        Inspect →
+                      </button>
                     </div>
                   )}
 
                   {expiringPromosCount > 0 && (
-                    <div
-                      onClick={() => setActiveNav('promotions')}
-                      className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-2xl space-y-2 cursor-pointer hover:border-amber-500 transition-colors"
-                    >
-                      <div className="font-black text-amber-300 flex items-center gap-1.5">
-                        <Tag className="w-4 h-4 text-amber-400" />
-                        <span>Expiring Promo Codes ({expiringPromosCount})</span>
+                    <div className="p-3.5 bg-amber-950/40 border border-amber-800/60 rounded-2xl flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-extrabold text-amber-300">{expiringPromosCount} Expiring Promos</div>
+                        <div className="text-[10px] text-slate-400">Expires within 7 days</div>
                       </div>
-                      <p className="text-[11px] text-slate-300">Active promo codes set to expire within 7 days.</p>
-                      <span className="text-[10px] font-bold text-amber-400 underline">Manage Promo Codes →</span>
+                      <button
+                        onClick={() => setActiveNav('promotions')}
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-200 border border-amber-700 font-bold text-[11px] shrink-0 cursor-pointer"
+                      >
+                        Manage →
+                      </button>
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-            {/* RECENT ORDERS STREAM & LATEST ACTIVITY LOGS */}
+            {/* 5. RECENT ORDERS STREAM & QUICK ACTIONS */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              {/* RECENT ORDERS STREAM */}
+              {/* RECENT ORDERS (LATEST 5) */}
               <div className="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
                 <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
                   <div className="flex items-center gap-2">
                     <ShoppingBag className="w-5 h-5 text-purple-400" />
-                    <h3 className="text-base font-black text-white">Recent Orders Stream</h3>
+                    <h3 className="text-base font-black text-white">Recent Orders (Latest 5)</h3>
                   </div>
                   <button onClick={() => setActiveNav('orders')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
                     <span>View All Orders →</span>
@@ -1870,82 +1694,45 @@ function AdminDashboardPage() {
                 </div>
 
                 {periodOrders.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-8 text-center">No transactions recorded for selected period.</p>
+                  <p className="text-xs text-slate-400 py-6 text-center">No orders recorded for selected period.</p>
                 ) : (
-                  <div className="space-y-3">
-                    {periodOrders.slice(0, 6).map((ord) => {
-                      const isCod = ord.payment_method === 'COD' || ord.payments?.[0]?.payment_method === 'COD';
-                      return (
-                        <div key={ord.id} className="p-3.5 bg-slate-900/60 rounded-2xl border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-xs text-purple-300">{ord.order_code}</span>
-                              <span className="text-xs font-bold text-white">{ord.customer_name}</span>
-                              {isCod && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-black">COD</span>}
-                            </div>
-                            <div className="text-[11px] text-slate-400 font-medium">
-                              {ord.customer_phone} • {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
-                            </div>
+                  <div className="space-y-2.5">
+                    {periodOrders.slice(0, 5).map((ord) => (
+                      <div key={ord.id} className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between text-xs hover:border-slate-700 transition-colors">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-purple-300">{ord.order_code}</span>
+                            <span className="font-bold text-white">{ord.customer_name}</span>
                           </div>
-                          <div className="text-right space-y-1">
-                            <div className="font-black text-sm text-white">₹{ord.total_amount}</div>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                              ord.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                            }`}>
-                              {ord.payment_status}
-                            </span>
+                          <div className="text-[10px] text-slate-400 font-medium">
+                            {new Date(ord.created_at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* LATEST ACTIVITY LOGS */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-purple-400" />
-                    <span>Latest Activity Logs</span>
-                  </h3>
-                  <button onClick={() => setActiveNav('activity')} className="text-xs font-bold text-purple-400 hover:underline flex items-center gap-1 cursor-pointer">
-                    <span>Logs →</span>
-                  </button>
-                </div>
-
-                {analyticsEvents.length === 0 ? (
-                  <p className="text-xs text-slate-500 text-center py-8">No user interaction telemetry recorded yet.</p>
-                ) : (
-                  <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                    {analyticsEvents.slice(0, 6).map((evt) => (
-                      <div key={evt.id} className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs space-y-1">
-                        <div className="font-bold text-purple-300 flex items-center justify-between">
-                          <span className="truncate">{evt.event_name || evt.event_type || 'User Activity'}</span>
-                          <span className="text-[10px] text-slate-500 font-normal shrink-0">
-                            {new Date(evt.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        <div className="text-right space-y-1">
+                          <div className="font-black text-white">₹{ord.total_amount}</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                            ord.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          }`}>
+                            {ord.payment_status}
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-400 truncate">Path: {evt.page_path || '/'} • Session: {evt.session_id ? evt.session_id.slice(0, 8) : 'N/A'}</div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-            </div>
+              {/* 6. QUICK ACTIONS */}
+              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
+                <div className="border-b border-slate-700/80 pb-3">
+                  <h3 className="text-base font-black text-white flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-purple-400" />
+                    <span>Quick Actions</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Shortcuts to operations & modals</p>
+                </div>
 
-            {/* QUICK ACTIONS BAR & SYSTEM HEALTH TELEMETRY */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* QUICK SYSTEM ACTIONS */}
-              <div className="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <h3 className="text-base font-black text-white flex items-center gap-2 border-b border-slate-700/80 pb-3">
-                  <ShieldCheck className="w-5 h-5 text-purple-400" />
-                  <span>Quick Operations Actions</span>
-                </h3>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="space-y-2.5 text-xs">
                   <button
                     onClick={() => {
                       setEditingPromo(null);
@@ -1967,112 +1754,38 @@ function AdminDashboardPage() {
                       setCustomItemInput('');
                       setIsPromoModalOpen(true);
                     }}
-                    className="p-3 bg-purple-900/40 hover:bg-purple-900/70 border border-purple-700/60 rounded-2xl text-left text-xs text-purple-200 font-bold transition-all cursor-pointer space-y-1"
+                    className="w-full p-3 bg-purple-900/40 hover:bg-purple-900/70 border border-purple-700/60 rounded-xl text-left text-xs text-purple-200 font-bold transition-all cursor-pointer flex items-center justify-between"
                   >
-                    <Tag className="w-4 h-4 text-purple-400" />
-                    <div>+ Create Promo</div>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveNav('orders')}
-                    className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer space-y-1"
-                  >
-                    <ShoppingBag className="w-4 h-4 text-purple-400" />
-                    <div>Manage Orders</div>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveNav('prescriptions')}
-                    className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer space-y-1"
-                  >
-                    <FileText className="w-4 h-4 text-indigo-400" />
-                    <div>Review Prescriptions</div>
+                    <span className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-purple-400" />
+                      <span>+ Create Promo Code</span>
+                    </span>
+                    <Plus className="w-4 h-4" />
                   </button>
 
                   <button
                     onClick={() => setActiveNav('coins')}
-                    className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer space-y-1"
+                    className="w-full p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer flex items-center gap-2"
                   >
                     <Coins className="w-4 h-4 text-amber-400" />
-                    <div>Manage Health Coins</div>
+                    <span>+ Adjust Health Coins</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveNav('prescriptions')}
+                    className="w-full p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <FileText className="w-4 h-4 text-indigo-400" />
+                    <span>Review Prescriptions</span>
                   </button>
 
                   <button
                     onClick={() => setActiveNav('payments')}
-                    className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer space-y-1"
+                    className="w-full p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer flex items-center gap-2"
                   >
                     <PaymentIcon className="w-4 h-4 text-teal-400" />
-                    <div>View Payments</div>
+                    <span>View Payments</span>
                   </button>
-
-                  <button
-                    onClick={() => setActiveNav('analytics')}
-                    className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer space-y-1"
-                  >
-                    <BarChart2 className="w-4 h-4 text-emerald-400" />
-                    <div>Revenue Analytics</div>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveNav('activity')}
-                    className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer space-y-1"
-                  >
-                    <Layers className="w-4 h-4 text-purple-400" />
-                    <div>Activity Logs</div>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveNav('settings')}
-                    className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-left text-xs text-slate-200 font-bold transition-all cursor-pointer space-y-1"
-                  >
-                    <Settings className="w-4 h-4 text-purple-400" />
-                    <div>System Settings</div>
-                  </button>
-                </div>
-              </div>
-
-              {/* SYSTEM HEALTH TELEMETRY CARD */}
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 space-y-4 shadow-xl">
-                <div className="border-b border-slate-700/80 pb-3">
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <Server className="w-5 h-5 text-purple-400" />
-                    <span>System Health Telemetry</span>
-                  </h3>
-                  <p className="text-[11px] text-slate-400">Live platform status & integration health</p>
-                </div>
-
-                <div className="space-y-2.5 text-xs">
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
-                    <span className="text-slate-300 font-bold">Supabase Database & RBAC</span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase">
-                      Operational
-                    </span>
-                  </div>
-
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
-                    <span className="text-slate-300 font-bold">HEX AI Agent Service</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${
-                      geminiStatus.isOnline && geminiStatus.hasApiKey
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                        : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                    }`}>
-                      {geminiStatus.engineType}
-                    </span>
-                  </div>
-
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
-                    <span className="text-slate-300 font-bold">Storage Signed Bucket (300s)</span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase">
-                      Operational
-                    </span>
-                  </div>
-
-                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
-                    <span className="text-slate-300 font-bold">Health Coins Ledger (RPC)</span>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase">
-                      Operational
-                    </span>
-                  </div>
                 </div>
               </div>
 
