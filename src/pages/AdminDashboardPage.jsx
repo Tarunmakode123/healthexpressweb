@@ -913,11 +913,14 @@ function AdminDashboardPage() {
     setDataError(null);
 
     try {
-      if (isSupabaseConfigured) {
+      let rbacActive = true;
+      if (isSupabaseConfigured && supabase) {
         try {
-          await supabase.rpc('sync_admin_user');
+          const { data: syncData } = await supabase.rpc('sync_admin_user');
+          const { data: adminCheck } = await supabase.rpc('check_is_admin');
+          rbacActive = adminCheck === true || syncData === true;
         } catch (e) {
-          try { await supabase.rpc('check_is_admin'); } catch (e2) {}
+          console.warn('RBAC RPC check warning:', e);
         }
       }
 
@@ -953,6 +956,10 @@ function AdminDashboardPage() {
       if (setRes.success) setWalletSettingsForm(setRes.data || {});
       if (accRes.success) setWalletAccounts(accRes.data || []);
       if (txRes.success) setWalletTransactions(txRes.data || []);
+
+      if (!rbacActive) {
+        errors.push('Postgres RLS is blocking access because check_is_admin() RPC returns false on Supabase. Please run the SQL Migration in Supabase SQL Editor.');
+      }
 
       if (errors.length > 0) {
         setDataError(errors.join(' | '));
