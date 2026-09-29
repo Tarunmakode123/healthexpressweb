@@ -1154,7 +1154,26 @@ function AdminDashboardPage() {
       showToast(`COD Collection exception: ${err.message}`, 'error');
     } finally {
       setIsCollectingCod(false);
-      setCodConfirmOrder(null);
+    }
+  };
+
+  // View / Download Prescription File using Supabase Private Storage Signed URL
+  const handleViewPrescriptionFile = async (fileObj) => {
+    if (!fileObj || !fileObj.file_path) {
+      showToast('Missing file path for prescription.', 'error');
+      return;
+    }
+
+    showToast('Generating secure download URL...', 'success');
+    try {
+      const signedUrl = await getPrescriptionSignedUrl(fileObj.file_path);
+      if (signedUrl) {
+        window.open(signedUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        showToast('Unable to generate download URL for prescription file.', 'error');
+      }
+    } catch (err) {
+      showToast(`Error opening file: ${err.message}`, 'error');
     }
   };
 

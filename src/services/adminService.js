@@ -171,7 +171,22 @@ export async function fetchAdminPrescriptions() {
   if (!isSupabaseConfigured || !supabase) return { success: false, error: 'Supabase connection is not configured.' };
 
   try {
-    const { data, error } = await supabase
+    // 1. Primary query: Fetch enquiries with linked patients and attached prescription files
+    const { data: enquiriesData, error: enqError } = await supabase
+      .from('enquiries')
+      .select(`
+        *,
+        patients (*),
+        prescriptions (*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (!enqError && enquiriesData && enquiriesData.length > 0) {
+      return { success: true, data: enquiriesData };
+    }
+
+    // 2. Fallback query: Fetch directly from prescriptions table and group files by enquiry
+    const { data: presData, error: presError } = await supabase
       .from('prescriptions')
       .select(`
         *,
@@ -180,9 +195,41 @@ export async function fetchAdminPrescriptions() {
       `)
       .order('created_at', { ascending: false });
 
-    if (error) return { success: false, error: `Failed to load prescriptions: ${error.message}` };
-    return { success: true, data: data || [] };
+    if (presError && (!enquiriesData || enquiriesData.length === 0)) {
+      return { success: false, error: `Failed to load prescriptions: ${presError.message}` };
+    }
+
+    if (enquiriesData && enquiriesData.length > 0) {
+      return { success: true, data: enquiriesData };
+    }
+
+    // Group standalone prescription records by enquiry_id
+    const enquiryMap = {};
+    (presData || []).forEach((p) => {
+      const enqKey = p.enquiry_id || p.id;
+      if (!enquiryMap[enqKey]) {
+        enquiryMap[enqKey] = {
+          id: enqKey,
+          enquiry_code: p.enquiries?.enquiry_code || 'HEX-ENQ-' + (p.id ? p.id.slice(0, 6).toUpperCase() : '000'),
+          created_at: p.created_at,
+          notes: p.enquiries?.notes || null,
+          status: p.enquiries?.status || 'pending_review',
+          patients: p.patients || p.enquiries?.patients || {},
+          prescriptions: []
+        };
+      }
+      enquiryMap[enqKey].prescriptions.push({
+        id: p.id,
+        file_name: p.file_name,
+        file_path: p.file_path,
+        file_type: p.file_type,
+        file_size: p.file_size
+      });
+    });
+
+    return { success: true, data: Object.values(enquiryMap) };
   } catch (err) {
+    console.error('Fetch admin prescriptions exception:', err);
     return { success: false, error: err.message || 'Database connection error.' };
   }
 }
