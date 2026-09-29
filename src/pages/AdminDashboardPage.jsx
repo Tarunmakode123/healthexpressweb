@@ -126,23 +126,58 @@ function AdminDashboardPage() {
     description: ''
   });
 
-  // ADMIN AI AGENT API KEY & TELEMETRY
-  const [adminGeminiKey, setAdminGeminiKey] = useState(() => localStorage.getItem('hex_admin_gemini_key') || localStorage.getItem('hex_admin_ai_key') || '');
+  // ADMIN AI AGENT PROVIDERS & API KEYS
+  const [selectedAiProvider, setSelectedAiProvider] = useState(() => localStorage.getItem('hex_admin_active_provider') || 'gemini');
+  const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('hex_admin_gemini_key') || localStorage.getItem('hex_admin_ai_key') || '');
+  const [claudeKey, setClaudeKey] = useState(() => localStorage.getItem('hex_admin_claude_key') || '');
+  const [chatgptKey, setChatgptKey] = useState(() => localStorage.getItem('hex_admin_chatgpt_key') || localStorage.getItem('hex_admin_openai_key') || '');
   const [showAiKeySecret, setShowAiKeySecret] = useState(false);
   const [isTestingAiConnection, setIsTestingAiConnection] = useState(false);
   const [aiTestResult, setAiTestResult] = useState(null);
   const [geminiStatus, setGeminiStatus] = useState(() => getGeminiEngineStatus());
 
-  const handleSaveAdminGeminiKey = (e) => {
+  const getCurrentProviderKey = () => {
+    if (selectedAiProvider === 'anthropic') return claudeKey;
+    if (selectedAiProvider === 'openai') return chatgptKey;
+    return geminiKey;
+  };
+
+  const handleSelectProvider = (prov) => {
+    setSelectedAiProvider(prov);
+    localStorage.setItem('hex_admin_active_provider', prov);
+    setAiTestResult(null);
+    setGeminiStatus(getGeminiEngineStatus());
+  };
+
+  const handleSaveCurrentKey = (e) => {
     if (e) e.preventDefault();
-    if (adminGeminiKey.trim()) {
-      localStorage.setItem('hex_admin_gemini_key', adminGeminiKey.trim());
-      localStorage.setItem('hex_admin_ai_key', adminGeminiKey.trim());
-      showToast('AI Agent API Key saved successfully.');
+    localStorage.setItem('hex_admin_active_provider', selectedAiProvider);
+
+    if (selectedAiProvider === 'anthropic') {
+      const trimmed = claudeKey.trim();
+      if (trimmed) localStorage.setItem('hex_admin_claude_key', trimmed);
+      else localStorage.removeItem('hex_admin_claude_key');
+      showToast('Claude API Key saved successfully.');
+    } else if (selectedAiProvider === 'openai') {
+      const trimmed = chatgptKey.trim();
+      if (trimmed) {
+        localStorage.setItem('hex_admin_chatgpt_key', trimmed);
+        localStorage.setItem('hex_admin_openai_key', trimmed);
+      } else {
+        localStorage.removeItem('hex_admin_chatgpt_key');
+        localStorage.removeItem('hex_admin_openai_key');
+      }
+      showToast('ChatGPT (OpenAI) API Key saved successfully.');
     } else {
-      localStorage.removeItem('hex_admin_gemini_key');
-      localStorage.removeItem('hex_admin_ai_key');
-      showToast('API Key cleared. System will use environment key or local engine.');
+      const trimmed = geminiKey.trim();
+      if (trimmed) {
+        localStorage.setItem('hex_admin_gemini_key', trimmed);
+        localStorage.setItem('hex_admin_ai_key', trimmed);
+      } else {
+        localStorage.removeItem('hex_admin_gemini_key');
+        localStorage.removeItem('hex_admin_ai_key');
+      }
+      showToast('Gemini API Key saved successfully.');
     }
     setGeminiStatus(getGeminiEngineStatus());
   };
@@ -150,8 +185,9 @@ function AdminDashboardPage() {
   const handleTestAiConnection = async () => {
     setAiTestResult(null);
     setIsTestingAiConnection(true);
+    const activeKey = getCurrentProviderKey().trim();
     try {
-      const res = await testAiConnection(adminGeminiKey.trim());
+      const res = await testAiConnection(activeKey, selectedAiProvider);
       setAiTestResult(res);
       if (res.success) {
         showToast(res.message, 'success');
@@ -164,6 +200,24 @@ function AdminDashboardPage() {
       setIsTestingAiConnection(false);
       setGeminiStatus(getGeminiEngineStatus());
     }
+  };
+
+  const handleClearCurrentKey = () => {
+    if (selectedAiProvider === 'anthropic') {
+      setClaudeKey('');
+      localStorage.removeItem('hex_admin_claude_key');
+    } else if (selectedAiProvider === 'openai') {
+      setChatgptKey('');
+      localStorage.removeItem('hex_admin_chatgpt_key');
+      localStorage.removeItem('hex_admin_openai_key');
+    } else {
+      setGeminiKey('');
+      localStorage.removeItem('hex_admin_gemini_key');
+      localStorage.removeItem('hex_admin_ai_key');
+    }
+    setAiTestResult(null);
+    setGeminiStatus(getGeminiEngineStatus());
+    showToast('API Key cleared for selected provider.');
   };
 
   // Dynamically aggregate all categories across master dataset & live orders
@@ -2000,7 +2054,7 @@ function AdminDashboardPage() {
 {/* NAV SECTION 8: SYSTEM SETTINGS */}
         {activeNav === 'settings' && (
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-6 shadow-xl">
-            {/* HEX AI AGENT KEY MANAGEMENT CARD */}
+            {/* HEX AI AGENT PROVIDER & KEY MANAGEMENT CARD */}
             <div className="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 space-y-5">
               <div className="border-b border-slate-800 pb-3 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -2012,7 +2066,7 @@ function AdminDashboardPage() {
                       <span>HEX AI Agent API Key Management</span>
                       <Sparkles className="w-4 h-4 text-amber-400" />
                     </h3>
-                    <p className="text-[11px] text-slate-400">Paste your API Key below to enable AI synthesis for Health Express Assistant</p>
+                    <p className="text-[11px] text-slate-400">Select provider and enter API Key below to enable AI synthesis</p>
                   </div>
                 </div>
 
@@ -2028,13 +2082,64 @@ function AdminDashboardPage() {
                 </div>
               </div>
 
-              <form onSubmit={handleSaveAdminGeminiKey} className="space-y-4 text-xs">
-                {/* API KEY INPUT */}
+              {/* PROVIDER SELECTION TABS (GEMINI, CLAUDE, CHATGPT) */}
+              <div className="space-y-2">
+                <label className="block text-slate-300 font-extrabold text-xs uppercase tracking-wider">
+                  Select Active AI Engine Provider:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectProvider('gemini')}
+                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-black transition-all cursor-pointer ${
+                      selectedAiProvider === 'gemini'
+                        ? 'bg-purple-900/80 border-purple-500 text-white shadow-lg shadow-purple-900/30'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>Google Gemini</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectProvider('anthropic')}
+                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-black transition-all cursor-pointer ${
+                      selectedAiProvider === 'anthropic'
+                        ? 'bg-purple-900/80 border-purple-500 text-white shadow-lg shadow-purple-900/30'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    <Cpu className="w-4 h-4 text-purple-400" />
+                    <span>Anthropic Claude</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectProvider('openai')}
+                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-black transition-all cursor-pointer ${
+                      selectedAiProvider === 'openai'
+                        ? 'bg-purple-900/80 border-purple-500 text-white shadow-lg shadow-purple-900/30'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    <Globe className="w-4 h-4 text-emerald-400" />
+                    <span>OpenAI ChatGPT</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* SINGLE API KEY INPUT FIELD FOR SELECTED PROVIDER */}
+              <form onSubmit={handleSaveCurrentKey} className="space-y-4 text-xs pt-1 border-t border-slate-800/80">
                 <div>
                   <label className="block text-slate-300 font-bold mb-1 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Key className="w-3.5 h-3.5 text-purple-400" />
-                      <span>Gemini / AI API Key *</span>
+                      <span>
+                        {selectedAiProvider === 'gemini' && 'Google Gemini API Key *'}
+                        {selectedAiProvider === 'anthropic' && 'Anthropic Claude API Key *'}
+                        {selectedAiProvider === 'openai' && 'OpenAI / ChatGPT API Key *'}
+                      </span>
                     </span>
                     <button
                       type="button"
@@ -2045,13 +2150,36 @@ function AdminDashboardPage() {
                       <span>{showAiKeySecret ? 'Hide Key' : 'Show Key'}</span>
                     </button>
                   </label>
-                  <input
-                    type={showAiKeySecret ? "text" : "password"}
-                    value={adminGeminiKey}
-                    onChange={(e) => setAdminGeminiKey(e.target.value)}
-                    placeholder="Paste your Gemini / AI API Key here (e.g. AIzaSy...)"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
+
+                  {selectedAiProvider === 'gemini' && (
+                    <input
+                      type={showAiKeySecret ? "text" : "password"}
+                      value={geminiKey}
+                      onChange={(e) => setGeminiKey(e.target.value)}
+                      placeholder="Paste your Gemini API key (e.g. AIzaSy...)"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  )}
+
+                  {selectedAiProvider === 'anthropic' && (
+                    <input
+                      type={showAiKeySecret ? "text" : "password"}
+                      value={claudeKey}
+                      onChange={(e) => setClaudeKey(e.target.value)}
+                      placeholder="Paste your Anthropic Claude API key (e.g. sk-ant-...)"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  )}
+
+                  {selectedAiProvider === 'openai' && (
+                    <input
+                      type={showAiKeySecret ? "text" : "password"}
+                      value={chatgptKey}
+                      onChange={(e) => setChatgptKey(e.target.value)}
+                      placeholder="Paste your OpenAI / ChatGPT API key (e.g. sk-...)"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  )}
                 </div>
 
                 {/* TEST RESULT NOTIFICATION BOX */}
@@ -2077,13 +2205,15 @@ function AdminDashboardPage() {
                       className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       <Check className="w-3.5 h-3.5" />
-                      <span>Save Gemini API Key</span>
+                      <span>
+                        Save {selectedAiProvider === 'gemini' ? 'Gemini' : selectedAiProvider === 'anthropic' ? 'Claude' : 'ChatGPT'} API Key
+                      </span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleTestAiConnection}
-                      disabled={isTestingAiConnection || !adminGeminiKey.trim()}
+                      disabled={isTestingAiConnection || !getCurrentProviderKey().trim()}
                       className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5"
                     >
                       {isTestingAiConnection ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />}
@@ -2093,14 +2223,7 @@ function AdminDashboardPage() {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setAdminGeminiKey('');
-                      localStorage.removeItem('hex_admin_gemini_key');
-                      localStorage.removeItem('hex_admin_ai_key');
-                      setAiTestResult(null);
-                      setGeminiStatus(getGeminiEngineStatus());
-                      showToast('API Key cleared. System will use environment key or local engine.');
-                    }}
+                    onClick={handleClearCurrentKey}
                     className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-white font-bold text-xs transition-all cursor-pointer"
                   >
                     Clear Key

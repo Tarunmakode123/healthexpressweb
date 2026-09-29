@@ -28,35 +28,58 @@ let lastEngineStatus = {
 /**
  * Automatically detects provider & default model based on API Key signature
  */
-export function detectProviderFromKey(key) {
-  if (!key) return { provider: 'gemini', model: 'gemini-2.5-flash' };
-  const k = key.trim();
-  if (k.startsWith('sk-ant-')) return { provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' };
-  if (k.startsWith('sk-')) return { provider: 'openai', model: 'gpt-4o-mini' };
-  return { provider: 'gemini', model: 'gemini-2.5-flash' };
+export function detectProviderFromKey(key, providerHint = null) {
+  if (key && key.trim().length > 0) {
+    const k = key.trim();
+    if (k.startsWith('sk-ant-')) return { provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' };
+    if (k.startsWith('sk-')) return { provider: 'openai', model: 'gpt-4o-mini' };
+    if (k.startsWith('AIza')) return { provider: 'gemini', model: 'gemini-2.5-flash' };
+  }
+  
+  const provider = providerHint || localStorage.getItem('hex_admin_active_provider') || 'gemini';
+  const defaultModels = {
+    gemini: 'gemini-2.5-flash',
+    anthropic: 'claude-3-5-sonnet-20240620',
+    openai: 'gpt-4o-mini'
+  };
+  return { provider, model: defaultModels[provider] || 'gemini-2.5-flash' };
 }
 
 export function getEffectiveApiKey() {
-  const adminKey = localStorage.getItem('hex_admin_gemini_key') || localStorage.getItem('hex_admin_ai_key');
-  if (adminKey && adminKey.trim().length > 5) {
-    return { key: adminKey.trim(), source: 'Admin Panel Override' };
+  const activeProvider = localStorage.getItem('hex_admin_active_provider') || 'gemini';
+  
+  let key = '';
+  if (activeProvider === 'anthropic') {
+    key = localStorage.getItem('hex_admin_claude_key') || localStorage.getItem('hex_admin_ai_key') || '';
+  } else if (activeProvider === 'openai') {
+    key = localStorage.getItem('hex_admin_chatgpt_key') || localStorage.getItem('hex_admin_openai_key') || localStorage.getItem('hex_admin_ai_key') || '';
+  } else {
+    key = localStorage.getItem('hex_admin_gemini_key') || localStorage.getItem('hex_admin_ai_key') || '';
   }
 
-  const envKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.VITE_CLAUDE_API_KEY;
+  // Fallback to any set admin key if active provider key is empty
+  if (!key.trim()) {
+    key = localStorage.getItem('hex_admin_gemini_key') ||
+          localStorage.getItem('hex_admin_claude_key') ||
+          localStorage.getItem('hex_admin_chatgpt_key') ||
+          localStorage.getItem('hex_admin_ai_key') || '';
+  }
+
+  if (key && key.trim().length > 5) {
+    return { key: key.trim(), source: 'Admin Panel Override', activeProvider };
+  }
+
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_CLAUDE_API_KEY || import.meta.env.VITE_OPENAI_API_KEY;
   if (envKey && envKey.trim().length > 5) {
-    return { key: envKey.trim(), source: '.env Environment' };
+    return { key: envKey.trim(), source: '.env Environment', activeProvider };
   }
 
-  if (DEFAULT_FALLBACK_KEY && DEFAULT_FALLBACK_KEY.length > 5) {
-    return { key: DEFAULT_FALLBACK_KEY, source: 'Default Platform Key' };
-  }
-
-  return { key: '', source: 'NONE' };
+  return { key: '', source: 'NONE', activeProvider };
 }
 
 export function getGeminiEngineStatus() {
-  const { key, source } = getEffectiveApiKey();
-  const { provider, model } = detectProviderFromKey(key);
+  const { key, source, activeProvider } = getEffectiveApiKey();
+  const { provider, model } = detectProviderFromKey(key, activeProvider);
   return {
     ...lastEngineStatus,
     activeProvider: provider,
@@ -84,8 +107,8 @@ NON-NEGOTIABLE OPERATING RULES (DEVELOPER SPECIFICATION V1.0):
 /**
  * Universal Multi-Provider API Dispatcher
  */
-async function callLlmProvider(key, promptText) {
-  const { provider, model } = detectProviderFromKey(key);
+async function callLlmProvider(key, promptText, providerHint = null) {
+  const { provider, model } = detectProviderFromKey(key, providerHint);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second fetch timeout
 
@@ -173,16 +196,16 @@ async function callLlmProvider(key, promptText) {
 /**
  * Diagnostic test connection for Admin Panel
  */
-export async function testAiConnection(key) {
+export async function testAiConnection(key, providerHint = null) {
   if (!key || key.trim().length < 5) {
     return { success: false, error: 'Please enter a valid API Key string.' };
   }
 
-  const { provider, model } = detectProviderFromKey(key);
+  const { provider, model } = detectProviderFromKey(key, providerHint);
 
   try {
     const testPrompt = 'Respond with exact phrase "HEALTH_EXPRESS_AI_OK" to verify API connection.';
-    const resultText = await callLlmProvider(key.trim(), testPrompt);
+    const resultText = await callLlmProvider(key.trim(), testPrompt, providerHint);
     if (resultText && resultText.trim()) {
       return { success: true, message: `Successfully connected to ${provider.toUpperCase()} (${model})` };
     }
@@ -196,8 +219,8 @@ export async function testAiConnection(key) {
  * Main AI Assistant Entry Point
  */
 export async function askGeminiAssistant(rawQuery, conversationHistory = [], userContext = {}) {
-  const { key: activeKey, source: keySource } = getEffectiveApiKey();
-  const { provider, model } = detectProviderFromKey(activeKey);
+  const { key: activeKey, source: keySource, activeProvider } = getEffectiveApiKey();
+  const { provider, model } = detectProviderFromKey(activeKey, activeProvider);
 
   // If no API key configured, use deterministic Local Engine immediately
   if (!activeKey) {
@@ -247,7 +270,7 @@ User Question: "${rawQuery}"
 Please formulate a warm, clear, concise response adhering strictly to your HEX Persona and System Rules. Include escalation phrase "Let me connect you to your Health Manager." if information is missing or human action is required.
 `;
 
-    const candidateText = await callLlmProvider(activeKey, promptText);
+    const candidateText = await callLlmProvider(activeKey, promptText, activeProvider);
 
     if (candidateText && candidateText.trim()) {
       lastEngineStatus = {
@@ -283,3 +306,4 @@ Please formulate a warm, clear, concise response adhering strictly to your HEX P
   // Fail-Safe Fallback to verified local decision engine if AI fails or is offline
   return localResult;
 }
+
