@@ -1391,6 +1391,12 @@ function AdminDashboardPage() {
 
   const paidOrdersCount = periodOrders.filter((o) => o?.payment_status === 'PAID').length;
   const pendingOrdersCount = periodOrders.filter((o) => o?.payment_status === 'PENDING').length;
+  const codOrdersCount = periodOrders.filter((o) => {
+    const payObj = o?.payments?.[0] || {};
+    const payMethod = (payObj.payment_method || o?.payment_method || '').toUpperCase();
+    const payMode = (payObj.payment_mode || o?.payment_mode || '').toUpperCase();
+    return payMethod === 'COD' || payMode === 'COD';
+  }).length;
   const codPendingCount = periodOrders.filter((o) => {
     const payObj = o?.payments?.[0] || {};
     const payMethod = (payObj.payment_method || o?.payment_method || '').toUpperCase();
