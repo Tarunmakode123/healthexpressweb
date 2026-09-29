@@ -159,7 +159,6 @@ function CustomerGrowthSvgChart({ patientsList }) {
     <div className="w-full overflow-x-auto">
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-28 overflow-visible">
         <line x1={padding} y1={chartHeight - padding} x2={chartWidth - padding} y2={chartHeight - padding} stroke="#334155" strokeWidth="1" />
-        {pathD && <path d={pathD} fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" />}
         {points.map((p, idx) => (
           <circle key={idx} cx={p.x} cy={p.y} r="3.5" fill="#38bdf8" stroke="#0f172a" strokeWidth="1.5" />
         ))}
@@ -167,8 +166,443 @@ function CustomerGrowthSvgChart({ patientsList }) {
     </div>
   );
 }
+ 
+/**
+ * ContextAwareKPIGrid Component
+ * Dynamically renders module-specific 4 KPI cards based on activeNav
+ */
+function ContextAwareKPIGrid({ activeNav, metrics, setActiveNav }) {
+  const {
+    periodRevenue = 0,
+    paidOrdersCount = 0,
+    revenueGrowthPct = '0',
+    periodOrders = [],
+    pendingOrdersCount = 0,
+    patients = [],
+    periodPatientsCount = 0,
+    registeredPatientsCount = 0,
+    totalAttentionAlerts = 0,
+    pendingReviewsCount = 0,
+    codPendingCount = 0,
+    failedPaymentsCount = 0,
+    codOrdersCount = 0,
+    codPendingCollection = 0,
+    prescriptions = [],
+    underReviewPrescriptionsCount = 0,
+    completedPrescriptionsCount = 0,
+    promoCodes = [],
+    activePromoCount = 0,
+    totalPromoUses = 0,
+    expiringPromosCount = 0,
+    walletAccounts = [],
+    totalCoinsIssued = 0,
+    totalCoinsRedeemed = 0,
+    walletRupeeValue = 0,
+    totalWalletCoins = 0,
+    periodPayments = [],
+    successfulPaymentsCount = 0,
+    pendingPaymentsCount = 0,
+    analyticsEvents = [],
+    todayEventsCount = 0,
+    adminActionsCount = 0,
+    errorEventsCount = 0,
+    geminiStatus = {}
+  } = metrics || {};
+
+  const KPI_CONFIG = {
+    overview: [
+      {
+        title: 'TOTAL REVENUE',
+        value: `₹${periodRevenue.toLocaleString('en-IN')}`,
+        sub: `Paid Txns: ${paidOrdersCount} | ${revenueGrowthPct}% vs prior`,
+        icon: DollarSign,
+        color: 'emerald',
+        targetNav: 'analytics'
+      },
+      {
+        title: 'TOTAL ORDERS',
+        value: `${periodOrders.length}`,
+        sub: `Paid: ${paidOrdersCount} | Pending: ${pendingOrdersCount}`,
+        icon: ShoppingBag,
+        color: 'purple',
+        targetNav: 'orders'
+      },
+      {
+        title: 'CUSTOMERS',
+        value: `${patients.length}`,
+        sub: `New (Selected): +${periodPatientsCount} | Registered: ${registeredPatientsCount}`,
+        icon: Users,
+        color: 'sky',
+        targetNav: 'customers'
+      },
+      {
+        title: 'NEEDS ATTENTION',
+        value: `${totalAttentionAlerts}`,
+        sub: `${pendingReviewsCount} Rx | ${codPendingCount} COD | ${failedPaymentsCount} Failed`,
+        icon: AlertCircle,
+        color: totalAttentionAlerts > 0 ? 'rose' : 'emerald',
+        targetNav: 'prescriptions'
+      }
+    ],
+    orders: [
+      {
+        title: 'TOTAL ORDERS',
+        value: `${periodOrders.length}`,
+        sub: 'Orders in selected period',
+        icon: ShoppingBag,
+        color: 'purple'
+      },
+      {
+        title: 'PAID ORDERS',
+        value: `${paidOrdersCount}`,
+        sub: `Revenue: ₹${periodRevenue.toLocaleString('en-IN')}`,
+        icon: CheckCircle2,
+        color: 'emerald'
+      },
+      {
+        title: 'PENDING ORDERS',
+        value: `${pendingOrdersCount}`,
+        sub: 'Awaiting confirmation/payment',
+        icon: Clock,
+        color: 'amber'
+      },
+      {
+        title: 'COD ORDERS',
+        value: `${codOrdersCount}`,
+        sub: `Pending Collection: ₹${codPendingCollection.toLocaleString('en-IN')}`,
+        icon: Truck,
+        color: 'teal'
+      }
+    ],
+    customers: [
+      {
+        title: 'TOTAL CUSTOMERS',
+        value: `${patients.length}`,
+        sub: 'Total customer profiles',
+        icon: Users,
+        color: 'purple'
+      },
+      {
+        title: 'REGISTERED USERS',
+        value: `${registeredPatientsCount}`,
+        sub: `${patients.length > 0 ? ((registeredPatientsCount / patients.length) * 100).toFixed(0) : 0}% of customer base`,
+        icon: UserCheck,
+        color: 'emerald'
+      },
+      {
+        title: 'GUEST PROFILES',
+        value: `${patients.length - registeredPatientsCount}`,
+        sub: 'Guest checkout records',
+        icon: Users,
+        color: 'indigo'
+      },
+      {
+        title: 'NEW CUSTOMERS',
+        value: `+${periodPatientsCount}`,
+        sub: 'Created in selected period',
+        icon: ArrowUpRight,
+        color: 'sky'
+      }
+    ],
+    prescriptions: [
+      {
+        title: 'TOTAL PRESCRIPTIONS',
+        value: `${prescriptions.length}`,
+        sub: 'Total uploads & enquiries',
+        icon: FileText,
+        color: 'purple'
+      },
+      {
+        title: 'PENDING REVIEW',
+        value: `${pendingReviewsCount}`,
+        sub: 'Awaiting admin action',
+        icon: Clock,
+        color: 'amber'
+      },
+      {
+        title: 'UNDER REVIEW',
+        value: `${underReviewPrescriptionsCount}`,
+        sub: 'Currently being processed',
+        icon: RefreshCw,
+        color: 'sky'
+      },
+      {
+        title: 'COMPLETED',
+        value: `${completedPrescriptionsCount}`,
+        sub: 'Reviewed & fulfilled',
+        icon: CheckCircle2,
+        color: 'emerald'
+      }
+    ],
+    promotions: [
+      {
+        title: 'ACTIVE PROMO CODES',
+        value: `${activePromoCount}`,
+        sub: `${activePromoCount} of ${promoCodes.length} codes active`,
+        icon: Tag,
+        color: 'emerald'
+      },
+      {
+        title: 'TOTAL PROMO CODES',
+        value: `${promoCodes.length}`,
+        sub: 'Total rule configurations',
+        icon: Percent,
+        color: 'purple'
+      },
+      {
+        title: 'TOTAL REDEMPTIONS',
+        value: `${totalPromoUses}`,
+        sub: 'Total code usages',
+        icon: Layers3,
+        color: 'sky'
+      },
+      {
+        title: 'EXPIRING PROMOS',
+        value: `${expiringPromosCount}`,
+        sub: expiringPromosCount > 0 ? `${expiringPromosCount} codes expire within 7 days` : 'No codes expiring soon',
+        icon: AlertCircle,
+        color: expiringPromosCount > 0 ? 'amber' : 'slate'
+      }
+    ],
+    coins: [
+      {
+        title: 'ACTIVE WALLETS',
+        value: `${walletAccounts.length}`,
+        sub: 'Customer wallet accounts',
+        icon: Coins,
+        color: 'amber'
+      },
+      {
+        title: 'COINS ISSUED',
+        value: `${totalCoinsIssued.toLocaleString('en-IN')}`,
+        sub: 'Total credited coins',
+        icon: ArrowUp,
+        color: 'emerald'
+      },
+      {
+        title: 'COINS REDEEMED',
+        value: `${totalCoinsRedeemed.toLocaleString('en-IN')}`,
+        sub: 'Total redeemed coins',
+        icon: ArrowDown,
+        color: 'indigo'
+      },
+      {
+        title: 'OUTSTANDING WALLET VALUE',
+        value: `₹${walletRupeeValue.toLocaleString('en-IN')}`,
+        sub: `${totalWalletCoins.toLocaleString('en-IN')} Coins (@ 10 coins = ₹1)`,
+        icon: DollarSign,
+        color: 'purple'
+      }
+    ],
+    health_coins: [
+      {
+        title: 'ACTIVE WALLETS',
+        value: `${walletAccounts.length}`,
+        sub: 'Customer wallet accounts',
+        icon: Coins,
+        color: 'amber'
+      },
+      {
+        title: 'COINS ISSUED',
+        value: `${totalCoinsIssued.toLocaleString('en-IN')}`,
+        sub: 'Total credited coins',
+        icon: ArrowUp,
+        color: 'emerald'
+      },
+      {
+        title: 'COINS REDEEMED',
+        value: `${totalCoinsRedeemed.toLocaleString('en-IN')}`,
+        sub: 'Total redeemed coins',
+        icon: ArrowDown,
+        color: 'indigo'
+      },
+      {
+        title: 'OUTSTANDING WALLET VALUE',
+        value: `₹${walletRupeeValue.toLocaleString('en-IN')}`,
+        sub: `${totalWalletCoins.toLocaleString('en-IN')} Coins (@ 10 coins = ₹1)`,
+        icon: DollarSign,
+        color: 'purple'
+      }
+    ],
+    payments: [
+      {
+        title: 'TOTAL PAYMENTS',
+        value: `${periodPayments.length}`,
+        sub: 'Total transactions',
+        icon: PaymentIcon,
+        color: 'purple'
+      },
+      {
+        title: 'SUCCESSFUL PAYMENTS',
+        value: `${successfulPaymentsCount}`,
+        sub: `Success Rate: ${periodPayments.length > 0 ? ((successfulPaymentsCount / periodPayments.length) * 100).toFixed(1) : '100'}%`,
+        icon: CheckCircle2,
+        color: 'emerald'
+      },
+      {
+        title: 'PENDING PAYMENTS',
+        value: `${pendingPaymentsCount}`,
+        sub: 'Awaiting gateway response',
+        icon: Clock,
+        color: 'amber'
+      },
+      {
+        title: 'FAILED PAYMENTS',
+        value: `${failedPaymentsCount}`,
+        sub: 'Failed payment attempts',
+        icon: X,
+        color: 'rose'
+      }
+    ],
+    analytics: [
+      {
+        title: 'TOTAL REVENUE',
+        value: `₹${periodRevenue.toLocaleString('en-IN')}`,
+        sub: 'Paid revenue (selected)',
+        icon: DollarSign,
+        color: 'emerald'
+      },
+      {
+        title: 'AVERAGE ORDER VALUE',
+        value: `₹${paidOrdersCount > 0 ? Math.round(periodRevenue / paidOrdersCount).toLocaleString('en-IN') : 0}`,
+        sub: 'Revenue ÷ Paid Orders',
+        icon: BarChart2,
+        color: 'purple'
+      },
+      {
+        title: 'REVENUE GROWTH',
+        value: `${revenueGrowthPct}%`,
+        sub: 'vs Previous Period',
+        icon: TrendingUp,
+        color: Number(revenueGrowthPct) >= 0 ? 'emerald' : 'rose'
+      },
+      {
+        title: 'TOTAL PAID ORDERS',
+        value: `${paidOrdersCount}`,
+        sub: 'Completed paid orders',
+        icon: ShoppingBag,
+        color: 'sky'
+      }
+    ],
+    activity: [
+      {
+        title: 'TOTAL EVENTS',
+        value: `${analyticsEvents.length}`,
+        sub: 'Recorded audit logs',
+        icon: Layers,
+        color: 'purple'
+      },
+      {
+        title: "TODAY'S EVENTS",
+        value: `${todayEventsCount}`,
+        sub: 'Events generated today',
+        icon: Calendar,
+        color: 'sky'
+      },
+      {
+        title: 'ADMIN ACTIONS',
+        value: `${adminActionsCount}`,
+        sub: 'Admin management logs',
+        icon: ShieldCheck,
+        color: 'emerald'
+      },
+      {
+        title: 'ERRORS & ALERTS',
+        value: `${errorEventsCount}`,
+        sub: 'Failed actions & warnings',
+        icon: AlertCircle,
+        color: errorEventsCount > 0 ? 'rose' : 'slate'
+      }
+    ],
+    settings: [
+      {
+        title: 'SYSTEM STATUS',
+        value: 'Operational',
+        sub: 'All core services active',
+        icon: CheckCircle2,
+        color: 'emerald'
+      },
+      {
+        title: 'SUPABASE DATABASE',
+        value: 'Operational',
+        sub: 'Postgres DB & Auth active',
+        icon: Server,
+        color: 'emerald'
+      },
+      {
+        title: 'HEX AI AGENT',
+        value: geminiStatus.isOnline && geminiStatus.hasApiKey ? 'Active' : 'Key Needed',
+        sub: `${geminiStatus.engineType || 'Gemini 2.5 Flash'}`,
+        icon: Sparkles,
+        color: geminiStatus.hasApiKey ? 'purple' : 'amber'
+      },
+      {
+        title: 'STORAGE & RPC',
+        value: 'Operational',
+        sub: 'Signed Buckets & Coin Ledger',
+        icon: Cpu,
+        color: 'emerald'
+      }
+    ]
+  };
+
+  const currentCards = KPI_CONFIG[activeNav] || KPI_CONFIG.overview;
+
+  const colorMap = {
+    purple: { text: 'text-purple-400', val: 'text-white', border: 'hover:border-purple-500/50' },
+    emerald: { text: 'text-emerald-400', val: 'text-emerald-300', border: 'hover:border-emerald-500/50' },
+    amber: { text: 'text-amber-400', val: 'text-amber-300', border: 'hover:border-amber-500/50' },
+    rose: { text: 'text-rose-400', val: 'text-rose-300', border: 'hover:border-rose-500/50' },
+    sky: { text: 'text-sky-400', val: 'text-sky-300', border: 'hover:border-sky-500/50' },
+    indigo: { text: 'text-indigo-400', val: 'text-indigo-300', border: 'hover:border-indigo-500/50' },
+    teal: { text: 'text-teal-400', val: 'text-teal-300', border: 'hover:border-teal-500/50' },
+    slate: { text: 'text-slate-400', val: 'text-slate-200', border: 'hover:border-slate-500/50' }
+  };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {currentCards.map((card, idx) => {
+        const IconComp = card.icon;
+        const styles = colorMap[card.color] || colorMap.purple;
+        const isClickable = !!card.targetNav && typeof setActiveNav === 'function';
+
+        return (
+          <div
+            key={idx}
+            onClick={() => {
+              if (isClickable) setActiveNav(card.targetNav);
+            }}
+            className={`bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2.5 shadow-xl transition-all ${
+              isClickable ? `cursor-pointer hover:bg-slate-800 ${styles.border} group` : ''
+            }`}
+          >
+            <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider">
+              <span className={`flex items-center gap-2 ${styles.text}`}>
+                <IconComp className="w-4 h-4 shrink-0" />
+                <span>{card.title}</span>
+              </span>
+              {isClickable && (
+                <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
+              )}
+            </div>
+
+            <div>
+              <div className={`text-3xl font-black tracking-tight ${styles.val}`}>
+                {card.value}
+              </div>
+              <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
+                {card.sub}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function AdminDashboardPage() {
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
@@ -985,6 +1419,48 @@ function AdminDashboardPage() {
 
   const totalAttentionAlerts = pendingReviewsCount + codPendingCount + failedPaymentsCount + expiringPromosCount;
 
+  // DYNAMIC CONTEXT-AWARE KPI METRICS OBJECT
+  const kpiMetrics = {
+    periodRevenue,
+    paidOrdersCount,
+    revenueGrowthPct,
+    periodOrders,
+    pendingOrdersCount,
+    patients,
+    periodPatientsCount,
+    registeredPatientsCount,
+    totalAttentionAlerts,
+    pendingReviewsCount,
+    codPendingCount,
+    failedPaymentsCount,
+    codOrdersCount,
+    codPendingCollection,
+    prescriptions,
+    underReviewPrescriptionsCount: (prescriptions || []).filter((p) => p?.status === 'under_review' || p?.status === 'processing').length,
+    completedPrescriptionsCount: (prescriptions || []).filter((p) => p?.status === 'fulfilled' || p?.status === 'completed' || p?.status === 'approved' || p?.status === 'converted').length,
+    promoCodes,
+    activePromoCount: (promoCodes || []).filter((p) => p?.is_active).length,
+    totalPromoUses,
+    expiringPromosCount,
+    walletAccounts,
+    totalCoinsIssued: (walletTransactions || [])
+      .filter((tx) => tx.transaction_type === 'credit' || tx.type === 'admin_credit' || tx.type === 'signup_bonus' || Number(tx.coins || 0) > 0)
+      .reduce((acc, tx) => acc + Math.abs(Number(tx.coins || 0)), 0) || totalWalletCoins,
+    totalCoinsRedeemed: (walletTransactions || [])
+      .filter((tx) => tx.transaction_type === 'debit' || tx.type === 'redemption' || Number(tx.coins || 0) < 0)
+      .reduce((acc, tx) => acc + Math.abs(Number(tx.coins || 0)), 0),
+    walletRupeeValue,
+    totalWalletCoins,
+    periodPayments,
+    successfulPaymentsCount: paidOrdersCount,
+    pendingPaymentsCount: pendingOrdersCount,
+    analyticsEvents,
+    todayEventsCount: (analyticsEvents || []).filter((e) => e.created_at && isDateInFilter(e.created_at, 'TODAY')).length,
+    adminActionsCount: (analyticsEvents || []).filter((e) => (e.event_type || e.action || '').toLowerCase().includes('admin') || (e.category || '').toLowerCase() === 'admin').length,
+    errorEventsCount: (analyticsEvents || []).filter((e) => (e.status || '').toLowerCase() === 'error' || (e.event_type || '').toLowerCase().includes('fail') || (e.event_type || '').toLowerCase().includes('error')).length,
+    geminiStatus
+  };
+
   const buildDailyTrendData = (ordersList) => {
     if (!ordersList || ordersList.length === 0) return [];
     
@@ -1262,52 +1738,8 @@ function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TOP KPI SUMMARY CARDS FOR INNER PAGES */}
-        {activeNav !== 'overview' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
-              <div className="flex items-center justify-between text-xs text-emerald-400 font-bold">
-                <span>TOTAL PAID REVENUE</span>
-                <DollarSign className="w-4 h-4 text-emerald-400" />
-              </div>
-              <div className="text-3xl font-black text-emerald-300">₹{totalRevenue.toLocaleString('en-IN')}</div>
-              <div className="text-[11px] text-slate-400 font-medium">Today: <strong className="text-emerald-400">₹{todayRevenue.toLocaleString('en-IN')}</strong></div>
-            </div>
-
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
-              <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
-                <span>COD PENDING COLLECTION</span>
-                <Truck className="w-4 h-4 text-amber-400" />
-              </div>
-              <div className="text-3xl font-black text-amber-300">₹{codPendingCollection.toLocaleString('en-IN')}</div>
-              <div className="text-[11px] text-slate-400 font-medium">COD Collected: <strong className="text-purple-300">₹{codCollected.toLocaleString('en-IN')}</strong></div>
-            </div>
-
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
-              <div className="flex items-center justify-between text-xs text-purple-300 font-bold">
-                <span>ACTIVE PROMO CODES</span>
-                <Tag className="w-4 h-4 text-purple-400" />
-              </div>
-              <div className="text-3xl font-black text-white">{promoCodes.filter(p => p.is_active).length}</div>
-              <div className="text-[11px] text-slate-400 font-medium flex items-center justify-between">
-                <span>Total Promos: {promoCodes.length}</span>
-                <span>All Products: {promoCodes.filter(p => (p.applicable_scope || 'all') === 'all').length}</span>
-              </div>
-            </div>
-
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 space-y-2">
-              <div className="flex items-center justify-between text-xs text-indigo-400 font-bold">
-                <span>GUEST ENQUIRIES & RX</span>
-                <FileText className="w-4 h-4 text-indigo-400" />
-              </div>
-              <div className="text-3xl font-black text-white">{guestEnquiriesCount}</div>
-              <div className="text-[11px] text-slate-400 font-medium flex items-center justify-between">
-                <span>Pending Review: <strong className="text-amber-400">{pendingReviewsCount}</strong></span>
-                <span>Registered Users: {registeredPatientsCount}</span>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* CONTEXT-AWARE DYNAMIC KPI GRID FOR ALL MODULES */}
+        <ContextAwareKPIGrid activeNav={activeNav} metrics={kpiMetrics} setActiveNav={setActiveNav} />
 
         {/* NAV SECTION 1: COMPACT OPERATIONAL COMMAND CENTER OVERVIEW */}
         {activeNav === 'overview' && (
@@ -1338,188 +1770,7 @@ function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* 2. PRIMARY KPI SUMMARY GRID (8 COMPACT CARDS IN 2 ROWS) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-              
-              {/* REVENUE */}
-              <div
-                onClick={() => setActiveNav('analytics')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-emerald-400 font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5">
-                    <DollarSign className="w-4 h-4 text-emerald-400" />
-                    <span>Revenue</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-emerald-300">₹{periodRevenue.toLocaleString('en-IN')}</div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                    <span>Paid Txns: <strong className="text-white">{paidOrdersCount}</strong></span>
-                    <span className={`font-bold ${Number(revenueGrowthPct) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {revenueGrowthPct}% vs prior
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ORDERS */}
-              <div
-                onClick={() => setActiveNav('orders')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-purple-300 font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5">
-                    <ShoppingBag className="w-4 h-4 text-purple-400" />
-                    <span>Orders</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-white">{periodOrders.length}</div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                    <span>Paid: <strong className="text-emerald-400">{paidOrdersCount}</strong></span>
-                    <span>Pending: <strong className="text-amber-400">{pendingOrdersCount}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CUSTOMERS */}
-              <div
-                onClick={() => setActiveNav('customers')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-sky-400 font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-sky-400" />
-                    <span>Customers</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-white">{patients.length}</div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                    <span>New Registered: <strong className="text-sky-300">+{periodPatientsCount}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* PRESCRIPTIONS */}
-              <div
-                onClick={() => setActiveNav('prescriptions')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-indigo-400 font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-indigo-400" />
-                    <span>Prescriptions</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-white">{prescriptions.length}</div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                    <span>Pending Review: <strong className="text-amber-400">{pendingReviewsCount}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* PAYMENTS */}
-              <div
-                onClick={() => setActiveNav('payments')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-teal-400 font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5">
-                    <PaymentIcon className="w-4 h-4 text-teal-400" />
-                    <span>Payments</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-white">{periodPayments.length}</div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                    <span>Successful: <strong className="text-emerald-400">{successfulPaymentsCount}</strong></span>
-                    <span>Failed: <strong className="text-rose-400">{failedPaymentsCount}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ACTIVE PROMO CODES */}
-              <div
-                onClick={() => setActiveNav('promotions')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-amber-400 font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5">
-                    <Tag className="w-4 h-4 text-amber-400" />
-                    <span>Active Promos</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-amber-300">{promoCodes.filter(p => p.is_active).length}</div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                    <span>Total Promos: {promoCodes.length}</span>
-                    <span>Uses: <strong className="text-purple-300">{totalPromoUses}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* HEALTH COINS */}
-              <div
-                onClick={() => setActiveNav('coins')}
-                className="bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between text-xs text-amber-300 font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5">
-                    <Coins className="w-4 h-4 text-amber-400" />
-                    <span>Health Coins</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-white">{walletAccounts.length} <span className="text-xs text-slate-400 font-normal">wallets</span></div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1 font-medium">
-                    <span>Coins: <strong className="text-amber-400">{totalWalletCoins.toLocaleString('en-IN')}</strong></span>
-                    <span>Liability: <strong className="text-emerald-400">₹{walletRupeeValue}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* NEEDS ATTENTION */}
-              <div
-                onClick={() => {
-                  const el = document.getElementById('needs-attention-box');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`border rounded-2xl p-4 space-y-2 shadow-lg transition-all cursor-pointer group ${
-                  totalAttentionAlerts > 0
-                    ? 'bg-rose-950/40 border-rose-600/60 hover:border-rose-500 animate-pulse'
-                    : 'bg-slate-800/90 border-slate-700/80 hover:border-emerald-500/50'
-                }`}
-              >
-                <div className="flex items-center justify-between text-xs font-extrabold uppercase">
-                  <span className="flex items-center gap-1.5 text-rose-300">
-                    <AlertCircle className={`w-4 h-4 ${totalAttentionAlerts > 0 ? 'text-rose-400' : 'text-emerald-400'}`} />
-                    <span>Needs Attention</span>
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-purple-400 transition-colors" />
-                </div>
-                <div>
-                  <div className={`text-2xl font-black ${totalAttentionAlerts > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {totalAttentionAlerts} <span className="text-xs text-slate-400 font-normal">issues</span>
-                  </div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1">
-                    {totalAttentionAlerts > 0 ? 'Urgent action required' : 'All systems operating'}
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* 3. MAIN ANALYTICS CHART & OPERATIONAL SNAPSHOT */}
+            {/* 2. MAIN ANALYTICS CHART & OPERATIONAL SNAPSHOT */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* REVENUE & ORDERS TREND CHART */}
