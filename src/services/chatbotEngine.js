@@ -3,27 +3,47 @@ import { ALL_SERVICES, CATEGORIES } from '../data/services.js';
 import { DEFAULT_MESSAGES } from '../utils/whatsapp.js';
 
 /**
- * HEALTH EXPRESS — HEX AI AGENT DECISION & INTENT ENGINE
- * Developer Specification • Version 1.0
- * 
- * Non-Negotiable Rules & Intent Processor
+ * HEALTH EXPRESS — HEX AI AGENT DECISION & INTENT ENGINE (V1.0)
+ * Robust Intent Parser & Non-Negotiable Specification Enforcer
  */
 
+// Search Intent Stop Words (Intent terms stripped out so product name matching is 100% accurate)
 const STOP_WORDS = new Set([
   'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
   'and', 'or', 'but', 'if', 'so', 'as', 'also', 'yet', 'nor', 'not',
   'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those',
   'am', 'do', 'does', 'did', 'doing', 'have', 'has', 'had', 'having',
   'how', 'much', 'many', 'cost', 'costs', 'price', 'prices', 'pricing',
-  'rate', 'rates', 'fee', 'fees', 'charge', 'charges', 'pay', 'payment',
+  'mrp', 'rate', 'rates', 'fee', 'fees', 'charge', 'charges', 'pay', 'payment',
   'for', 'of', 'in', 'on', 'at', 'by', 'to', 'from', 'with', 'about',
   'tell', 'me', 'give', 'can', 'you', 'show', 'where', 'available',
   'provide', 'provides', 'provider', 'offer', 'offers', 'offering',
   'service', 'services', 'test', 'tests', 'scan', 'scans', 'checkup',
-  'checkups', 'package', 'packages', 'please', 'thanks', 'thank',
-  'good', 'hi', 'hello', 'hey', 'need', 'want', 'require', 'looking',
-  'bengaluru', 'bangalore', 'sample', 'collection', 'home'
+  'checkups', 'package', 'packages', 'profile', 'profiles', 'panel', 'panels',
+  'please', 'thanks', 'thank', 'good', 'hi', 'hello', 'hey', 'need', 'want',
+  'require', 'looking', 'bengaluru', 'bangalore', 'sample', 'collection', 'home',
+  'get', 'list', 'details', 'detail', 'info', 'information'
 ]);
+
+// Service Aliases for 100% accurate matching
+const SERVICE_ALIASES = [
+  { keywords: ['full body', 'master health', 'full checkup', 'whole body', 'body checkup', 'body package'], targetId: 'full-body-health-package' },
+  { keywords: ['cbc', 'complete blood count', 'blood count', 'hemoglobin'], targetId: 'cbc' },
+  { keywords: ['hba1c', 'glycated hemoglobin', 'sugar 3 month', 'diabetes test'], targetId: 'hba1c' },
+  { keywords: ['thyroid', 't3 t4 tsh', 'tsh'], targetId: 'thyroid-profile' },
+  { keywords: ['lipid', 'cholesterol', 'triglyceride'], targetId: 'lipid-profile' },
+  { keywords: ['vitamin d', '25-oh', 'vit d'], targetId: 'vitamin-d-25-hydroxy' },
+  { keywords: ['vitamin b12', 'vit b12', 'b12'], targetId: 'vitamin-b12' },
+  { keywords: ['lft', 'liver function', 'liver test'], targetId: 'lft' },
+  { keywords: ['kft', 'rft', 'kidney function', 'renal function', 'creatinine'], targetId: 'kft' },
+  { keywords: ['mri', 'mri brain'], targetId: 'mri-brain' },
+  { keywords: ['ct scan', 'hrct', 'ct chest'], targetId: 'ct-scan-chest' },
+  { keywords: ['ultrasound', 'usg', 'sonography', 'ultrasound abdomen'], targetId: 'ultrasound-abdomen' },
+  { keywords: ['xray', 'x-ray', 'chest xray'], targetId: 'xray-chest' },
+  { keywords: ['ecg', 'ecg at home'], targetId: 'ecg-at-home' },
+  { keywords: ['nursing', 'caregiver', 'japa', 'elderly care', 'home care'], targetId: 'home-nursing-care' },
+  { keywords: ['surgery', 'laparoscopic', 'surgical consult'], targetId: 'laparoscopic-gallbladder-consult' }
+];
 
 function extractSearchKeywords(rawQuery) {
   const clean = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -34,7 +54,15 @@ function searchCatalogServices(rawQuery) {
   const clean = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
   if (!clean) return [];
 
-  // Exact match first
+  // 1. Alias Matching
+  for (const alias of SERVICE_ALIASES) {
+    if (alias.keywords.some((kw) => clean.includes(kw))) {
+      const found = ALL_SERVICES.find((s) => s.id === alias.targetId);
+      if (found) return [found];
+    }
+  }
+
+  // 2. Exact ID, slug, or exact name match
   const exactMatch = ALL_SERVICES.filter((s) => 
     s.id.toLowerCase() === clean || 
     s.slug.toLowerCase() === clean || 
@@ -42,7 +70,7 @@ function searchCatalogServices(rawQuery) {
   );
   if (exactMatch.length > 0) return exactMatch;
 
-  // Keyword match
+  // 3. Keyword Match after stripping stop words
   const keywords = extractSearchKeywords(rawQuery);
   if (keywords.length === 0) return [];
 
@@ -51,28 +79,26 @@ function searchCatalogServices(rawQuery) {
     const sIdLower = s.id.toLowerCase();
     const sSlugLower = s.slug.toLowerCase();
     const sSubcatLower = (s.subcategory || '').toLowerCase();
-    const sDescLower = (s.shortDesc || s.description || '').toLowerCase();
 
-    return keywords.every((kw) => {
+    return keywords.some((kw) => {
       const safeKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const kwRegex = new RegExp(`\\b${safeKw}\\b`, 'i');
       return (
         kwRegex.test(sNameLower) || 
         kwRegex.test(sIdLower) || 
         kwRegex.test(sSlugLower) ||
-        kwRegex.test(sSubcatLower) ||
-        (kw.length > 3 && sDescLower.includes(kw))
+        kwRegex.test(sSubcatLower)
       );
     });
   });
 }
 
-function evaluateGeographyCoverage(rawQuery, serviceType = 'general') {
+function evaluateGeographyCoverage(rawQuery) {
   const cleanQuery = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
 
   const externalCities = [
     'indore', 'mumbai', 'delhi', 'pune', 'chennai', 'kolkata', 'hyderabad', 
-    'ahmedabad', 'jaipur', 'lucknow', 'chandigarh', 'kochi', 'surat', 'bhopal'
+    'ahmedabad', 'jaipur', 'lucknow', 'chandigarh', 'kochi', 'surat', 'bhopal', 'noida', 'gurgaon'
   ];
 
   const foundExternal = externalCities.find((c) => cleanQuery.includes(c));
@@ -101,7 +127,7 @@ function evaluateGeographyCoverage(rawQuery, serviceType = 'general') {
   return {
     isCovered: null,
     locationName: null,
-    text: `📍 **Geography & Pilot Coverage**: Health Express is actively piloting in **Bengaluru** across major hubs including:\n• ${HEX_SPECIFICATION.geographyPilot.approvedLocalities.slice(0, 10).join('\n• ')}`
+    text: `Health Express is currently available in select areas of Bengaluru. This area is not currently covered. I can help you join the waitlist so you can be notified when we expand.\n\nLet me connect you to your Health Manager.`
   };
 }
 
@@ -113,7 +139,34 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   const ESCALATION = "Let me connect you to your Health Manager.";
 
   // ----------------------------------------------------
-  // 1. EMERGENCY MEDICAL SAFETY CHECK (Rule 11)
+  // 1. IDENTITY & WHO ARE YOU INTENT (Section 3 & Rule 1)
+  // ----------------------------------------------------
+  if (
+    cleanQuery.includes('who are you') || 
+    cleanQuery.includes('who is hex') || 
+    cleanQuery.includes('what is your name') || 
+    cleanQuery.includes('tell me about yourself') || 
+    cleanQuery.includes('who created you') || 
+    cleanQuery.includes('what do you do') || 
+    cleanQuery.includes('how can you help') ||
+    cleanQuery.includes('who are u') ||
+    cleanQuery === 'hex'
+  ) {
+    return {
+      intent: 'IDENTITY_QUERY',
+      text: `${HEX_SPECIFICATION.agentIdentity.greeting}\n\nI am **HEX**, your Health Express family health manager. I can explain diagnostic services, home nursing care, pilot coverage in Bengaluru, or connect you directly with your Health Manager.`,
+      quickReplies: [
+        { label: "🧪 Lab Diagnostics", action: "nav_services" },
+        { label: "🏡 Home Nursing Care", action: "whatsapp_service_nursing" },
+        { label: "📄 Upload Prescription", action: "open_upload_modal" },
+        { label: "📍 Bengaluru Coverage", action: "whatsapp_locality" }
+      ],
+      whatsappMsg: DEFAULT_MESSAGES.general
+    };
+  }
+
+  // ----------------------------------------------------
+  // 2. EMERGENCY MEDICAL SAFETY CHECK (Rule 11)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('emergency') || 
@@ -134,7 +187,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 2. MEDICAL ADVICE & CLINICAL DIAGNOSIS BOUNDARY (Rule 11)
+  // 3. MEDICAL ADVICE & CLINICAL DIAGNOSIS BOUNDARY (Rule 11)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('diagnose') || 
@@ -159,7 +212,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 3. HUMAN HANDOFF & CALLBACK REQUESTS (Rule 13)
+  // 4. HUMAN HANDOFF & CALLBACK REQUESTS (Rule 13)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('call me') || 
@@ -182,7 +235,8 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
     cleanQuery.includes('connect to agent') || 
     cleanQuery.includes('speak to manager') || 
     cleanQuery.includes('customer care') || 
-    cleanQuery.includes('human support')
+    cleanQuery.includes('human support') ||
+    cleanQuery.includes('human request')
   ) {
     return {
       intent: 'HUMAN_REQUEST',
@@ -195,7 +249,43 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 4. OPERATIONAL ACTIONS: BOOKING / PAYMENT / CANCEL (Rule 12)
+  // 5. GEOGRAPHY, PILOT COVERAGE & OUT-OF-AREA WAITLIST (Rules 7 & 17)
+  // ----------------------------------------------------
+  const isCoverageQuery = 
+    cleanQuery.includes('mumbai') || 
+    cleanQuery.includes('indore') || 
+    cleanQuery.includes('delhi') || 
+    cleanQuery.includes('pune') || 
+    cleanQuery.includes('chennai') || 
+    cleanQuery.includes('kolkata') || 
+    cleanQuery.includes('hyderabad') || 
+    cleanQuery.includes('ahmedabad') || 
+    cleanQuery.includes('jaipur') || 
+    cleanQuery.includes('available in') || 
+    cleanQuery.includes('service available') || 
+    cleanQuery.includes('area') || 
+    cleanQuery.includes('location') || 
+    cleanQuery.includes('city') || 
+    cleanQuery.includes('coverage') || 
+    cleanQuery.includes('where do you') || 
+    cleanQuery.includes('bengaluru') || 
+    cleanQuery.includes('bangalore') ||
+    HEX_SPECIFICATION.geographyPilot.approvedLocalities.some((loc) => cleanQuery.includes(loc.toLowerCase()));
+
+  if (isCoverageQuery) {
+    const geoResult = evaluateGeographyCoverage(rawQuery);
+    return {
+      intent: 'COVERAGE_QUERY',
+      text: geoResult.text,
+      quickReplies: [
+        { label: "Check Availability on WhatsApp", action: "whatsapp_locality" }
+      ],
+      whatsappMsg: `Namaste Health Express! Is service available in my area: "${rawQuery}"?`
+    };
+  }
+
+  // ----------------------------------------------------
+  // 6. OPERATIONAL ACTIONS: BOOKING / PAYMENT / CANCEL (Rule 12)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('book service') || 
@@ -216,7 +306,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 5. PRESCRIPTION / MEDICAL ORDER (Rule 14)
+  // 7. PRESCRIPTION / MEDICAL ORDER (Rule 14)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('prescription') || 
@@ -236,7 +326,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 6. PROVIDER NEUTRALITY CHECK (Rule 10)
+  // 8. PROVIDER NEUTRALITY CHECK (Rule 10)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('best doctor') || 
@@ -257,7 +347,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 7. COMING SOON SERVICES CHECK (Rule 6)
+  // 9. COMING SOON SERVICES CHECK (Rule 6)
   // ----------------------------------------------------
   const comingSoonMatch = HEX_SPECIFICATION.comingSoonServices.find(
     (cs) => cleanQuery.includes(cs.id) || cleanQuery.includes(cs.name.toLowerCase())
@@ -275,7 +365,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 8. HOME NURSING & CARE TAXONOMY QUERY (Section 5)
+  // 10. HOME NURSING & CARE TAXONOMY QUERY (Section 5)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('nursing') || 
@@ -297,7 +387,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 9. SERVICE & PRICING QUERY (Rules 4, 8, 9)
+  // 11. CATALOG SERVICE & PRICING LOOKUP (Rules 4, 8, 9)
   // ----------------------------------------------------
   const matchedServices = searchCatalogServices(rawQuery);
 
@@ -305,7 +395,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
     const primary = matchedServices[0];
     let replyText = `🧪 **${primary.name}**\n${primary.shortDesc || primary.description}`;
 
-    if (primary.price_type === 'QUOTE_REQUIRED' || !primary.discount_price) {
+    if (primary.price_type === 'QUOTE_REQUIRED') {
       replyText += `\n\n💰 **Pricing**: A personalized quotation is required for this service.\n\n${ESCALATION}`;
     } else if (primary.price) {
       replyText += `\n\n💰 **Listed MRP**: ₹${primary.price}`;
@@ -333,31 +423,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 10. GEOGRAPHY & COVERAGE QUERY (Rule 7)
-  // ----------------------------------------------------
-  if (
-    cleanQuery.includes('area') || 
-    cleanQuery.includes('location') || 
-    cleanQuery.includes('city') || 
-    cleanQuery.includes('coverage') || 
-    cleanQuery.includes('where do you') || 
-    cleanQuery.includes('bengaluru') || 
-    cleanQuery.includes('bangalore') ||
-    HEX_SPECIFICATION.geographyPilot.approvedLocalities.some((loc) => cleanQuery.includes(loc.toLowerCase()))
-  ) {
-    const geoResult = evaluateGeographyCoverage(rawQuery);
-    return {
-      intent: 'COVERAGE_QUERY',
-      text: geoResult.text,
-      quickReplies: [
-        { label: "Check Availability on WhatsApp", action: "whatsapp_locality" }
-      ],
-      whatsappMsg: `Namaste Health Express! Is service available in my area: "${rawQuery}"?`
-    };
-  }
-
-  // ----------------------------------------------------
-  // 11. GENERAL GREETINGS & INTRO
+  // 12. GENERAL GREETINGS
   // ----------------------------------------------------
   const greetings = ['hi', 'hello', 'hey', 'greetings', 'namaste', 'hi hex', 'hello hex'];
   if (greetings.includes(cleanQuery)) {
@@ -375,7 +441,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
   }
 
   // ----------------------------------------------------
-  // 12. GOLDEN RULE FALLBACK (Rule 25)
+  // 13. GOLDEN RULE FALLBACK (Rule 25)
   // ----------------------------------------------------
   return {
     intent: 'MISSING_INFORMATION_HANDOFF',
