@@ -197,13 +197,15 @@ export default function GenericDashboardPage() {
 
             <div className="hidden md:block w-px h-5 bg-slate-800" />
 
-            <Link
-              to="/"
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-purple-300 transition-colors"
             >
               <span>Visit Health Express Website</span>
               <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
+            </a>
           </div>
 
           {/* Right Side: Authenticated Member Dropdown */}
@@ -265,14 +267,16 @@ export default function GenericDashboardPage() {
                     <span>My Orders ({memberData.orders.length})</span>
                   </button>
 
-                  <Link
-                    to="/"
+                  <a
+                    href="/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onClick={() => setIsProfileMenuOpen(false)}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5 md:hidden"
                   >
                     <ExternalLink className="w-4 h-4 text-slate-500" />
                     <span>Visit Website</span>
-                  </Link>
+                  </a>
                 </div>
 
                 <div className="border-t border-slate-100 pt-1">
