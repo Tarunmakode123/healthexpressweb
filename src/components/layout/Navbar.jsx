@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, ShoppingBag } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, ShoppingBag, ShieldAlert } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -9,7 +9,11 @@ export default function Navbar({ onOpenUploadModal }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showAdminExitModal, setShowAdminExitModal] = useState(false);
+  const [pendingTarget, setPendingTarget] = useState(null);
+
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const { itemCount, openCart } = useCart();
 
@@ -20,6 +24,32 @@ export default function Navbar({ onOpenUploadModal }) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Intercept navigation links if leaving /admin while signed in
+  const handleLinkClick = (e, targetHref) => {
+    if (location.pathname === '/admin' && targetHref !== '/admin') {
+      e.preventDefault();
+      setPendingTarget(targetHref);
+      setShowAdminExitModal(true);
+    }
+  };
+
+  // Intercept browser back button when on /admin
+  useEffect(() => {
+    if (location.pathname !== '/admin') return;
+
+    window.history.pushState({ inAdmin: true }, '', window.location.href);
+
+    const handlePopState = () => {
+      setPendingTarget('/');
+      setShowAdminExitModal(true);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [location.pathname]);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -58,7 +88,7 @@ export default function Navbar({ onOpenUploadModal }) {
         <div className="flex items-center justify-between">
           
           {/* Official Brand Logo */}
-          <Link to="/" className="flex items-center group shrink-0 py-0.5">
+          <Link to="/" onClick={(e) => handleLinkClick(e, '/')} className="flex items-center group shrink-0 py-0.5">
             <img 
               src="/logo.png" 
               alt="Health Express - Everything Health Fast Tracked" 
@@ -72,6 +102,7 @@ export default function Navbar({ onOpenUploadModal }) {
               <Link
                 key={link.label}
                 to={link.href}
+                onClick={(e) => handleLinkClick(e, link.href)}
                 className={`text-sm font-semibold transition-colors ${
                   location.pathname === link.href
                     ? 'text-purple-700 font-bold'
@@ -216,6 +247,10 @@ export default function Navbar({ onOpenUploadModal }) {
                 <Link
                   key={link.label}
                   to={link.href}
+                  onClick={(e) => {
+                    setIsMobileMenuOpen(false);
+                    handleLinkClick(e, link.href);
+                  }}
                   className={`px-4 py-3 rounded-2xl text-base font-semibold flex items-center justify-between transition-colors ${
                     location.pathname === link.href
                       ? 'bg-purple-50 text-purple-800 font-bold'
@@ -232,7 +267,10 @@ export default function Navbar({ onOpenUploadModal }) {
             <div className="pt-3 border-t border-slate-100 space-y-2.5">
               <Link
                 to="/auth"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  handleLinkClick(e, '/auth');
+                }}
                 className="w-full py-3.5 px-5 rounded-2xl bg-purple-50 border border-purple-200 text-purple-900 font-bold text-sm flex items-center justify-between shadow-xs active:scale-[0.98] transition-transform"
               >
                 <span className="flex items-center gap-2.5">
@@ -271,6 +309,63 @@ export default function Navbar({ onOpenUploadModal }) {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Leaving Admin Confirmation Modal */}
+      {showAdminExitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-purple-100 space-y-5 text-left">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0">
+                <ShieldAlert className="w-6 h-6 text-purple-700" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Leaving Admin Panel</h3>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  You are navigating away from the Health Express Operations Control Center. Would you like to sign out of your Admin session before returning to the public website?
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
+              <button
+                onClick={async () => {
+                  setShowAdminExitModal(false);
+                  await logout();
+                  const target = pendingTarget || '/';
+                  setPendingTarget(null);
+                  navigate(target);
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-md shadow-purple-700/20"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out & Exit</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowAdminExitModal(false);
+                  const target = pendingTarget || '/';
+                  setPendingTarget(null);
+                  navigate(target);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Stay Signed In
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowAdminExitModal(false);
+                  setPendingTarget(null);
+                }}
+                className="px-3 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-semibold text-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
