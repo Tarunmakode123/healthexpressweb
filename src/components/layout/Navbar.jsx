@@ -17,6 +17,23 @@ export default function Navbar({ onOpenUploadModal }) {
   const { user, isLoggedIn, logout } = useAuth();
   const { itemCount, openCart } = useCart();
 
+  const isAdminUser = Boolean(
+    user && (
+      user.name?.toLowerCase() === 'admin' ||
+      user.email?.toLowerCase()?.includes('admin') ||
+      user.role === 'admin'
+    )
+  );
+
+  const showCustomerAccount = isLoggedIn && !isAdminUser;
+
+  // Auto-logout admin whenever navigating away from /admin
+  useEffect(() => {
+    if (location.pathname !== '/admin' && isAdminUser) {
+      logout();
+    }
+  }, [location.pathname, isAdminUser, logout]);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 15);
@@ -140,7 +157,7 @@ export default function Navbar({ onOpenUploadModal }) {
               <span>WhatsApp Us</span>
             </button>
 
-            {isLoggedIn ? (
+            {showCustomerAccount ? (
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <button
@@ -202,7 +219,7 @@ export default function Navbar({ onOpenUploadModal }) {
                 </span>
               )}
             </button>
-            {!isLoggedIn ? (
+            {!showCustomerAccount ? (
               <Link
                 to="/auth"
                 className="px-3 py-1.5 text-xs font-bold text-purple-900 bg-purple-100 hover:bg-purple-200 rounded-xl shadow-xs flex items-center gap-1 touch-target active:scale-95 transition-transform border border-purple-200"
