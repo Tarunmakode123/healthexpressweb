@@ -67,6 +67,8 @@ function ScrollToTop() {
 function MainLayout() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  const isStandaloneApp = isAdminRoute || isDashboardRoute;
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
@@ -94,11 +96,11 @@ function MainLayout() {
   return (
     <>
       <ScrollToTop />
-      {!isAdminRoute && <HealthExpressIntro />}
+      {!isStandaloneApp && <HealthExpressIntro />}
       <div className={`min-h-screen flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900 antialiased ${isAdminRoute ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'}`}>
         
         {/* Responsive Header Navbar (Public Consumer Pages Only) */}
-        {!isAdminRoute && (
+        {!isStandaloneApp && (
           <Navbar onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />
         )}
 
@@ -129,7 +131,7 @@ function MainLayout() {
         </main>
 
         {/* Public Website Footer & Floating Widgets (Public Consumer Pages Only) */}
-        {!isAdminRoute && (
+        {!isStandaloneApp && (
           <>
             <Footer onOpenUploadModal={handleOpenUploadModal} />
             <CareManagerCTA />

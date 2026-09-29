@@ -103,7 +103,11 @@ export default function AuthPage() {
 
       if (otpErr) {
         console.warn('Supabase signInWithOtp notice:', otpErr.message);
-        setError(otpErr.message || 'Unable to send OTP right now. Please try again.');
+        if (otpErr.message?.toLowerCase().includes('unsupported phone provider') || otpErr.message?.toLowerCase().includes('provider')) {
+          setError('Phone Provider is currently disabled in Supabase. Please enable "Phone Provider" under Supabase Dashboard -> Auth -> Providers.');
+        } else {
+          setError(otpErr.message || 'Unable to send OTP right now. Please try again.');
+        }
         setIsSubmitting(false);
         return;
       }
