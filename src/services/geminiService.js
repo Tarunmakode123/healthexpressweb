@@ -3,50 +3,86 @@ import { ALL_SERVICES } from '../data/services.js';
 import { processUserMessage } from './chatbotEngine.js';
 
 /**
- * HEALTH EXPRESS — GEMINI AI INTEGRATION SERVICE (V1.0)
- * Hybrid RAG Architecture:
- * 1. Dynamic Admin Key Resolution (Admin Panel -> ENV -> Fallback)
- * 2. Retrieves verified website database facts from ALL_SERVICES & HEX_SPECIFICATION
- * 3. Passes facts & Developer Specification System Instruction to Gemini 2.5 Flash
- * 4. Fallback to Local Deterministic Engine on network/rate-limit error
+ * HEALTH EXPRESS — UNIVERSAL MULTI-LLM AI INTEGRATION SERVICE (V2.0)
+ * Architecture:
+ * 1. Supports Google Gemini, OpenAI (GPT), Anthropic (Claude), and Custom OpenAI-compatible APIs
+ * 2. Accepts ANY model string configured in Admin Panel or ENV
+ * 3. Dynamic RAG database context injection & Developer Specification System Instruction
+ * 4. Bulletproof Fail-Safe: If ANY API fails, rate-limits, or has invalid credentials,
+ *    silently logs telemetry and falls back to deterministic local engine (0 crash guarantee).
  */
 
 const DEFAULT_FALLBACK_KEY = '';
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
-// Last engine status telemetry
+// Last engine status telemetry log
 let lastEngineStatus = {
   isOnline: true,
   engineType: 'LOCAL_ENGINE',
+  activeProvider: 'gemini',
+  activeModel: DEFAULT_MODEL,
   activeKeySource: 'NONE',
   lastError: null,
   lastCheckedAt: new Date().toISOString()
 };
 
-export function getEffectiveApiKey() {
-  const adminKey = localStorage.getItem('hex_admin_gemini_key');
-  if (adminKey && adminKey.trim().length > 10) {
-    return { key: adminKey.trim(), source: 'Admin Panel Override' };
+/**
+ * Resolves active provider, model, key, and endpoint settings dynamically
+ */
+export function getEffectiveAiConfig() {
+  const adminProvider = localStorage.getItem('hex_admin_ai_provider') || 'gemini';
+  const adminModel = localStorage.getItem('hex_admin_ai_model') || (adminProvider === 'gemini' ? 'gemini-2.5-flash' : adminProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-sonnet-20240620');
+  const adminKey = localStorage.getItem('hex_admin_gemini_key') || localStorage.getItem('hex_admin_ai_key');
+  const adminBaseUrl = localStorage.getItem('hex_admin_ai_base_url') || '';
+
+  if (adminKey && adminKey.trim().length > 5) {
+    return {
+      provider: adminProvider,
+      model: adminModel.trim(),
+      key: adminKey.trim(),
+      source: 'Admin Panel Override',
+      baseUrl: adminBaseUrl.trim()
+    };
   }
 
-  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (envKey && envKey.trim().length > 10) {
-    return { key: envKey.trim(), source: '.env Environment' };
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.VITE_CLAUDE_API_KEY;
+  if (envKey && envKey.trim().length > 5) {
+    return {
+      provider: import.meta.env.VITE_OPENAI_API_KEY ? 'openai' : import.meta.env.VITE_CLAUDE_API_KEY ? 'anthropic' : 'gemini',
+      model: import.meta.env.VITE_AI_MODEL || DEFAULT_MODEL,
+      key: envKey.trim(),
+      source: '.env Environment',
+      baseUrl: import.meta.env.VITE_AI_BASE_URL || ''
+    };
   }
 
-  if (DEFAULT_FALLBACK_KEY && DEFAULT_FALLBACK_KEY.length > 10) {
-    return { key: DEFAULT_FALLBACK_KEY, source: 'Default Platform Key' };
+  if (DEFAULT_FALLBACK_KEY && DEFAULT_FALLBACK_KEY.length > 5) {
+    return {
+      provider: 'gemini',
+      model: DEFAULT_MODEL,
+      key: DEFAULT_FALLBACK_KEY,
+      source: 'Default Platform Key',
+      baseUrl: ''
+    };
   }
 
-  return { key: '', source: 'NONE' };
+  return {
+    provider: adminProvider,
+    model: adminModel.trim(),
+    key: '',
+    source: 'NONE',
+    baseUrl: adminBaseUrl.trim()
+  };
 }
 
 export function getGeminiEngineStatus() {
-  const { key, source } = getEffectiveApiKey();
+  const config = getEffectiveAiConfig();
   return {
     ...lastEngineStatus,
-    activeKeySource: source,
-    hasApiKey: Boolean(key)
+    activeProvider: config.provider,
+    activeModel: config.model,
+    activeKeySource: config.source,
+    hasApiKey: Boolean(config.key)
   };
 }
 
@@ -65,16 +101,129 @@ NON-NEGOTIABLE OPERATING RULES (DEVELOPER SPECIFICATION V1.0):
 8. PERSONA & TONE: Warm, calm, professional, concise, and clear.
 `;
 
-export async function askGeminiAssistant(rawQuery, conversationHistory = [], userContext = {}) {
-  const { key: activeKey, source: keySource } = getEffectiveApiKey();
+/**
+ * Universal Multi-Provider API Dispatcher
+ */
+async function callLlmProvider(provider, model, key, baseUrl, promptText) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second fetch timeout
 
-  // If no API key available, use Local Engine immediately
-  if (!activeKey) {
+  try {
+    if (provider === 'gemini') {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 400 }
+        })
+      });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(`Gemini API ${data.error.code || 'Error'}: ${data.error.message}`);
+      }
+      return data.candidates?.[0]?.content?.parts?.[0]?.text;
+    }
+
+    if (provider === 'openai' || provider === 'custom') {
+      const url = baseUrl ? `${baseUrl.replace(/\/$/, '')}/chat/completions` : 'https://api.openai.com/v1/chat/completions';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: SYSTEM_INSTRUCTION },
+            { role: 'user', content: promptText }
+          ],
+          temperature: 0.3,
+          max_tokens: 400
+        })
+      });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(`OpenAI API ${data.error.type || 'Error'}: ${data.error.message}`);
+      }
+      return data.choices?.[0]?.message?.content;
+    }
+
+    if (provider === 'anthropic') {
+      const url = 'https://api.anthropic.com/v1/messages';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01'
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: model,
+          system: SYSTEM_INSTRUCTION,
+          messages: [{ role: 'user', content: promptText }],
+          max_tokens: 400,
+          temperature: 0.3
+        })
+      });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(`Claude API ${data.error.type || 'Error'}: ${data.error.message}`);
+      }
+      return data.content?.[0]?.text;
+    }
+
+    throw new Error(`Unsupported AI Provider: ${provider}`);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
+/**
+ * Diagnostic test connection for Admin Panel
+ */
+export async function testAiConnection(provider, model, key, baseUrl = '') {
+  if (!key || key.trim().length < 5) {
+    return { success: false, error: 'Please enter a valid API Key string.' };
+  }
+
+  try {
+    const testPrompt = 'Respond with exact phrase "HEALTH_EXPRESS_AI_OK" to verify API connection.';
+    const resultText = await callLlmProvider(provider, model, key.trim(), baseUrl.trim(), testPrompt);
+    if (resultText && resultText.trim()) {
+      return { success: true, message: `Successfully connected to ${provider.toUpperCase()} (${model})` };
+    }
+    return { success: false, error: 'Received empty response from provider endpoint.' };
+  } catch (err) {
+    return { success: false, error: err.message || 'Connection test failed.' };
+  }
+}
+
+/**
+ * Main AI Assistant Entry Point
+ */
+export async function askGeminiAssistant(rawQuery, conversationHistory = [], userContext = {}) {
+  const config = getEffectiveAiConfig();
+
+  // If no API key configured, use deterministic Local Engine immediately
+  if (!config.key) {
     lastEngineStatus = {
       isOnline: true,
       engineType: 'LOCAL_ENGINE',
+      activeProvider: config.provider,
+      activeModel: config.model,
       activeKeySource: 'NONE',
-      lastError: 'No API Key configured',
+      lastError: 'No API Key configured in Admin or ENV',
       lastCheckedAt: new Date().toISOString()
     };
     return processUserMessage(rawQuery, '/', userContext);
@@ -83,7 +232,7 @@ export async function askGeminiAssistant(rawQuery, conversationHistory = [], use
   // Pre-process with local engine for instant guardrail verification & RAG retrieval
   const localResult = processUserMessage(rawQuery, '/', userContext);
 
-  // Safety boundaries (Emergency, Medical Advice, Operational Actions) return local result directly for 100% safety
+  // Hard Safety boundaries return local result directly (100% medical/emergency safety)
   if (
     localResult.intent === 'EMERGENCY_RESPONSE' ||
     localResult.intent === 'MEDICAL_ADVICE_REQUEST' ||
@@ -95,8 +244,6 @@ export async function askGeminiAssistant(rawQuery, conversationHistory = [], use
   }
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${activeKey}`;
-    
     // Construct RAG Context from catalog & local result
     const catalogContext = ALL_SERVICES.map(s => `[Service: ${s.name} | Category: ${s.category_id} | MRP: ₹${s.price || 'N/A'} | Price: ₹${s.discount_price || 'N/A'} | Prep: ${s.preparation || 'N/A'}]`).join('\n');
     const pilotContext = `Pilot City: Bengaluru | Coverage: ${HEX_SPECIFICATION.geographyPilot.approvedLocalities.join(', ')}`;
@@ -116,64 +263,39 @@ User Question: "${rawQuery}"
 Please formulate a warm, clear, concise response adhering strictly to your HEX Persona and System Rules. Include escalation phrase "Let me connect you to your Health Manager." if information is missing or human action is required.
 `;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: SYSTEM_INSTRUCTION }]
-        },
-        contents: [{ parts: [{ text: promptText }] }],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 300
-        }
-      })
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      console.warn(`Gemini API Error (${data.error.code}):`, data.error.message);
-      lastEngineStatus = {
-        isOnline: false,
-        engineType: 'LOCAL_FALLBACK',
-        activeKeySource: keySource,
-        lastError: `API Error ${data.error.code}: ${data.error.message}`,
-        lastCheckedAt: new Date().toISOString()
-      };
-      return localResult;
-    }
-
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidateText = await callLlmProvider(config.provider, config.model, config.key, config.baseUrl, promptText);
 
     if (candidateText && candidateText.trim()) {
       lastEngineStatus = {
         isOnline: true,
-        engineType: 'GEMINI_2.5_FLASH',
-        activeKeySource: keySource,
+        engineType: `${config.provider.toUpperCase()} (${config.model})`,
+        activeProvider: config.provider,
+        activeModel: config.model,
+        activeKeySource: config.source,
         lastError: null,
         lastCheckedAt: new Date().toISOString()
       };
 
       return {
-        intent: 'GEMINI_AI_SYNTHESIS',
+        intent: 'AI_SYNTHESIS',
         text: candidateText.trim(),
         quickReplies: localResult.quickReplies,
         whatsappMsg: localResult.whatsappMsg
       };
     }
   } catch (err) {
-    console.warn('Gemini API exception, using local engine fallback:', err);
+    console.warn(`Universal AI Provider (${config.provider}/${config.model}) exception, falling back to local engine:`, err);
     lastEngineStatus = {
       isOnline: false,
       engineType: 'LOCAL_FALLBACK',
-      activeKeySource: keySource,
+      activeProvider: config.provider,
+      activeModel: config.model,
+      activeKeySource: config.source,
       lastError: err.message,
       lastCheckedAt: new Date().toISOString()
     };
   }
 
-  // Fallback to verified local decision engine if Gemini fails or is offline
+  // Fail-Safe Fallback to verified local decision engine if AI fails or is offline
   return localResult;
 }

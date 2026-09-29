@@ -4,7 +4,8 @@ import {
   RefreshCw, CheckCircle2, AlertCircle, Clock, Search, Filter, 
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X,
   BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck, Menu, Settings,
-  CreditCard as PaymentIcon, Bell, Tag, Percent, Plus, Layers3, Coins, Gift, History, Award
+  CreditCard as PaymentIcon, Bell, Tag, Percent, Plus, Layers3, Coins, Gift, History, Award,
+  Cpu, Sparkles, Key, EyeOff, Play, Server, Globe
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
@@ -32,7 +33,7 @@ import {
 } from '../services/adminService';
 import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
-import { getGeminiEngineStatus } from '../services/geminiService';
+import { getGeminiEngineStatus, testAiConnection, getEffectiveAiConfig } from '../services/geminiService';
 
 function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -125,20 +126,51 @@ function AdminDashboardPage() {
     description: ''
   });
 
-  // ADMIN GEMINI AI KEY & ENGINE TELEMETRY
-  const [adminGeminiKey, setAdminGeminiKey] = useState(() => localStorage.getItem('hex_admin_gemini_key') || '');
+  // ADMIN UNIVERSAL MULTI-LLM AI ENGINE & TELEMETRY
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('hex_admin_ai_provider') || 'gemini');
+  const [aiModel, setAiModel] = useState(() => localStorage.getItem('hex_admin_ai_model') || 'gemini-2.5-flash');
+  const [adminGeminiKey, setAdminGeminiKey] = useState(() => localStorage.getItem('hex_admin_gemini_key') || localStorage.getItem('hex_admin_ai_key') || '');
+  const [aiBaseUrl, setAiBaseUrl] = useState(() => localStorage.getItem('hex_admin_ai_base_url') || '');
+  const [showAiKeySecret, setShowAiKeySecret] = useState(false);
+  const [isTestingAiConnection, setIsTestingAiConnection] = useState(false);
+  const [aiTestResult, setAiTestResult] = useState(null);
   const [geminiStatus, setGeminiStatus] = useState(() => getGeminiEngineStatus());
 
   const handleSaveAdminGeminiKey = (e) => {
     if (e) e.preventDefault();
+    localStorage.setItem('hex_admin_ai_provider', aiProvider);
+    localStorage.setItem('hex_admin_ai_model', aiModel.trim());
+    localStorage.setItem('hex_admin_ai_base_url', aiBaseUrl.trim());
+
     if (adminGeminiKey.trim()) {
       localStorage.setItem('hex_admin_gemini_key', adminGeminiKey.trim());
-      showToast('Gemini AI API Key updated successfully in Admin Panel.');
+      localStorage.setItem('hex_admin_ai_key', adminGeminiKey.trim());
+      showToast(`Saved AI Agent settings: ${aiProvider.toUpperCase()} (${aiModel.trim()}).`);
     } else {
       localStorage.removeItem('hex_admin_gemini_key');
-      showToast('Admin API Key override cleared. Using environment key.');
+      localStorage.removeItem('hex_admin_ai_key');
+      showToast('Admin API Key cleared. System will use environment key or local engine.');
     }
     setGeminiStatus(getGeminiEngineStatus());
+  };
+
+  const handleTestAiConnection = async () => {
+    setAiTestResult(null);
+    setIsTestingAiConnection(true);
+    try {
+      const res = await testAiConnection(aiProvider, aiModel.trim(), adminGeminiKey.trim(), aiBaseUrl.trim());
+      setAiTestResult(res);
+      if (res.success) {
+        showToast(res.message, 'success');
+      } else {
+        showToast(res.error, 'error');
+      }
+    } catch (err) {
+      setAiTestResult({ success: false, error: err.message || 'Connection test failed' });
+    } finally {
+      setIsTestingAiConnection(false);
+      setGeminiStatus(getGeminiEngineStatus());
+    }
   };
 
   // Dynamically aggregate all categories across master dataset & live orders
@@ -1975,6 +2007,228 @@ function AdminDashboardPage() {
 {/* NAV SECTION 8: SYSTEM SETTINGS */}
         {activeNav === 'settings' && (
           <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 text-left space-y-6 shadow-xl">
+            {/* HEX AI AGENT & MULTI-MODEL CONFIGURATION CARD */}
+            <div className="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 space-y-5">
+              <div className="border-b border-slate-800 pb-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-purple-900/60 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-md">
+                    <Cpu className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white flex items-center gap-2">
+                      <span>HEX AI Agent & Multi-Model Engine</span>
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Configure any AI Provider (Gemini, OpenAI, Claude, Custom), Model string & API key</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider uppercase flex items-center gap-1.5 border ${
+                    geminiStatus.isOnline && geminiStatus.hasApiKey
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${geminiStatus.isOnline && geminiStatus.hasApiKey ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                    {geminiStatus.engineType}
+                  </span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveAdminGeminiKey} className="space-y-4 text-xs">
+                
+                {/* PROVIDER PICKER GRID */}
+                <div>
+                  <label className="block text-slate-300 font-extrabold mb-2 uppercase text-[10px] tracking-wider text-purple-300">
+                    1. Select AI Model Provider
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'gemini', label: 'Google Gemini', icon: Sparkles },
+                      { id: 'openai', label: 'OpenAI (GPT)', icon: Cpu },
+                      { id: 'anthropic', label: 'Anthropic (Claude)', icon: Server },
+                      { id: 'custom', label: 'Custom / OpenAI API', icon: Globe },
+                    ].map((p) => {
+                      const IconComp = p.icon;
+                      const isSelected = aiProvider === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setAiProvider(p.id);
+                            if (p.id === 'gemini') setAiModel('gemini-2.5-flash');
+                            if (p.id === 'openai') setAiModel('gpt-4o-mini');
+                            if (p.id === 'anthropic') setAiModel('claude-3-5-sonnet-20240620');
+                            if (p.id === 'custom') setAiModel('custom-model-1');
+                          }}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 ${
+                            isSelected
+                              ? 'bg-purple-900/60 border-purple-500 text-white font-black shadow-md'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <IconComp className={`w-3.5 h-3.5 ${isSelected ? 'text-purple-300' : 'text-slate-500'}`} />
+                          <span className="text-xs font-bold truncate">{p.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* MODEL NAME SELECTOR / CUSTOM MODEL WRITE-IN */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1">
+                      2. AI Model Name String *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={aiModel}
+                      onChange={(e) => setAiModel(e.target.value)}
+                      placeholder="e.g. gemini-2.5-flash, gpt-4o, claude-3-5-sonnet..."
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs font-bold focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1">
+                      Preset Shortcuts
+                    </label>
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) setAiModel(e.target.value);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-xs focus:outline-none"
+                    >
+                      <option value="">-- Choose preset model --</option>
+                      {aiProvider === 'gemini' && (
+                        <>
+                          <option value="gemini-2.5-flash">gemini-2.5-flash (Recommended)</option>
+                          <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                          <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                        </>
+                      )}
+                      {aiProvider === 'openai' && (
+                        <>
+                          <option value="gpt-4o-mini">gpt-4o-mini (Fast & Recommended)</option>
+                          <option value="gpt-4o">gpt-4o (High Accuracy)</option>
+                          <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                        </>
+                      )}
+                      {aiProvider === 'anthropic' && (
+                        <>
+                          <option value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</option>
+                          <option value="claude-3-haiku-20240307">claude-3-haiku-20240307</option>
+                        </>
+                      )}
+                      {aiProvider === 'custom' && (
+                        <>
+                          <option value="deepseek-chat">deepseek-chat</option>
+                          <option value="llama3-70b-8192">llama3-70b-8192 (Groq)</option>
+                          <option value="mistral-large-latest">mistral-large-latest</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {/* API KEY INPUT */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-purple-400" />
+                      <span>3. {aiProvider.toUpperCase()} API Key *</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAiKeySecret(!showAiKeySecret)}
+                      className="text-purple-400 hover:text-purple-300 text-[11px] flex items-center gap-1 font-bold cursor-pointer"
+                    >
+                      {showAiKeySecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      <span>{showAiKeySecret ? 'Hide Key' : 'Show Key'}</span>
+                    </button>
+                  </label>
+                  <input
+                    type={showAiKeySecret ? "text" : "password"}
+                    value={adminGeminiKey}
+                    onChange={(e) => setAdminGeminiKey(e.target.value)}
+                    placeholder={`Paste your ${aiProvider.toUpperCase()} API Key here...`}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* CUSTOM BASE URL */}
+                {(aiProvider === 'custom' || aiProvider === 'openai') && (
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1">
+                      Custom Endpoint Base URL (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={aiBaseUrl}
+                      onChange={(e) => setAiBaseUrl(e.target.value)}
+                      placeholder="e.g. https://api.openai.com/v1 or http://localhost:11434/v1"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                )}
+
+                {/* TEST RESULT NOTIFICATION BOX */}
+                {aiTestResult && (
+                  <div className={`p-3 rounded-xl border text-xs font-semibold flex items-start gap-2 animate-in fade-in ${
+                    aiTestResult.success
+                      ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-200'
+                      : 'bg-rose-950/60 border-rose-500/50 text-rose-200'
+                  }`}>
+                    {aiTestResult.success ? <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />}
+                    <div className="space-y-0.5">
+                      <div className="font-bold">{aiTestResult.success ? 'Diagnostic Test Passed!' : 'Connection Test Failed'}</div>
+                      <p className="text-[11px] opacity-90">{aiTestResult.message || aiTestResult.error}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ACTION BUTTONS */}
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Save AI Config</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleTestAiConnection}
+                      disabled={isTestingAiConnection || !adminGeminiKey.trim()}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      {isTestingAiConnection ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />}
+                      <span>{isTestingAiConnection ? 'Testing...' : 'Test Connection'}</span>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdminGeminiKey('');
+                      localStorage.removeItem('hex_admin_gemini_key');
+                      localStorage.removeItem('hex_admin_ai_key');
+                      setAiTestResult(null);
+                      setGeminiStatus(getGeminiEngineStatus());
+                      showToast('API Key cleared. System will use environment key or local engine.');
+                    }}
+                    className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-white font-bold text-xs transition-all cursor-pointer"
+                  >
+                    Clear Key
+                  </button>
+                </div>
+              </form>
+            </div>
             <div className="border-b border-slate-700/80 pb-3">
               <h3 className="text-base font-black text-white flex items-center gap-2">
                 <Settings className="w-5 h-5 text-purple-400" />
