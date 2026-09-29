@@ -1,12 +1,12 @@
-import { CHATBOT_KNOWLEDGE } from '../data/chatbotKnowledge.js';
+import { CHATBOT_KNOWLEDGE, HEX_SPECIFICATION } from '../data/chatbotKnowledge.js';
 import { ALL_SERVICES, CATEGORIES } from '../data/services.js';
 import { DEFAULT_MESSAGES } from '../utils/whatsapp.js';
 
 /**
- * Health Express AI Conversational & Knowledge Retrieval Engine
- * Primary Source of Truth:
- * - Services & Pricing: ALL_SERVICES & CATEGORIES from src/data/services.js
- * - Localities & Coverage: CHATBOT_KNOWLEDGE from src/data/chatbotKnowledge.js
+ * HEALTH EXPRESS — HEX AI AGENT DECISION & INTENT ENGINE
+ * Developer Specification • Version 1.0
+ * 
+ * Non-Negotiable Rules & Intent Processor
  */
 
 const STOP_WORDS = new Set([
@@ -22,24 +22,19 @@ const STOP_WORDS = new Set([
   'service', 'services', 'test', 'tests', 'scan', 'scans', 'checkup',
   'checkups', 'package', 'packages', 'please', 'thanks', 'thank',
   'good', 'hi', 'hello', 'hey', 'need', 'want', 'require', 'looking',
-  'bengaluru', 'bangalore', 'koramangala', 'indiranagar', 'hsr', 'layout',
-  'whitefield', 'bellandur', 'jayanagar', 'electronic', 'city', 'sarjapur',
-  'road', 'hebbal', 'jp', 'nagar', 'indore', 'mumbai', 'delhi', 'pune',
-  'chennai', 'kolkata', 'hyderabad', 'sample', 'collection', 'home'
+  'bengaluru', 'bangalore', 'sample', 'collection', 'home'
 ]);
 
 function extractSearchKeywords(rawQuery) {
   const clean = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  const tokens = clean.split(' ').filter((t) => t.length > 1 && !STOP_WORDS.has(t));
-  return tokens;
+  return clean.split(' ').filter((t) => t.length > 1 && !STOP_WORDS.has(t));
 }
 
-// Helper to search services in ALL_SERVICES
 function searchCatalogServices(rawQuery) {
   const clean = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
   if (!clean) return [];
 
-  // 1. Exact ID, slug, or exact name match
+  // Exact match first
   const exactMatch = ALL_SERVICES.filter((s) => 
     s.id.toLowerCase() === clean || 
     s.slug.toLowerCase() === clean || 
@@ -47,17 +42,16 @@ function searchCatalogServices(rawQuery) {
   );
   if (exactMatch.length > 0) return exactMatch;
 
-  // 2. Keyword matching with stop words excluded
+  // Keyword match
   const keywords = extractSearchKeywords(rawQuery);
   if (keywords.length === 0) return [];
 
-  const matched = ALL_SERVICES.filter((s) => {
+  return ALL_SERVICES.filter((s) => {
     const sNameLower = s.name.toLowerCase();
     const sIdLower = s.id.toLowerCase();
     const sSlugLower = s.slug.toLowerCase();
     const sSubcatLower = (s.subcategory || '').toLowerCase();
     const sDescLower = (s.shortDesc || s.description || '').toLowerCase();
-    const sParamsLower = (s.parameters || []).map((p) => p.toLowerCase()).join(' ');
 
     return keywords.every((kw) => {
       const safeKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -67,70 +61,59 @@ function searchCatalogServices(rawQuery) {
         kwRegex.test(sIdLower) || 
         kwRegex.test(sSlugLower) ||
         kwRegex.test(sSubcatLower) ||
-        (kw.length > 3 && (sDescLower.includes(kw) || sParamsLower.includes(kw)))
+        (kw.length > 3 && sDescLower.includes(kw))
       );
     });
   });
-
-  return matched;
 }
 
-// Helper to check location coverage against CHATBOT_KNOWLEDGE
-function evaluateLocationCoverage(rawQuery) {
+function evaluateGeographyCoverage(rawQuery, serviceType = 'general') {
   const cleanQuery = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
 
-  // Common non-covered cities list for explicit negative detection
   const externalCities = [
     'indore', 'mumbai', 'delhi', 'pune', 'chennai', 'kolkata', 'hyderabad', 
     'ahmedabad', 'jaipur', 'lucknow', 'chandigarh', 'kochi', 'surat', 'bhopal'
   ];
 
-  const foundExternalCity = externalCities.find((city) => cleanQuery.includes(city));
-  if (foundExternalCity) {
-    const formattedCity = foundExternalCity.charAt(0).toUpperCase() + foundExternalCity.slice(1);
+  const foundExternal = externalCities.find((c) => cleanQuery.includes(c));
+  if (foundExternal) {
+    const formattedCity = foundExternal.charAt(0).toUpperCase() + foundExternal.slice(1);
     return {
       isCovered: false,
-      mentionedLocation: formattedCity,
-      message: `Service availability in **${formattedCity}** could not be confirmed. Health Express currently operates in **Bengaluru** across major hubs including:\n• ${CHATBOT_KNOWLEDGE.localities.join('\n• ')}`
+      locationName: formattedCity,
+      text: `Health Express is currently available in select areas of Bengaluru. **${formattedCity}** is not currently covered. I can help you join the waitlist so you can be notified when we expand.\n\nLet me connect you to your Health Manager.`
     };
   }
 
-  const matchedLocality = CHATBOT_KNOWLEDGE.localities.find((loc) => cleanQuery.includes(loc.toLowerCase()));
+  const matchedLocality = HEX_SPECIFICATION.geographyPilot.approvedLocalities.find(
+    (loc) => cleanQuery.includes(loc.toLowerCase())
+  );
+
   if (matchedLocality || cleanQuery.includes('bengaluru') || cleanQuery.includes('bangalore')) {
-    const areaName = matchedLocality || 'Bengaluru';
+    const area = matchedLocality || 'Bengaluru';
     return {
       isCovered: true,
-      mentionedLocation: areaName,
-      message: `📍 **Service Coverage Confirmed**: Health Express provides home sample collection and home nursing care in **${areaName}**, Bengaluru!`
+      locationName: area,
+      text: `📍 **Pilot Coverage Confirmed**: Health Express provides services in **${area}**, Bengaluru! (${HEX_SPECIFICATION.geographyPilot.homeNursingCoverageNote})`
     };
   }
 
   return {
     isCovered: null,
-    mentionedLocation: null,
-    message: `📍 **Service Coverage**: Health Express operates in **Bengaluru** across major hubs including:\n• ${CHATBOT_KNOWLEDGE.localities.join('\n• ')}`
+    locationName: null,
+    text: `📍 **Geography & Pilot Coverage**: Health Express is actively piloting in **Bengaluru** across major hubs including:\n• ${HEX_SPECIFICATION.geographyPilot.approvedLocalities.slice(0, 10).join('\n• ')}`
   };
 }
 
 /**
- * Clean user query for target terms when searching fallbacks
+ * Main HEX Engine decision pipeline
  */
-function extractTargetTerm(rawQuery) {
-  return rawQuery
-    .replace(/[^\w\s]/gi, '')
-    .replace(/\b(what|is|the|price|cost|charge|rate|fee|how|much|does|for|of|in|available|service|services|test|tests|scan|scans|do|you|provide|offer|tell|me|can|i|get)\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/**
- * Main intent processor and knowledge retriever
- */
-export function processUserMessage(rawQuery, currentPath = '/', conversationHistory = []) {
+export function processUserMessage(rawQuery, currentPath = '/', userContext = {}) {
   const cleanQuery = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const ESCALATION = "Let me connect you to your Health Manager.";
 
   // ----------------------------------------------------
-  // 1. EMERGENCY MEDICAL DISCLAIMER CHECK
+  // 1. EMERGENCY MEDICAL SAFETY CHECK (Rule 11)
   // ----------------------------------------------------
   if (
     cleanQuery.includes('emergency') || 
@@ -141,227 +124,270 @@ export function processUserMessage(rawQuery, currentPath = '/', conversationHist
     cleanQuery.includes('severe bleeding')
   ) {
     return {
+      intent: 'EMERGENCY_RESPONSE',
       text: "🚨 **Immediate Medical Notice**: If you or someone around you is experiencing a medical emergency, chest pain, or severe breathing distress, please call emergency services (108 / 112) or reach the nearest hospital immediately.\n\nHealth Express is a service coordination manager and not an emergency triage service.",
       quickReplies: [
-        { label: "Talk to Health Express Team", action: "whatsapp_general" }
+        { label: "Connect with Health Manager", action: "whatsapp_general" }
       ],
       whatsappMsg: DEFAULT_MESSAGES.general
     };
   }
 
   // ----------------------------------------------------
-  // 2. MEDICAL ADVICE & DIAGNOSIS GUARD
+  // 2. MEDICAL ADVICE & CLINICAL DIAGNOSIS BOUNDARY (Rule 11)
   // ----------------------------------------------------
   if (
-    cleanQuery.includes('prescribe me') || 
-    cleanQuery.includes('what medicine for') || 
-    cleanQuery.includes('diagnose my') || 
-    cleanQuery.includes('cure for') || 
-    cleanQuery.includes('medicine suggestion') ||
-    cleanQuery.includes('dawa batao')
+    cleanQuery.includes('diagnose') || 
+    cleanQuery.includes('symptom') || 
+    cleanQuery.includes('medicine for') || 
+    cleanQuery.includes('cure') || 
+    cleanQuery.includes('treatment for') || 
+    cleanQuery.includes('dosage') || 
+    cleanQuery.includes('prescribe') ||
+    cleanQuery.includes('dawa') ||
+    cleanQuery.includes('report result mean')
   ) {
     return {
-      text: "⚠️ **Medical Advice Notice**: I am the Health Express Service Assistant. I cannot diagnose symptoms or prescribe medications.\n\nFor medical advice or treatment, we recommend consulting a qualified doctor. However, if you already have a prescription or need diagnostic blood tests, Health Express can coordinate your care.",
+      intent: 'MEDICAL_ADVICE_REQUEST',
+      text: HEX_SPECIFICATION.exampleResponses.medicalAdvice,
       quickReplies: [
-        { label: "Send Prescription on WhatsApp", action: "whatsapp_prescription" },
-        { label: "Explore Diagnostic Services", action: "nav_services" }
+        { label: "Connect to Health Manager", action: "whatsapp_general" },
+        { label: "Upload Prescription", action: "open_upload_modal" }
+      ],
+      whatsappMsg: "Namaste Health Express! I need medical coordination assistance for my healthcare requirement."
+    };
+  }
+
+  // ----------------------------------------------------
+  // 3. HUMAN HANDOFF & CALLBACK REQUESTS (Rule 13)
+  // ----------------------------------------------------
+  if (
+    cleanQuery.includes('call me') || 
+    cleanQuery.includes('callback') || 
+    cleanQuery.includes('phone call') || 
+    cleanQuery.includes('call back')
+  ) {
+    return {
+      intent: 'CALLBACK_REQUEST',
+      text: HEX_SPECIFICATION.exampleResponses.callback,
+      quickReplies: [
+        { label: "Connect on WhatsApp", action: "whatsapp_general" }
+      ],
+      whatsappMsg: "Namaste Health Express! I am requesting a callback from the Health Manager team."
+    };
+  }
+
+  if (
+    cleanQuery.includes('talk to human') || 
+    cleanQuery.includes('connect to agent') || 
+    cleanQuery.includes('speak to manager') || 
+    cleanQuery.includes('customer care') || 
+    cleanQuery.includes('human support')
+  ) {
+    return {
+      intent: 'HUMAN_REQUEST',
+      text: HEX_SPECIFICATION.exampleResponses.humanRequest,
+      quickReplies: [
+        { label: "Chat with Health Manager", action: "whatsapp_general" }
+      ],
+      whatsappMsg: "Namaste Health Express! I would like to speak directly with my Health Manager."
+    };
+  }
+
+  // ----------------------------------------------------
+  // 4. OPERATIONAL ACTIONS: BOOKING / PAYMENT / CANCEL (Rule 12)
+  // ----------------------------------------------------
+  if (
+    cleanQuery.includes('book service') || 
+    cleanQuery.includes('book appointment') || 
+    cleanQuery.includes('schedule test') || 
+    cleanQuery.includes('pay now') || 
+    cleanQuery.includes('cancel order') || 
+    cleanQuery.includes('reschedule')
+  ) {
+    return {
+      intent: 'BOOKING_PAYMENT_CANCEL',
+      text: `HEX is an informational and navigation assistant. I do not directly execute bookings, payments, or operational cancellations.\n\n${ESCALATION}`,
+      quickReplies: [
+        { label: "Connect to Health Manager", action: "whatsapp_general" }
+      ],
+      whatsappMsg: `Namaste Health Express! I would like assistance with: ${rawQuery}`
+    };
+  }
+
+  // ----------------------------------------------------
+  // 5. PRESCRIPTION / MEDICAL ORDER (Rule 14)
+  // ----------------------------------------------------
+  if (
+    cleanQuery.includes('prescription') || 
+    cleanQuery.includes('rx') || 
+    cleanQuery.includes('doctor note') || 
+    cleanQuery.includes('upload order')
+  ) {
+    return {
+      intent: 'PRESCRIPTION_UPLOAD',
+      text: HEX_SPECIFICATION.exampleResponses.prescription,
+      quickReplies: [
+        { label: "📄 Upload Prescription File", action: "open_upload_modal" },
+        { label: "💬 Send via WhatsApp", action: "whatsapp_prescription" }
       ],
       whatsappMsg: DEFAULT_MESSAGES.prescription
     };
   }
 
   // ----------------------------------------------------
-  // 3. GENERAL CONVERSATION & SMALL TALK
+  // 6. PROVIDER NEUTRALITY CHECK (Rule 10)
   // ----------------------------------------------------
-  const greetings = ['hi', 'hello', 'hey', 'good morning', 'good evening', 'greetings', 'namaste', 'hais', 'hie'];
-  const gratitude = ['thanks', 'thank you', 'thx', 'thankyou', 'dhanyawad', 'shukriya'];
-  const closing = ['okay', 'ok', 'great', 'awesome', 'got it', 'sure', 'fine', 'bye', 'goodbye'];
-  const helpInquiries = ['can you help me', 'what can you do', 'how can you help', 'what do you do', 'tell me something', 'who are you'];
-  const serviceCatalogInquiries = ['what services do you offer', 'what services do you provide', 'show me services', 'list of services', 'available services', 'services list'];
-
-  if (greetings.includes(cleanQuery) || cleanQuery === 'hi hex' || cleanQuery === 'hello hex') {
+  if (
+    cleanQuery.includes('best doctor') || 
+    cleanQuery.includes('best hospital') || 
+    cleanQuery.includes('top provider') || 
+    cleanQuery.includes('best lab') || 
+    cleanQuery.includes('recommend provider')
+  ) {
     return {
-      text: "Hi! 👋 How can I help you with Health Express services, pricing, or availability?",
+      intent: 'PROVIDER_RECOMMENDATION_REQUEST',
+      text: `Health Express presents factual information regarding partner laboratories, imaging centers, and accredited nursing staff. We do not rank or recommend specific providers so you can make an informed choice.\n\n${ESCALATION}`,
       quickReplies: [
-        { label: "🧪 Lab Tests & Pricing", action: "nav_services" },
-        { label: "🏡 Home Healthcare Nursing", action: "whatsapp_service_nursing" },
-        { label: "📍 Areas We Cover", action: "whatsapp_locality" },
-        { label: "📄 Upload Prescription", action: "open_upload_modal" }
+        { label: "Explore Diagnostic Partners", action: "nav_services" },
+        { label: "Connect to Health Manager", action: "whatsapp_general" }
       ],
-      whatsappMsg: DEFAULT_MESSAGES.general
-    };
-  }
-
-  if (gratitude.some((g) => cleanQuery.includes(g))) {
-    return {
-      text: "You're welcome! 😊 Let me know if you need any further help with tests, home care, or pricing.",
-      quickReplies: [
-        { label: "Explore Services", action: "nav_services" },
-        { label: "Connect on WhatsApp", action: "whatsapp_general" }
-      ],
-      whatsappMsg: DEFAULT_MESSAGES.general
-    };
-  }
-
-  if (closing.includes(cleanQuery)) {
-    return {
-      text: "Great! Have a healthy day ahead! Feel free to reach out anytime.",
-      quickReplies: [
-        { label: "Explore Services", action: "nav_services" }
-      ],
-      whatsappMsg: DEFAULT_MESSAGES.general
-    };
-  }
-
-  if (helpInquiries.some((h) => cleanQuery.includes(h))) {
-    return {
-      text: "I am the **Health Express Care Assistant**! Here is how I can help you:\n\n1. 🧪 **Pricing**: Check exact prices for lab tests, radiology, and health packages.\n2. 📍 **Areas We Cover**: Verify home collection & nursing availability in Bengaluru.\n3. 📋 **Services**: Explore CBC, Thyroid, Vitamin D, HbA1c, MRI, CT Scans, Home Care Nursing, and Surgeries.\n4. 📄 **Prescriptions**: Send your prescription directly on WhatsApp for instant coordination.",
-      quickReplies: [
-        { label: "🧪 Check Test Prices", action: "nav_services" },
-        { label: "📍 View Covered Areas", action: "whatsapp_locality" },
-        { label: "🏡 Home Healthcare Nursing", action: "whatsapp_service_nursing" }
-      ],
-      whatsappMsg: DEFAULT_MESSAGES.general
-    };
-  }
-
-  if (serviceCatalogInquiries.some((s) => cleanQuery.includes(s))) {
-    return {
-      text: "📋 **Health Express Healthcare Services**:\n\n1. 🧪 **Lab Tests & Pathology**: CBC, Thyroid Profile, Lipid Profile, HbA1c, Vitamin D/B12, Liver & Kidney Function.\n2. 📷 **Diagnostic Imaging**: MRI Brain/Spine, CT Scans, Ultrasound & X-Rays at accredited centers.\n3. 🧬 **Genetics & Genomics**: Carrier screening, hereditary disease risk, and DNA sequencing.\n4. 🏡 **Home Care & Nursing**: Certified nurse home visits, IV therapy, post-op recovery, & vital monitoring.\n5. 🩺 **Surgical Guidance**: Elective surgery second opinions & hospital admission coordination.\n\nType any specific test or service name to see exact pricing and details!",
-      quickReplies: [
-        { label: "🧪 Check Test Prices", action: "nav_services" },
-        { label: "📍 View Coverage Areas", action: "whatsapp_locality" }
-      ],
-      whatsappMsg: DEFAULT_MESSAGES.general
+      whatsappMsg: "Namaste Health Express! I would like details about your accredited provider options."
     };
   }
 
   // ----------------------------------------------------
-  // 4. INTENT IDENTIFICATION
+  // 7. COMING SOON SERVICES CHECK (Rule 6)
   // ----------------------------------------------------
-  const isPricingIntent = 
-    cleanQuery.includes('price') || 
-    cleanQuery.includes('cost') || 
-    cleanQuery.includes('charge') || 
-    cleanQuery.includes('rate') || 
-    cleanQuery.includes('fee') || 
-    cleanQuery.includes('pay') || 
-    cleanQuery.includes('pricing') || 
-    cleanQuery.includes('how much') || 
-    cleanQuery.includes('kitne') || 
-    cleanQuery.includes('kitna');
+  const comingSoonMatch = HEX_SPECIFICATION.comingSoonServices.find(
+    (cs) => cleanQuery.includes(cs.id) || cleanQuery.includes(cs.name.toLowerCase())
+  );
+  if (comingSoonMatch || cleanQuery.includes('telemedicine') || cleanQuery.includes('pharmacy') || cleanQuery.includes('wellness') || cleanQuery.includes('chronic')) {
+    return {
+      intent: 'COMING_SOON',
+      text: `${HEX_SPECIFICATION.exampleResponses.comingSoon}\n\n${comingSoonMatch ? comingSoonMatch.name + ': ' + comingSoonMatch.description : 'Telemedicine, Pharmacy, and Wellness features are scheduled for our upcoming release.'}`,
+      quickReplies: [
+        { label: "View Active Live Services", action: "nav_services" },
+        { label: "Talk to Health Manager", action: "whatsapp_general" }
+      ],
+      whatsappMsg: "Namaste Health Express! Please inform me when your upcoming services launch."
+    };
+  }
 
-  const isAreaIntent = 
+  // ----------------------------------------------------
+  // 8. HOME NURSING & CARE TAXONOMY QUERY (Section 5)
+  // ----------------------------------------------------
+  if (
+    cleanQuery.includes('nursing') || 
+    cleanQuery.includes('caregiver') || 
+    cleanQuery.includes('japa') || 
+    cleanQuery.includes('elderly care') || 
+    cleanQuery.includes('post op') || 
+    cleanQuery.includes('dementia') ||
+    cleanQuery.includes('respite')
+  ) {
+    return {
+      intent: 'HOME_NURSING_TAXONOMY',
+      text: `🏡 **Home Nursing & Care Services (LIVE)**\n\nHealth Express provides broader home care coverage across Bengaluru:\n• **Nursing & Clinical**: Home Nursing Care, Post-Operative Care, Recovery Care\n• **Everyday & Family**: Elderly Care, Patient Caregivers, Respite Care\n• **Mother & Baby**: Japa Caregivers, Postpartum & Newborn Support\n• **Specialized Care**: Dementia Care, Companion Care, Disability Care\n\n💰 **Pricing Rule**: Home Nursing requires a personalized quotation based on clinical scope.\n\n${ESCALATION}`,
+      quickReplies: [
+        { label: "Request Home Care Quotation", action: "whatsapp_service_nursing" }
+      ],
+      whatsappMsg: "Namaste Health Express! I am interested in Home Healthcare & Nursing in Bengaluru. Please provide a quotation."
+    };
+  }
+
+  // ----------------------------------------------------
+  // 9. SERVICE & PRICING QUERY (Rules 4, 8, 9)
+  // ----------------------------------------------------
+  const matchedServices = searchCatalogServices(rawQuery);
+
+  if (matchedServices.length > 0) {
+    const primary = matchedServices[0];
+    let replyText = `🧪 **${primary.name}**\n${primary.shortDesc || primary.description}`;
+
+    if (primary.price_type === 'QUOTE_REQUIRED' || !primary.discount_price) {
+      replyText += `\n\n💰 **Pricing**: A personalized quotation is required for this service.\n\n${ESCALATION}`;
+    } else if (primary.price) {
+      replyText += `\n\n💰 **Listed MRP**: ₹${primary.price}`;
+      if (primary.discount_price && primary.discount_price < primary.price) {
+        replyText += ` (Offer Price: ₹${primary.discount_price})`;
+      }
+    } else if (primary.discount_price) {
+      replyText += `\n\n💰 **Price**: The price starts from ₹${primary.discount_price}`;
+    } else {
+      replyText += `\n\n💰 ${HEX_SPECIFICATION.exampleResponses.unlistedPrice}`;
+    }
+
+    if (primary.turnaround_time) replyText += `\n⏱️ **TAT**: ${primary.turnaround_time}`;
+    if (primary.fasting_required !== undefined) replyText += `\n🥣 **Preparation**: ${primary.fasting_required ? '10-12 Hrs Fasting Required' : 'No Fasting Required'}`;
+
+    return {
+      intent: 'SERVICE_PRICE_QUERY',
+      text: replyText,
+      quickReplies: [
+        { label: `Enquire ${primary.name.split(' ')[0]}`, action: `whatsapp_test_${primary.id}` },
+        { label: "Talk to Health Manager", action: "whatsapp_general" }
+      ],
+      whatsappMsg: `Namaste Health Express! I am inquiring about ${primary.name}. Please assist.`
+    };
+  }
+
+  // ----------------------------------------------------
+  // 10. GEOGRAPHY & COVERAGE QUERY (Rule 7)
+  // ----------------------------------------------------
+  if (
     cleanQuery.includes('area') || 
     cleanQuery.includes('location') || 
     cleanQuery.includes('city') || 
-    cleanQuery.includes('covered') || 
-    cleanQuery.includes('operate') || 
-    cleanQuery.includes('available in') || 
     cleanQuery.includes('coverage') || 
     cleanQuery.includes('where do you') || 
-    cleanQuery.includes('which city') || 
-    cleanQuery.includes('which area') ||
-    CHATBOT_KNOWLEDGE.localities.some((loc) => cleanQuery.includes(loc.toLowerCase())) ||
     cleanQuery.includes('bengaluru') || 
     cleanQuery.includes('bangalore') ||
-    ['indore', 'mumbai', 'delhi', 'pune', 'chennai', 'kolkata', 'hyderabad'].some((city) => cleanQuery.includes(city));
-
-  const matchedServices = searchCatalogServices(rawQuery);
-  const isServiceIntent = 
-    matchedServices.length > 0 ||
-    cleanQuery.includes('service') || 
-    cleanQuery.includes('test') || 
-    cleanQuery.includes('scan') || 
-    cleanQuery.includes('checkup') || 
-    cleanQuery.includes('profile') || 
-    cleanQuery.includes('package') || 
-    cleanQuery.includes('nursing') || 
-    cleanQuery.includes('surgery') || 
-    cleanQuery.includes('mri') || 
-    cleanQuery.includes('cbc') || 
-    cleanQuery.includes('thyroid');
-
-  // ----------------------------------------------------
-  // 5. COMBINED / MULTI-INTENT RESOLUTION
-  // ----------------------------------------------------
-  let responseSections = [];
-  let quickReplies = [];
-
-  // A. SERVICE & PRICING MATCHING FROM ALL_SERVICES
-  if (matchedServices.length > 0) {
-    const primaryService = matchedServices[0];
-    let serviceText = `🧪 **${primaryService.name}**\n${primaryService.shortDesc || primaryService.description}`;
-    
-    if (isPricingIntent || cleanQuery.includes('price') || cleanQuery.includes('cost')) {
-      serviceText += `\n\n💰 **Exact Pricing**: ₹${primaryService.discount_price}`;
-      if (primaryService.price && primaryService.price > primaryService.discount_price) {
-        serviceText += ` (MRP: ₹${primaryService.price}, ${primaryService.discount_percentage || ''} OFF)`;
-      }
-    } else {
-      serviceText += `\n\n💰 **Price**: ₹${primaryService.discount_price}`;
-    }
-
-    if (primaryService.turnaround_time) {
-      serviceText += `\n⏱️ **Turnaround Time**: ${primaryService.turnaround_time}`;
-    }
-
-    if (primaryService.fasting_required !== undefined) {
-      serviceText += `\n🥣 **Fasting Prep**: ${primaryService.fasting_required ? 'Fasting Required' : 'No Fasting Needed'}`;
-    }
-
-    responseSections.push(serviceText);
-
-    quickReplies.push({ label: `Book ${primaryService.name.split(' ')[0]} (₹${primaryService.discount_price})`, action: `whatsapp_test_${primaryService.id}` });
-  } else if (isPricingIntent && !isAreaIntent) {
-    // Pricing requested for a service NOT found in ALL_SERVICES
-    const targetTerm = extractTargetTerm(rawQuery);
-    if (targetTerm.length > 1) {
-      responseSections.push(`💰 **Pricing**: Pricing information for "${targetTerm}" is currently not available in our catalog.\n\nPlease connect with our Care Manager on WhatsApp for customized pricing.`);
-    } else {
-      responseSections.push("💰 **Health Express Pricing**:\n• Complete Blood Count (CBC): ₹299 (MRP ₹350)\n• Thyroid Profile (T3, T4, TSH): ₹499 (MRP ₹750)\n• Lipid Profile: ₹499 (MRP ₹650)\n• Full Body Health Checkup: ₹1,499 (MRP ₹2,999)\n\nSearch any specific test to view its exact price!");
-    }
-  } else if (isServiceIntent && matchedServices.length === 0 && !isAreaIntent) {
-    // Service requested NOT found in ALL_SERVICES
-    const targetTerm = extractTargetTerm(rawQuery);
-    if (targetTerm.length > 1) {
-      responseSections.push(`🧪 **Service Inquiry**: We could not find "${targetTerm}" in our current healthcare service catalog.\n\nPlease connect with our Care Manager on WhatsApp to check if custom arrangements can be made.`);
-    }
-  }
-
-  // B. AREA / LOCATION COVERAGE EVALUATION FROM CHATBOT_KNOWLEDGE
-  if (isAreaIntent) {
-    const areaResult = evaluateLocationCoverage(rawQuery);
-    responseSections.push(areaResult.message);
-  }
-
-  // IF MULTI-INTENT OR SINGLE-INTENT PRODUCED SECTIONS
-  if (responseSections.length > 0) {
-    quickReplies.push({ label: "Send Prescription on WhatsApp", action: "whatsapp_prescription" });
-    quickReplies.push({ label: "Explore Services Directory", action: "nav_services" });
-
+    HEX_SPECIFICATION.geographyPilot.approvedLocalities.some((loc) => cleanQuery.includes(loc.toLowerCase()))
+  ) {
+    const geoResult = evaluateGeographyCoverage(rawQuery);
     return {
-      text: responseSections.join("\n\n---\n\n"),
-      quickReplies: quickReplies.slice(0, 4),
-      whatsappMsg: `Namaste Health Express! I am inquiring about: "${rawQuery}". Please guide me.`
+      intent: 'COVERAGE_QUERY',
+      text: geoResult.text,
+      quickReplies: [
+        { label: "Check Availability on WhatsApp", action: "whatsapp_locality" }
+      ],
+      whatsappMsg: `Namaste Health Express! Is service available in my area: "${rawQuery}"?`
     };
   }
 
   // ----------------------------------------------------
-  // 6. DEFAULT SMART FALLBACK RESPONSE
+  // 11. GENERAL GREETINGS & INTRO
+  // ----------------------------------------------------
+  const greetings = ['hi', 'hello', 'hey', 'greetings', 'namaste', 'hi hex', 'hello hex'];
+  if (greetings.includes(cleanQuery)) {
+    return {
+      intent: 'GREETING',
+      text: `${HEX_SPECIFICATION.agentIdentity.greeting}\n\nI am **HEX**, your Health Express Care Assistant. I can explain diagnostic tests, home nursing care, pilot coverage in Bengaluru, or connect you with your Health Manager.`,
+      quickReplies: [
+        { label: "🧪 Lab Diagnostics", action: "nav_services" },
+        { label: "🏡 Home Nursing Care", action: "whatsapp_service_nursing" },
+        { label: "📄 Upload Prescription", action: "open_upload_modal" },
+        { label: "📍 Bengaluru Coverage", action: "whatsapp_locality" }
+      ],
+      whatsappMsg: DEFAULT_MESSAGES.general
+    };
+  }
+
+  // ----------------------------------------------------
+  // 12. GOLDEN RULE FALLBACK (Rule 25)
   // ----------------------------------------------------
   return {
-    text: `I understand you are asking about "${rawQuery}".\n\nI am the Health Express Care Assistant. I can help you find lab test prices, check home nursing care, or verify service availability in Bengaluru.\n\nWould you like to connect directly with our care coordinator?`,
+    intent: 'MISSING_INFORMATION_HANDOFF',
+    text: HEX_SPECIFICATION.exampleResponses.unknownInformation,
     quickReplies: [
-      { label: "Talk to Care Manager on WhatsApp", action: "whatsapp_general" },
-      { label: "Send Prescription", action: "whatsapp_prescription" },
-      { label: "Explore Services Directory", action: "nav_services" }
+      { label: "Connect to Health Manager", action: "whatsapp_general" },
+      { label: "Send Prescription", action: "whatsapp_prescription" }
     ],
     whatsappMsg: `Namaste Health Express! I have a question regarding: "${rawQuery}". Please assist me.`
   };
 }
 
-export async function processUserMessageAsync(rawQuery, currentPath = '/', conversationHistory = []) {
-  return processUserMessage(rawQuery, currentPath, conversationHistory);
+export async function processUserMessageAsync(rawQuery, currentPath = '/', userContext = {}) {
+  return processUserMessage(rawQuery, currentPath, userContext);
 }
-
