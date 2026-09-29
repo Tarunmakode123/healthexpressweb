@@ -32,6 +32,7 @@ import {
 } from '../services/adminService';
 import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
+import { getGeminiEngineStatus } from '../services/geminiService';
 
 function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -123,6 +124,22 @@ function AdminDashboardPage() {
     type: 'admin_credit',
     description: ''
   });
+
+  // ADMIN GEMINI AI KEY & ENGINE TELEMETRY
+  const [adminGeminiKey, setAdminGeminiKey] = useState(() => localStorage.getItem('hex_admin_gemini_key') || '');
+  const [geminiStatus, setGeminiStatus] = useState(() => getGeminiEngineStatus());
+
+  const handleSaveAdminGeminiKey = (e) => {
+    if (e) e.preventDefault();
+    if (adminGeminiKey.trim()) {
+      localStorage.setItem('hex_admin_gemini_key', adminGeminiKey.trim());
+      showToast('Gemini AI API Key updated successfully in Admin Panel.');
+    } else {
+      localStorage.removeItem('hex_admin_gemini_key');
+      showToast('Admin API Key override cleared. Using environment key.');
+    }
+    setGeminiStatus(getGeminiEngineStatus());
+  };
 
   // Dynamically aggregate all categories across master dataset & live orders
   const allDynamicCategories = Array.from(

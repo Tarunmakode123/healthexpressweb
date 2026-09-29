@@ -5,13 +5,50 @@ import { processUserMessage } from './chatbotEngine.js';
 /**
  * HEALTH EXPRESS — GEMINI AI INTEGRATION SERVICE (V1.0)
  * Hybrid RAG Architecture:
- * 1. Retrieves verified website database facts from ALL_SERVICES & HEX_SPECIFICATION
- * 2. Passes facts & Developer Specification System Instruction to Gemini 2.5 Flash
- * 3. Fallback to Local Deterministic Engine on network/rate-limit error
+ * 1. Dynamic Admin Key Resolution (Admin Panel -> ENV -> Fallback)
+ * 2. Retrieves verified website database facts from ALL_SERVICES & HEX_SPECIFICATION
+ * 3. Passes facts & Developer Specification System Instruction to Gemini 2.5 Flash
+ * 4. Fallback to Local Deterministic Engine on network/rate-limit error
  */
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const DEFAULT_FALLBACK_KEY = '';
 const GEMINI_MODEL = 'gemini-2.5-flash';
+
+// Last engine status telemetry
+let lastEngineStatus = {
+  isOnline: true,
+  engineType: 'LOCAL_ENGINE',
+  activeKeySource: 'NONE',
+  lastError: null,
+  lastCheckedAt: new Date().toISOString()
+};
+
+export function getEffectiveApiKey() {
+  const adminKey = localStorage.getItem('hex_admin_gemini_key');
+  if (adminKey && adminKey.trim().length > 10) {
+    return { key: adminKey.trim(), source: 'Admin Panel Override' };
+  }
+
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (envKey && envKey.trim().length > 10) {
+    return { key: envKey.trim(), source: '.env Environment' };
+  }
+
+  if (DEFAULT_FALLBACK_KEY && DEFAULT_FALLBACK_KEY.length > 10) {
+    return { key: DEFAULT_FALLBACK_KEY, source: 'Default Platform Key' };
+  }
+
+  return { key: '', source: 'NONE' };
+}
+
+export function getGeminiEngineStatus() {
+  const { key, source } = getEffectiveApiKey();
+  return {
+    ...lastEngineStatus,
+    activeKeySource: source,
+    hasApiKey: Boolean(key)
+  };
+}
 
 const SYSTEM_INSTRUCTION = `
 You are HEX, Health Express's AI care manager: a warm, family-health-manager-style information and navigation assistant.
@@ -29,15 +66,24 @@ NON-NEGOTIABLE OPERATING RULES (DEVELOPER SPECIFICATION V1.0):
 `;
 
 export async function askGeminiAssistant(rawQuery, conversationHistory = [], userContext = {}) {
+  const { key: activeKey, source: keySource } = getEffectiveApiKey();
+
   // If no API key available, use Local Engine immediately
-  if (!GEMINI_API_KEY) {
+  if (!activeKey) {
+    lastEngineStatus = {
+      isOnline: true,
+      engineType: 'LOCAL_ENGINE',
+      activeKeySource: 'NONE',
+      lastError: 'No API Key configured',
+      lastCheckedAt: new Date().toISOString()
+    };
     return processUserMessage(rawQuery, '/', userContext);
   }
 
   // Pre-process with local engine for instant guardrail verification & RAG retrieval
   const localResult = processUserMessage(rawQuery, '/', userContext);
 
-  // If local engine hit strict safety boundaries (Emergency, Medical Advice, Operational Actions), return local result directly for 100% safety
+  // Safety boundaries (Emergency, Medical Advice, Operational Actions) return local result directly for 100% safety
   if (
     localResult.intent === 'EMERGENCY_RESPONSE' ||
     localResult.intent === 'MEDICAL_ADVICE_REQUEST' ||
@@ -49,7 +95,7 @@ export async function askGeminiAssistant(rawQuery, conversationHistory = [], use
   }
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${activeKey}`;
     
     // Construct RAG Context from catalog & local result
     const catalogContext = ALL_SERVICES.map(s => `[Service: ${s.name} | Category: ${s.category_id} | MRP: ₹${s.price || 'N/A'} | Price: ₹${s.discount_price || 'N/A'} | Prep: ${s.preparation || 'N/A'}]`).join('\n');
@@ -86,9 +132,30 @@ Please formulate a warm, clear, concise response adhering strictly to your HEX P
     });
 
     const data = await res.json();
+
+    if (data.error) {
+      console.warn(`Gemini API Error (${data.error.code}):`, data.error.message);
+      lastEngineStatus = {
+        isOnline: false,
+        engineType: 'LOCAL_FALLBACK',
+        activeKeySource: keySource,
+        lastError: `API Error ${data.error.code}: ${data.error.message}`,
+        lastCheckedAt: new Date().toISOString()
+      };
+      return localResult;
+    }
+
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (candidateText && candidateText.trim()) {
+      lastEngineStatus = {
+        isOnline: true,
+        engineType: 'GEMINI_2.5_FLASH',
+        activeKeySource: keySource,
+        lastError: null,
+        lastCheckedAt: new Date().toISOString()
+      };
+
       return {
         intent: 'GEMINI_AI_SYNTHESIS',
         text: candidateText.trim(),
@@ -97,7 +164,14 @@ Please formulate a warm, clear, concise response adhering strictly to your HEX P
       };
     }
   } catch (err) {
-    console.warn('Gemini API call exception, using local engine fallback:', err);
+    console.warn('Gemini API exception, using local engine fallback:', err);
+    lastEngineStatus = {
+      isOnline: false,
+      engineType: 'LOCAL_FALLBACK',
+      activeKeySource: keySource,
+      lastError: err.message,
+      lastCheckedAt: new Date().toISOString()
+    };
   }
 
   // Fallback to verified local decision engine if Gemini fails or is offline
