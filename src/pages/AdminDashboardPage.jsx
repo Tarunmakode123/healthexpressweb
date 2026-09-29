@@ -913,6 +913,14 @@ function AdminDashboardPage() {
     setDataError(null);
 
     try {
+      if (isSupabaseConfigured) {
+        try {
+          await supabase.rpc('sync_admin_user');
+        } catch (e) {
+          try { await supabase.rpc('check_is_admin'); } catch (e2) {}
+        }
+      }
+
       const [ordRes, payRes, presRes, patRes, promoRes, evtRes, setRes, accRes, txRes] = await Promise.all([
         fetchAdminOrders(),
         fetchAdminPayments(),
