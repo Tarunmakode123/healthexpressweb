@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import CartDrawer from './components/cart/CartDrawer';
 import CalculatorModal from './components/common/CalculatorModal';
@@ -25,8 +25,30 @@ import ProvidersPage from './pages/ProvidersPage';
 import ContactPage from './pages/ContactPage';
 import LegalPage from './pages/LegalPage';
 import AuthPage from './pages/AuthPage';
-import CustomerDashboardPage from './pages/CustomerDashboardPage';
+import GenericDashboardPage from './pages/GenericDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+
+// Protected Route Component for Authenticated User Session
+function ProtectedRoute({ children }) {
+  const { session, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-purple-900 font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-extrabold tracking-wide">Authenticating...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return children;
+}
 
 // Helper component to scroll window to top on route navigation & track PAGE_VIEW
 function ScrollToTop() {
@@ -99,7 +121,8 @@ function MainLayout() {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/signup" element={<AuthPage />} />
-            <Route path="/account" element={<Navigate to="/admin" replace />} />
+            <Route path="/account" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<ProtectedRoute><GenericDashboardPage /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/*" element={<AdminDashboardPage />} />
           </Routes>
