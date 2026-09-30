@@ -348,8 +348,7 @@ export default function HeroSection({ onOpenUploadModal }) {
                     preload="auto"
                     className="w-full h-full object-cover object-center"
                   >
-                    <source src="/videos/health-express-3rd%20video.mp4" type="video/mp4" />
-                    <source src="/videos/healthexpress-journey-story.mp4" type="video/mp4" />
+                    <source src="/videos/healthexpress.mp4" type="video/mp4" />
                     Your browser does not support video playback.
                   </video>
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
