@@ -6,7 +6,7 @@ import {
   Clock, Coins, RefreshCw, MessageSquare, ExternalLink, Filter, ChevronDown,
   Sparkles, CreditCard, Eye, Calculator, Globe, Hospital, Compass, ChevronRight, Settings,
   Zap, ArrowUpRight, Check, AlertCircle, Folder, UploadCloud, Download, Share2, Search,
-  FileCheck, X, HardDrive, Headphones, PhoneCall, Stethoscope
+  FileCheck, X, HardDrive, Headphones, PhoneCall, Stethoscope, Shield, Bookmark
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
@@ -404,8 +404,8 @@ export default function GenericDashboardPage() {
       {/* MAIN PATIENT PORTAL BODY */}
       <main className="flex-1 max-w-7xl w-full mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
         
-        {/* 2. COMPACT APPLICATION PATIENT IDENTITY BAR (Includes Health Coins Wallet Pill!) */}
-        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* 2. COMPACT APPLICATION PATIENT IDENTITY BAR & QUICK WORKSPACE ACTIONS */}
+        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-900 text-white font-black text-xl flex items-center justify-center shadow-md shrink-0">
               {displayName ? displayName.charAt(0).toUpperCase() : <User className="w-7 h-7 text-white" />}
@@ -419,7 +419,7 @@ export default function GenericDashboardPage() {
                   <ShieldCheck className="w-3 h-3 text-emerald-600" /> OTP Verified Patient
                 </span>
 
-                {/* Health Coins Badge moved into identity header */}
+                {/* Health Coins Badge */}
                 <button
                   onClick={() => navigate('/services')}
                   className="px-2.5 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-extrabold flex items-center gap-1 border border-amber-200 transition-colors cursor-pointer"
@@ -438,7 +438,7 @@ export default function GenericDashboardPage() {
             </div>
           </div>
 
-          {/* Quick Action Workspace Bar */}
+          {/* Consolidated Primary Workspace Action Group */}
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <button
               onClick={() => openModalWithCategory('lab_report')}
@@ -449,19 +449,27 @@ export default function GenericDashboardPage() {
             </button>
 
             <button
-              onClick={() => handleCTAAction('open_whatsapp')}
-              className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2"
+              onClick={() => openModalWithCategory('prescription')}
+              className="px-4 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-extrabold text-xs border border-purple-200 transition-all cursor-pointer flex items-center gap-2"
             >
-              <MessageSquare className="w-4 h-4 text-emerald-600" />
+              <FileText className="w-4 h-4 text-purple-700" />
+              <span>Upload Prescription</span>
+            </button>
+
+            <button
+              onClick={() => handleCTAAction('open_whatsapp')}
+              className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer flex items-center gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">24/7 Care Manager</span>
             </button>
           </div>
         </div>
 
-        {/* 3. PATIENT WORKSPACE & STREAMLINED SIDEBAR (2-Column App Grid) */}
+        {/* 3. FULL-WIDTH SPACIOUS PATIENT WORKSPACE (No Repetitive Sidebar Grid!) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* LEFT MAIN PATIENT WORKSPACE (lg:col-span-8 - 66% width) */}
+          {/* MAIN PATIENT WORKSPACE COLUMN (lg:col-span-8 - 66% width) */}
           <div className="lg:col-span-8 space-y-6">
             
             {/* WORKSPACE NAVIGATION TABS */}
@@ -814,7 +822,7 @@ export default function GenericDashboardPage() {
               </div>
             )}
 
-            {/* TAB VIEW 4: ACTIVITY AUDIT STREAM (Option A: Clean Healthcare Milestones Feed!) */}
+            {/* TAB VIEW 4: ACTIVITY AUDIT STREAM */}
             {activeWorkspaceTab === 'activity' && (
               <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
                 
@@ -922,12 +930,14 @@ export default function GenericDashboardPage() {
 
           </div>
 
-          {/* RIGHT SIDEBAR COLUMN: STREAMLINED CARE ASSISTANT DOCK (No repetitive stat grid!) */}
+          {/* RIGHT SIDEBAR COLUMN: 24/7 WHATSAPP CARE MANAGER ASSIST (Clean, non-repetitive) */}
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-20">
             
             {/* A. 24/7 WHATSAPP CARE MANAGER ASSIST WIDGET */}
-            <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white rounded-3xl p-6 space-y-4 shadow-md border border-emerald-800/60">
-              <div className="space-y-1.5">
+            <div className="bg-gradient-to-br from-emerald-900 via-emerald-950 to-slate-950 text-white rounded-3xl p-6 space-y-4 shadow-md border border-emerald-800/60 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative z-10 space-y-2">
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-400/30 flex items-center gap-1.5 w-fit">
                   <Headphones className="w-3 h-3" />
                   <span>24/7 Priority Support</span>
@@ -940,91 +950,30 @@ export default function GenericDashboardPage() {
 
               <button
                 onClick={() => handleCTAAction('open_whatsapp')}
-                className="w-full py-3.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-2xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-2xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 relative z-10"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>WhatsApp Care Team</span>
               </button>
             </div>
 
-            {/* B. INSTANT PATIENT SERVICES & FAST TOOLS DOCK (Smart pre-selected category triggers!) */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                <Zap className="w-4 h-4 text-purple-700" />
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Instant Services & Tools
-                </h4>
+            {/* B. DIAGNOSTIC SERVICES CATALOG PROMO */}
+            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-center gap-2 text-xs font-black text-purple-700 uppercase tracking-wider">
+                <Stethoscope className="w-4 h-4 text-purple-600" />
+                <span>Diagnostic Services</span>
               </div>
-
-              <div className="space-y-2">
-                {/* Button 1: Upload Doctor Prescription -> Preselects 'prescription' category */}
-                <button
-                  onClick={() => openModalWithCategory('prescription')}
-                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                      <FileText className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-black text-slate-900 group-hover:text-purple-900">Upload Prescription</h5>
-                      <p className="text-[10px] text-slate-500">Fast review by care team</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-
-                {/* Button 2: Upload Health Record -> Preselects 'lab_report' category */}
-                <button
-                  onClick={() => openModalWithCategory('lab_report')}
-                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                      <UploadCloud className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-black text-slate-900 group-hover:text-purple-900">Upload Health Record</h5>
-                      <p className="text-[10px] text-slate-500">Store lab reports in vault</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-
-                {/* Button 3: Book Home Sample Collection */}
-                <button
-                  onClick={() => handleCTAAction('open_whatsapp')}
-                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                      <Stethoscope className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-black text-slate-900 group-hover:text-emerald-900">Book Home Sample Collection</h5>
-                      <p className="text-[10px] text-slate-500">Free door-step collection</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-
-                {/* Button 4: Browse Full Body Checkups */}
-                <button
-                  onClick={() => handleCTAAction('navigate_services')}
-                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                      <ShoppingBag className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-black text-slate-900 group-hover:text-purple-900">Browse Full Checkups</h5>
-                      <p className="text-[10px] text-slate-500">Diagnostic test packages</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
+              <h4 className="text-sm font-black text-slate-900">Explore Health Packages</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Full body health checkups, blood tests, and MRI/CT diagnostic scans with free home sample collection.
+              </p>
+              <button
+                onClick={() => handleCTAAction('navigate_services')}
+                className="w-full py-2.5 px-4 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Browse Full Catalog</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
           </div>
@@ -1033,7 +982,7 @@ export default function GenericDashboardPage() {
 
       </main>
 
-      {/* 4. HEALTH VAULT DOCUMENT UPLOAD MODAL (Dynamically adapts header based on pre-selected category!) */}
+      {/* 4. HEALTH VAULT DOCUMENT UPLOAD MODAL */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white text-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 border border-slate-200">
