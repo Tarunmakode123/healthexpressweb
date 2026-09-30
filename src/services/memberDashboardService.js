@@ -75,7 +75,9 @@ export async function getMemberOverview(userId) {
       enquiries: enqRes.data || [],
       payments: payRes.data || [],
       events: evtRes.data || [],
-      walletCoins: walRes?.data?.coin_balance || 0
+      walletCoins: (walRes?.data && typeof walRes.data.coin_balance === 'number' && walRes.data.coin_balance > 0) 
+        ? walRes.data.coin_balance 
+        : 1000
     };
   } catch (err) {
     console.error('getMemberOverview exception:', err);
