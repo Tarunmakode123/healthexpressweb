@@ -4,7 +4,8 @@ import {
   User, Phone, ShieldCheck, Calendar, FileText, ShoppingBag, 
   HelpCircle, LogOut, ArrowRight, Activity, PlusCircle, CheckCircle2,
   Clock, Coins, RefreshCw, MessageSquare, ExternalLink, Filter, ChevronDown,
-  Sparkles, CreditCard, Eye, Calculator, Globe, Hospital, Compass, ChevronRight, Settings
+  Sparkles, CreditCard, Eye, Calculator, Globe, Hospital, Compass, ChevronRight, Settings,
+  Zap, ArrowUpRight, Check, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
@@ -30,6 +31,9 @@ export default function GenericDashboardPage() {
   // Profile Menu Dropdown Toggle
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
+
+  // Dashboard Main View Tab State: 'feed' | 'requests' | 'actions'
+  const [activeDashboardTab, setActiveDashboardTab] = useState('feed');
 
   // Timeline Filter State
   const [activeTimelineFilter, setActiveTimelineFilter] = useState('all');
@@ -135,6 +139,15 @@ export default function GenericDashboardPage() {
     ? new Date(session.user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
     : 'Today';
 
+  // Compute completed journey step count (1 to 5) for progress bar
+  let completedStepCount = 1;
+  if (classification.milestones.careFulfillment) completedStepCount = 5;
+  else if (classification.milestones.orderPlaced) completedStepCount = 4;
+  else if (classification.milestones.prescriptionUploaded) completedStepCount = 3;
+  else if (classification.milestones.exploredServices) completedStepCount = 2;
+
+  const progressPercentage = ((completedStepCount - 1) / 4) * 100;
+
   // Quick Action Dispatcher
   const handleCTAAction = (actionType) => {
     if (actionType === 'open_upload_modal') {
@@ -142,8 +155,10 @@ export default function GenericDashboardPage() {
     } else if (actionType === 'navigate_services') {
       navigate('/services');
     } else if (actionType === 'filter_prescriptions') {
+      setActiveDashboardTab('feed');
       setActiveTimelineFilter('prescriptions');
     } else if (actionType === 'filter_orders') {
+      setActiveDashboardTab('feed');
       setActiveTimelineFilter('orders');
     } else if (actionType === 'open_whatsapp') {
       openWhatsApp(DEFAULT_MESSAGES.general);
@@ -161,6 +176,8 @@ export default function GenericDashboardPage() {
     );
   }
 
+  const totalRequestsCount = memberData.prescriptions.length + memberData.orders.length + memberData.enquiries.length;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900">
       
@@ -168,7 +185,7 @@ export default function GenericDashboardPage() {
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           
-          {/* Left Side: Brand Logo (Links to /dashboard) & Site Link */}
+          {/* Left Side: Brand Logo & Site Link */}
           <div className="flex items-center gap-6">
             <Link 
               to="/dashboard" 
@@ -225,7 +242,7 @@ export default function GenericDashboardPage() {
 
                 <div className="py-1">
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveTimelineFilter('all'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('all'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
                     <User className="w-4 h-4 text-purple-600" />
@@ -233,7 +250,7 @@ export default function GenericDashboardPage() {
                   </button>
 
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveTimelineFilter('all'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('all'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
                     <Activity className="w-4 h-4 text-sky-600" />
@@ -241,7 +258,7 @@ export default function GenericDashboardPage() {
                   </button>
 
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveTimelineFilter('prescriptions'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('prescriptions'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
                     <FileText className="w-4 h-4 text-purple-600" />
@@ -249,7 +266,7 @@ export default function GenericDashboardPage() {
                   </button>
 
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveTimelineFilter('orders'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('orders'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
                     <ShoppingBag className="w-4 h-4 text-emerald-600" />
@@ -287,17 +304,18 @@ export default function GenericDashboardPage() {
       {/* MAIN DASHBOARD CONTENT BODY */}
       <main className="flex-1 max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
         
-        {/* OPTION 1: 2-COLUMN SPLIT GRID LAYOUT (Main 66% / Sidebar 34%) */}
+        {/* OPTION A: 2-COLUMN SPLIT GRID WITH INTEGRATED HERO COMMAND CENTER */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* LEFT MAIN WORKSPACE COLUMN (lg:col-span-8 - 66% width) */}
           <div className="lg:col-span-8 space-y-8">
             
-            {/* 2. DYNAMIC HERO GREETING BANNER */}
-            <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-72 h-72 bg-purple-500/15 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+            {/* 2. UNIFIED HERO COMMAND CENTER (Combines Greeting + Recommended Action + Line-Connected Stepper) */}
+            <div className="bg-gradient-to-br from-purple-950 via-purple-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden space-y-6">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
 
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              {/* Top Row: Greeting & Primary Smart Action */}
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-purple-800/60">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-3 py-1 rounded-full bg-purple-700/80 text-purple-200 text-xs font-bold border border-purple-500/40 uppercase tracking-wider flex items-center gap-1.5">
@@ -319,273 +337,457 @@ export default function GenericDashboardPage() {
                     {displayName ? `Welcome back, ${displayName} 👋` : 'Welcome back 👋'}
                   </h1>
 
-                  <p className="text-xs sm:text-sm text-purple-200/90 max-w-2xl font-medium leading-relaxed">
-                    {classification.primaryStage === 'new_member' && "Your Health Express journey starts here. Explore our diagnostic lab packages or upload your prescription."}
-                    {classification.primaryStage === 'explorer' && "Welcome to Health Express! You are currently exploring diagnostic services and health tools."}
-                    {classification.primaryStage === 'prescription_user' && "Your prescription has been uploaded and is being reviewed by our care team."}
-                    {classification.primaryStage === 'active_customer' && "Track your orders, view diagnostic reports, and manage healthcare services."}
+                  <p className="text-xs sm:text-sm text-purple-200/90 max-w-xl font-medium leading-relaxed">
+                    {classification.nextBestAction.description}
                   </p>
                 </div>
 
+                {/* Single Smart Dynamic Primary Action Button */}
                 <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    onClick={() => handleCTAAction('open_upload_modal')}
-                    className="px-4 py-3 rounded-2xl bg-white hover:bg-purple-50 text-purple-900 font-extrabold text-xs shadow-lg transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2"
-                  >
-                    <PlusCircle className="w-4 h-4 text-purple-700" />
-                    <span>Upload Prescription</span>
-                  </button>
+                  {classification.nextBestAction.primaryCTA && (
+                    <button
+                      onClick={() => handleCTAAction(classification.nextBestAction.primaryCTA.action)}
+                      className="px-5 py-3.5 rounded-2xl bg-white hover:bg-purple-50 text-purple-950 font-black text-xs shadow-xl transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2"
+                    >
+                      <PlusCircle className="w-4 h-4 text-purple-700" />
+                      <span>{classification.nextBestAction.primaryCTA.label}</span>
+                      <ArrowRight className="w-4 h-4 text-purple-700" />
+                    </button>
+                  )}
 
                   <button
                     onClick={() => handleCTAAction('open_whatsapp')}
-                    className="px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2"
+                    className="p-3.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-extrabold text-xs border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-2"
+                    title="WhatsApp Care Manager"
                   >
                     <MessageSquare className="w-4 h-4" />
                     <span className="hidden sm:inline">Care Manager</span>
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* 3. PERSONALIZED "NEXT BEST ACTION" CARD */}
-            <div className="bg-white rounded-3xl p-6 border border-purple-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs font-extrabold text-purple-700 uppercase tracking-wider">
-                  <Compass className="w-4 h-4 text-purple-600" />
-                  <span>Recommended Next Step</span>
-                </div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900">{classification.nextBestAction.title}</h3>
-                <p className="text-xs text-slate-500 font-medium">{classification.nextBestAction.description}</p>
-              </div>
-
-              <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
-                {classification.nextBestAction.primaryCTA && (
-                  <button
-                    onClick={() => handleCTAAction(classification.nextBestAction.primaryCTA.action)}
-                    className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
-                  >
-                    <span>{classification.nextBestAction.primaryCTA.label}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
-
-                {classification.nextBestAction.secondaryCTA && (
-                  <button
-                    onClick={() => handleCTAAction(classification.nextBestAction.secondaryCTA.action)}
-                    className="flex-1 sm:flex-initial px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs transition-colors cursor-pointer text-center"
-                  >
-                    {classification.nextBestAction.secondaryCTA.label}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* 4. USER JOURNEY MILESTONES PROGRESS TRACKER */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-              <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                <span>Your Health Express Journey</span>
-              </h3>
-
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
-                
-                {/* Step 1: Account Created */}
-                <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-1">
-                  <div className="flex items-center justify-between text-purple-700">
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Step 1</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <p className="text-xs font-black text-slate-900">Account Created</p>
-                  <p className="text-[10px] text-purple-700 font-bold">{accountCreatedDateLabel}</p>
+              {/* Bottom Row: Connected Stepper Progress Bar */}
+              <div className="relative z-10 space-y-3 pt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-extrabold text-purple-200 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Compass className="w-3.5 h-3.5 text-purple-300" />
+                    <span>Your Health Express Journey</span>
+                  </span>
+                  <span className="text-[11px] font-mono text-purple-300 font-semibold">
+                    Step {completedStepCount} of 5
+                  </span>
                 </div>
 
-                {/* Step 2: Explored Services */}
-                <div className={`p-3.5 rounded-2xl border space-y-1 ${
-                  classification.milestones.exploredServices 
-                    ? 'bg-purple-50/70 border-purple-200/80' 
-                    : 'bg-slate-50 border-slate-200 opacity-60'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step 2</span>
-                    {classification.milestones.exploredServices ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300" />
-                    )}
-                  </div>
-                  <p className="text-xs font-black text-slate-900">Explore Services</p>
-                  <p className="text-[10px] text-slate-500">
-                    {classification.milestones.exploredServices ? 'Services Reviewed' : 'Pending'}
-                  </p>
-                </div>
+                {/* Line-Connected Stepper Nodes Container */}
+                <div className="relative pt-2 pb-1">
+                  {/* Connecting Background Line */}
+                  <div className="absolute top-5 left-4 right-4 h-1 bg-purple-800/80 rounded-full z-0" />
+                  
+                  {/* Connecting Completed Fill Line */}
+                  <div 
+                    className="absolute top-5 left-4 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-purple-300 rounded-full z-0 transition-all duration-700"
+                    style={{ width: `calc(${progressPercentage}% - 8px)` }}
+                  />
 
-                {/* Step 3: Prescription Uploaded */}
-                <div className={`p-3.5 rounded-2xl border space-y-1 ${
-                  classification.milestones.prescriptionUploaded 
-                    ? 'bg-purple-50/70 border-purple-200/80' 
-                    : 'bg-slate-50 border-slate-200 opacity-60'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step 3</span>
-                    {classification.milestones.prescriptionUploaded ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300" />
-                    )}
-                  </div>
-                  <p className="text-xs font-black text-slate-900">Prescription</p>
-                  <p className="text-[10px] text-slate-500">
-                    {classification.milestones.prescriptionUploaded ? `${memberData.prescriptions.length} Uploaded` : 'Optional'}
-                  </p>
-                </div>
-
-                {/* Step 4: Order Placed */}
-                <div className={`p-3.5 rounded-2xl border space-y-1 ${
-                  classification.milestones.orderPlaced 
-                    ? 'bg-purple-50/70 border-purple-200/80' 
-                    : 'bg-slate-50 border-slate-200 opacity-60'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step 4</span>
-                    {classification.milestones.orderPlaced ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300" />
-                    )}
-                  </div>
-                  <p className="text-xs font-black text-slate-900">Order Placed</p>
-                  <p className="text-[10px] text-slate-500">
-                    {classification.milestones.orderPlaced ? `${memberData.orders.length} Orders` : 'Pending'}
-                  </p>
-                </div>
-
-                {/* Step 5: Care Fulfillment */}
-                <div className={`p-3.5 rounded-2xl border space-y-1 ${
-                  classification.milestones.careFulfillment 
-                    ? 'bg-purple-50/70 border-purple-200/80' 
-                    : 'bg-slate-50 border-slate-200 opacity-60'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step 5</span>
-                    {classification.milestones.careFulfillment ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-300" />
-                    )}
-                  </div>
-                  <p className="text-xs font-black text-slate-900">Care Fulfillment</p>
-                  <p className="text-[10px] text-slate-500">
-                    {classification.milestones.careFulfillment ? 'Completed' : 'Pending'}
-                  </p>
-                </div>
-
-              </div>
-            </div>
-
-            {/* 5. CHRONOLOGICAL MEMBER ACTIVITY TIMELINE (Brought high up on left column!) */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-              
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-purple-600" />
-                    <span>Your Activity Timeline</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Chronological history of your Health Express account, prescription uploads, orders, and site visits.
-                  </p>
-                </div>
-
-                {/* Timeline Filter Pills */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {[
-                    { id: 'all', label: 'All' },
-                    { id: 'orders', label: 'Orders' },
-                    { id: 'prescriptions', label: 'Prescriptions' },
-                    { id: 'payments', label: 'Payments' },
-                    { id: 'website', label: 'Website' },
-                    { id: 'account', label: 'Account' }
-                  ].map(f => (
-                    <button
-                      key={f.id}
-                      onClick={() => { setActiveTimelineFilter(f.id); setTimelineVisibleCount(15); }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        activeTimelineFilter === f.id
-                          ? 'bg-purple-700 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Timeline Output List Grouped by Date */}
-              {filteredTimelineItems.length === 0 ? (
-                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
-                  <Clock className="w-8 h-8 text-slate-400 mx-auto" />
-                  <h4 className="text-xs font-bold text-slate-800">No activity recorded for this filter</h4>
-                  <p className="text-[11px] text-slate-500">
-                    Explore services or upload a prescription to see your activity timeline build up.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 sm:before:left-4 before:w-0.5 before:bg-purple-100">
-                  {Object.keys(groupedTimelineVisible).map(groupLabel => (
-                    <div key={groupLabel} className="space-y-3 relative">
-                      
-                      {/* Date Banner Header */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 px-3 py-0.5 rounded-full z-10">
-                          {groupLabel}
-                        </span>
-                        <div className="h-px bg-slate-100 flex-1" />
+                  {/* 5 Connected Step Nodes */}
+                  <div className="relative z-10 grid grid-cols-5 gap-2 text-center">
+                    
+                    {/* Step 1 */}
+                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110">
+                        <Check className="w-4 h-4 stroke-[3]" />
                       </div>
-
-                      {/* Group Items */}
-                      <div className="space-y-3">
-                        {groupedTimelineVisible[groupLabel].map((item, idx) => (
-                          <div key={item.id || idx} className="flex items-start gap-3.5 group pl-1">
-                            
-                            {/* Event Category Icon Badge */}
-                            <div className="w-7 h-7 rounded-full bg-white border-2 border-purple-600 text-purple-700 flex items-center justify-center text-xs shrink-0 z-10 shadow-xs">
-                              {item.category === 'orders' && <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />}
-                              {item.category === 'prescriptions' && <FileText className="w-3.5 h-3.5 text-purple-600" />}
-                              {item.category === 'payments' && <CreditCard className="w-3.5 h-3.5 text-sky-600" />}
-                              {item.category === 'account' && <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />}
-                              {item.category === 'website' && <Globe className="w-3.5 h-3.5 text-indigo-600" />}
-                            </div>
-
-                            {/* Event Details Card */}
-                            <div className="flex-1 bg-slate-50/80 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 transition-colors space-y-1">
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-xs font-extrabold text-slate-900">{item.title}</h4>
-                                <span className="text-xs font-bold text-slate-500 shrink-0 ml-2">
-                                  {formatTimelineTimeIST(item.timestamp)}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-600 font-medium">{item.description}</p>
-                            </div>
-
-                          </div>
-                        ))}
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] sm:text-xs font-extrabold text-white leading-tight">Account</p>
+                        <p className="text-[9px] text-emerald-300 font-bold hidden sm:block">Created</p>
                       </div>
-
                     </div>
-                  ))}
 
-                  {/* Load More Timeline Events Button */}
-                  {filteredTimelineItems.length > timelineVisibleCount && (
-                    <div className="text-center pt-4">
-                      <button
-                        onClick={() => setTimelineVisibleCount(prev => prev + 15)}
-                        className="px-5 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-extrabold text-xs transition-colors cursor-pointer"
-                      >
-                        Load More Activity ({filteredTimelineItems.length - timelineVisibleCount} remaining)
-                      </button>
+                    {/* Step 2 */}
+                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
+                        classification.milestones.exploredServices 
+                          ? 'bg-emerald-500 text-slate-950' 
+                          : 'bg-purple-800 text-purple-300 ring-2 ring-purple-500/50'
+                      }`}>
+                        {classification.milestones.exploredServices ? <Check className="w-4 h-4 stroke-[3]" /> : '2'}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] sm:text-xs font-extrabold text-white leading-tight">Explore</p>
+                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
+                          {classification.milestones.exploredServices ? 'Reviewed' : 'Services'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
+                        classification.milestones.prescriptionUploaded 
+                          ? 'bg-emerald-500 text-slate-950' 
+                          : 'bg-purple-900 text-purple-400 border-purple-800'
+                      }`}>
+                        {classification.milestones.prescriptionUploaded ? <Check className="w-4 h-4 stroke-[3]" /> : '3'}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] sm:text-xs font-extrabold text-purple-100 leading-tight">Prescription</p>
+                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
+                          {classification.milestones.prescriptionUploaded ? `${memberData.prescriptions.length} Uploaded` : 'Optional'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
+                        classification.milestones.orderPlaced 
+                          ? 'bg-emerald-500 text-slate-950' 
+                          : 'bg-purple-900 text-purple-400 border-purple-800'
+                      }`}>
+                        {classification.milestones.orderPlaced ? <Check className="w-4 h-4 stroke-[3]" /> : '4'}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] sm:text-xs font-extrabold text-purple-200 leading-tight">Order</p>
+                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
+                          {classification.milestones.orderPlaced ? `${memberData.orders.length} Placed` : 'Pending'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Step 5 */}
+                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
+                        classification.milestones.careFulfillment 
+                          ? 'bg-emerald-500 text-slate-950' 
+                          : 'bg-purple-900 text-purple-400 border-purple-800'
+                      }`}>
+                        {classification.milestones.careFulfillment ? <Check className="w-4 h-4 stroke-[3]" /> : '5'}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] sm:text-xs font-extrabold text-purple-200 leading-tight">Care</p>
+                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
+                          {classification.milestones.careFulfillment ? 'Fulfilled' : 'Pending'}
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* 3. INTERACTIVE SECTION TABS HEADER & WORKSPACE */}
+            <div className="space-y-6">
+              
+              {/* Dynamic Interactive Navigation Tabs */}
+              <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
+                
+                <button
+                  onClick={() => setActiveDashboardTab('feed')}
+                  className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeDashboardTab === 'feed'
+                      ? 'bg-purple-900 text-white shadow-md'
+                      : 'bg-white text-slate-600 hover:bg-purple-50 hover:text-purple-900 border border-slate-200'
+                  }`}
+                >
+                  <Clock className="w-4 h-4" />
+                  <span>Activity Feed</span>
+                  <span className="ml-1 px-2 py-0.5 rounded-full bg-purple-800 text-purple-200 text-[10px]">
+                    {timelineStream.allItems.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveDashboardTab('requests')}
+                  className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeDashboardTab === 'requests'
+                      ? 'bg-purple-900 text-white shadow-md'
+                      : 'bg-white text-slate-600 hover:bg-purple-50 hover:text-purple-900 border border-slate-200'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>My Requests</span>
+                  {totalRequestsCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[10px]">
+                      {totalRequestsCount}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setActiveDashboardTab('actions')}
+                  className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                    activeDashboardTab === 'actions'
+                      ? 'bg-purple-900 text-white shadow-md'
+                      : 'bg-white text-slate-600 hover:bg-purple-50 hover:text-purple-900 border border-slate-200'
+                  }`}
+                >
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span>Quick Services</span>
+                </button>
+
+              </div>
+
+              {/* TAB CONTENT AREA 1: CHRONOLOGICAL ACTIVITY FEED */}
+              {activeDashboardTab === 'feed' && (
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+                  
+                  {/* Timeline Filter Pills Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
+                        <Activity className="w-4 h-4 text-purple-600" />
+                        <span>Chronological History Stream</span>
+                      </h3>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[
+                        { id: 'all', label: 'All' },
+                        { id: 'orders', label: 'Orders' },
+                        { id: 'prescriptions', label: 'Prescriptions' },
+                        { id: 'payments', label: 'Payments' },
+                        { id: 'website', label: 'Website' },
+                        { id: 'account', label: 'Account' }
+                      ].map(f => (
+                        <button
+                          key={f.id}
+                          onClick={() => { setActiveTimelineFilter(f.id); setTimelineVisibleCount(15); }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            activeTimelineFilter === f.id
+                              ? 'bg-purple-700 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Timeline Output List Grouped by Date */}
+                  {filteredTimelineItems.length === 0 ? (
+                    <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                      <Clock className="w-8 h-8 text-slate-400 mx-auto" />
+                      <h4 className="text-xs font-bold text-slate-800">No activity recorded for this filter</h4>
+                      <p className="text-[11px] text-slate-500">
+                        Explore services or upload a prescription to see your activity timeline build up.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 sm:before:left-4 before:w-0.5 before:bg-purple-100">
+                      {Object.keys(groupedTimelineVisible).map(groupLabel => (
+                        <div key={groupLabel} className="space-y-3 relative">
+                          
+                          {/* Date Banner Header */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 px-3 py-0.5 rounded-full z-10">
+                              {groupLabel}
+                            </span>
+                            <div className="h-px bg-slate-100 flex-1" />
+                          </div>
+
+                          {/* Group Items */}
+                          <div className="space-y-3">
+                            {groupedTimelineVisible[groupLabel].map((item, idx) => (
+                              <div key={item.id || idx} className="flex items-start gap-3.5 group pl-1">
+                                
+                                {/* Event Category Icon Badge */}
+                                <div className="w-7 h-7 rounded-full bg-white border-2 border-purple-600 text-purple-700 flex items-center justify-center text-xs shrink-0 z-10 shadow-xs">
+                                  {item.category === 'orders' && <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />}
+                                  {item.category === 'prescriptions' && <FileText className="w-3.5 h-3.5 text-purple-600" />}
+                                  {item.category === 'payments' && <CreditCard className="w-3.5 h-3.5 text-sky-600" />}
+                                  {item.category === 'account' && <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />}
+                                  {item.category === 'website' && <Globe className="w-3.5 h-3.5 text-indigo-600" />}
+                                </div>
+
+                                {/* Event Details Card */}
+                                <div className="flex-1 bg-slate-50/80 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 transition-colors space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-xs font-extrabold text-slate-900">{item.title}</h4>
+                                    <span className="text-xs font-bold text-slate-500 shrink-0 ml-2">
+                                      {formatTimelineTimeIST(item.timestamp)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-600 font-medium">{item.description}</p>
+                                </div>
+
+                              </div>
+                            ))}
+                          </div>
+
+                        </div>
+                      ))}
+
+                      {/* Load More Timeline Events Button */}
+                      {filteredTimelineItems.length > timelineVisibleCount && (
+                        <div className="text-center pt-4">
+                          <button
+                            onClick={() => setTimelineVisibleCount(prev => prev + 15)}
+                            className="px-5 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-extrabold text-xs transition-colors cursor-pointer"
+                          >
+                            Load More Activity ({filteredTimelineItems.length - timelineVisibleCount} remaining)
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
+
+                </div>
+              )}
+
+              {/* TAB CONTENT AREA 2: MY REQUESTS & PRESCRIPTIONS */}
+              {activeDashboardTab === 'requests' && (
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-purple-600" />
+                        <span>Active Patient Requests & Uploads</span>
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">
+                        View status of doctor prescriptions, lab orders, and diagnostic enquiries.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleCTAAction('open_upload_modal')}
+                      className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span>Upload New</span>
+                    </button>
+                  </div>
+
+                  {totalRequestsCount === 0 ? (
+                    <div className="p-10 text-center bg-purple-50/50 rounded-3xl border border-purple-100 space-y-3">
+                      <FileText className="w-10 h-10 text-purple-400 mx-auto" />
+                      <h4 className="text-sm font-extrabold text-purple-950">No Requests Submitted Yet</h4>
+                      <p className="text-xs text-purple-700 max-w-md mx-auto">
+                        Upload your doctor prescription or book a lab package to start receiving fast-tracked diagnostic updates.
+                      </p>
+                      <button
+                        onClick={() => handleCTAAction('open_upload_modal')}
+                        className="px-5 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        <span>Upload Prescription Now</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Prescriptions List */}
+                      {memberData.prescriptions.map((rx, idx) => (
+                        <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-black text-slate-900">
+                                {rx.file_name || `Prescription #${rx.id ? String(rx.id).slice(0, 6) : idx + 1}`}
+                              </h4>
+                              <p className="text-[11px] text-slate-500 font-medium">
+                                Uploaded on {new Date(rx.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-extrabold">
+                            Under Review
+                          </span>
+                        </div>
+                      ))}
+
+                      {/* Orders List */}
+                      {memberData.orders.map((ord, idx) => (
+                        <div key={ord.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                              <ShoppingBag className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-black text-slate-900">
+                                {ord.service_title || `Order #${ord.id ? String(ord.id).slice(0, 6) : idx + 1}`}
+                              </h4>
+                              <p className="text-[11px] text-slate-500 font-medium">
+                                Placed on {new Date(ord.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold capitalize">
+                            {ord.status || 'Active'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                </div>
+              )}
+
+              {/* TAB CONTENT AREA 3: QUICK SERVICES HUB */}
+              {activeDashboardTab === 'actions' && (
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-500" />
+                      <span>Fast-Tracked Health Services</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Direct access to Health Express diagnostic booking tools and priority support.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => handleCTAAction('open_upload_modal')}
+                      className="p-5 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200/80 text-left transition-all group cursor-pointer space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="w-10 h-10 rounded-xl bg-purple-700 text-white flex items-center justify-center font-bold">
+                          <PlusCircle className="w-5 h-5" />
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-purple-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900">Upload Doctor Prescription</h4>
+                        <p className="text-xs text-slate-600 font-medium">Instant upload for care manager verification & lab booking.</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleCTAAction('navigate_services')}
+                      className="p-5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-left transition-all group cursor-pointer space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold">
+                          <ShoppingBag className="w-5 h-5" />
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900">Browse Full Diagnostic Catalog</h4>
+                        <p className="text-xs text-slate-600 font-medium">Explore full body health checkups, blood tests, and MRI/CT services.</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleCTAAction('open_whatsapp')}
+                      className="p-5 rounded-2xl bg-sky-50 hover:bg-sky-100 border border-sky-200/80 text-left transition-all group cursor-pointer space-y-2 sm:col-span-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="w-10 h-10 rounded-xl bg-sky-700 text-white flex items-center justify-center font-bold">
+                          <MessageSquare className="w-5 h-5" />
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-sky-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900">Chat with 24/7 Care Manager on WhatsApp</h4>
+                        <p className="text-xs text-slate-600 font-medium">Get instant assistance for home blood collection, report delivery, or doctor consultation.</p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -616,7 +818,7 @@ export default function GenericDashboardPage() {
               </div>
             </div>
 
-            {/* B. REAL SUMMARY STAT CARDS (2x2 Grid inside Sidebar) */}
+            {/* B. REAL SUMMARY STAT CARDS (Interactive 2x2 Grid inside Sidebar) */}
             <div className="space-y-3">
               <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider px-1">
                 Account Summary
@@ -624,91 +826,91 @@ export default function GenericDashboardPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 {/* Prescriptions Card */}
-                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-2 flex flex-col justify-between">
+                <div 
+                  onClick={() => handleCTAAction('filter_prescriptions')}
+                  className="bg-white hover:bg-purple-50/50 rounded-2xl p-4 border border-slate-200 hover:border-purple-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700">
+                    <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700 group-hover:scale-105 transition-transform">
                       <FileText className="w-4 h-4" />
                     </span>
                     <span className="text-base font-black text-slate-900">{memberData.prescriptions.length}</span>
                   </div>
                   <div>
                     <div className="text-xs font-black text-slate-800">Prescriptions</div>
-                    <div className="text-[10px] text-slate-500">
-                      {memberData.prescriptions.length > 0 ? `${memberData.prescriptions.length} Uploaded` : 'None'}
+                    <div className="text-[10px] text-slate-500 font-medium">
+                      {memberData.prescriptions.length > 0 ? `${memberData.prescriptions.length} Uploaded` : 'Click to Upload'}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleCTAAction('open_upload_modal')}
-                    className="w-full py-1.5 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-extrabold text-[11px] transition-colors cursor-pointer text-center"
-                  >
+                  <div className="w-full py-1 px-2 rounded-xl bg-purple-50 group-hover:bg-purple-700 group-hover:text-white text-purple-800 font-extrabold text-[10px] transition-colors text-center">
                     + Upload
-                  </button>
+                  </div>
                 </div>
 
                 {/* Orders Card */}
-                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-2 flex flex-col justify-between">
+                <div 
+                  onClick={() => handleCTAAction('filter_orders')}
+                  className="bg-white hover:bg-emerald-50/50 rounded-2xl p-4 border border-slate-200 hover:border-emerald-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
+                    <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 group-hover:scale-105 transition-transform">
                       <ShoppingBag className="w-4 h-4" />
                     </span>
                     <span className="text-base font-black text-slate-900">{memberData.orders.length}</span>
                   </div>
                   <div>
                     <div className="text-xs font-black text-slate-800">Orders</div>
-                    <div className="text-[10px] text-slate-500">
-                      {memberData.orders.length > 0 ? `${memberData.orders.length} Placed` : 'None'}
+                    <div className="text-[10px] text-slate-500 font-medium">
+                      {memberData.orders.length > 0 ? `${memberData.orders.length} Placed` : 'Click to Browse'}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleCTAAction('navigate_services')}
-                    className="w-full py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-extrabold text-[11px] transition-colors cursor-pointer text-center"
-                  >
+                  <div className="w-full py-1 px-2 rounded-xl bg-emerald-50 group-hover:bg-emerald-700 group-hover:text-white text-emerald-800 font-extrabold text-[10px] transition-colors text-center">
                     Browse
-                  </button>
+                  </div>
                 </div>
 
                 {/* Enquiries Card */}
-                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-2 flex flex-col justify-between">
+                <div 
+                  onClick={() => handleCTAAction('open_whatsapp')}
+                  className="bg-white hover:bg-sky-50/50 rounded-2xl p-4 border border-slate-200 hover:border-sky-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-sky-100 text-sky-700">
+                    <span className="p-1.5 rounded-lg bg-sky-100 text-sky-700 group-hover:scale-105 transition-transform">
                       <MessageSquare className="w-4 h-4" />
                     </span>
                     <span className="text-base font-black text-slate-900">{memberData.enquiries.length}</span>
                   </div>
                   <div>
                     <div className="text-xs font-black text-slate-800">Enquiries</div>
-                    <div className="text-[10px] text-slate-500">
-                      {memberData.enquiries.length > 0 ? `${memberData.enquiries.length} Active` : 'None'}
+                    <div className="text-[10px] text-slate-500 font-medium">
+                      {memberData.enquiries.length > 0 ? `${memberData.enquiries.length} Active` : 'Click to Contact'}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleCTAAction('open_whatsapp')}
-                    className="w-full py-1.5 px-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 font-extrabold text-[11px] transition-colors cursor-pointer text-center"
-                  >
+                  <div className="w-full py-1 px-2 rounded-xl bg-sky-50 group-hover:bg-sky-700 group-hover:text-white text-sky-800 font-extrabold text-[10px] transition-colors text-center">
                     Contact
-                  </button>
+                  </div>
                 </div>
 
                 {/* Health Coins Card */}
-                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-2 flex flex-col justify-between">
+                <div 
+                  onClick={() => handleCTAAction('navigate_services')}
+                  className="bg-white hover:bg-amber-50/50 rounded-2xl p-4 border border-slate-200 hover:border-amber-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-amber-100 text-amber-800">
+                    <span className="p-1.5 rounded-lg bg-amber-100 text-amber-800 group-hover:scale-105 transition-transform">
                       <Coins className="w-4 h-4 text-amber-600" />
                     </span>
                     <span className="text-base font-black text-amber-600">{memberData.walletCoins.toLocaleString('en-IN')}</span>
                   </div>
                   <div>
                     <div className="text-xs font-black text-slate-800">Health Coins</div>
-                    <div className="text-[10px] text-slate-500">
+                    <div className="text-[10px] text-slate-500 font-medium">
                       {memberData.walletCoins > 0 ? `≈ ₹${Math.floor(memberData.walletCoins / 10)}` : '0 Coins'}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleCTAAction('navigate_services')}
-                    className="w-full py-1.5 px-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 font-extrabold text-[11px] transition-colors cursor-pointer text-center"
-                  >
+                  <div className="w-full py-1 px-2 rounded-xl bg-amber-50 group-hover:bg-amber-700 group-hover:text-white text-amber-900 font-extrabold text-[10px] transition-colors text-center">
                     Redeem
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
