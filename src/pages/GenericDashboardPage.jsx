@@ -438,16 +438,6 @@ export default function GenericDashboardPage() {
             </div>
           </div>
 
-          {/* Consolidated Primary Workspace Action Group */}
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-            <button
-              onClick={() => openModalWithCategory('lab_report')}
-              className="px-4 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-sm transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2"
-            >
-              <UploadCloud className="w-4 h-4" />
-              <span>Upload Health Record</span>
-            </button>
-          </div>
         </div>
 
         {/* 3. FULL-WIDTH SPACIOUS PATIENT WORKSPACE (No Repetitive Sidebar Grid!) */}
