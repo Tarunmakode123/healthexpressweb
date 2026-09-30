@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
-import { getMemberOverview, buildUnifiedTimelineStream } from '../services/memberDashboardService';
+import { getMemberOverview, buildUnifiedTimelineStream, formatTimelineDateGroup, formatTimelineTimeIST } from '../services/memberDashboardService';
 import { classifyMemberActivity } from '../services/memberActivityClassifier';
 
 export default function GenericDashboardPage() {
@@ -118,24 +118,10 @@ export default function GenericDashboardPage() {
 
   const visibleTimelineItems = filteredTimelineItems.slice(0, timelineVisibleCount);
 
-  // Group visible timeline items by Date
+  // Group visible timeline items by Date (in IST: TODAY, YESTERDAY, SEP 27, 2026)
   const groupedTimelineVisible = {};
   visibleTimelineItems.forEach(item => {
-    const groupKey = item.groupDate || (item.timestamp ? new Date(item.timestamp).toDateString() : 'EARLIER');
-    let groupLabel = 'TODAY';
-    if (item.timestamp) {
-      const d = new Date(item.timestamp);
-      const now = new Date();
-      const isToday = d.toDateString() === now.toDateString();
-      const yesterday = new Date(now);
-      yesterday.setDate(now.getDate() - 1);
-      const isYesterday = d.toDateString() === yesterday.toDateString();
-
-      if (isToday) groupLabel = 'TODAY';
-      else if (isYesterday) groupLabel = 'YESTERDAY';
-      else groupLabel = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
-    }
-
+    const groupLabel = formatTimelineDateGroup(item.timestamp);
     if (!groupedTimelineVisible[groupLabel]) {
       groupedTimelineVisible[groupLabel] = [];
     }
@@ -680,7 +666,7 @@ export default function GenericDashboardPage() {
                           <div className="flex items-center justify-between">
                             <h4 className="text-xs font-extrabold text-slate-900">{item.title}</h4>
                             <span className="text-[10px] font-mono text-slate-400">
-                              {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : ''}
+                              {formatTimelineTimeIST(item.timestamp)}
                             </span>
                           </div>
                           <p className="text-xs text-slate-600 font-medium">{item.description}</p>

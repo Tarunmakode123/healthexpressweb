@@ -93,27 +93,50 @@ export async function getMemberOverview(userId) {
 }
 
 /**
- * Formats date into readable group string (TODAY, YESTERDAY, MMM DD, YYYY)
+ * Formats date into readable group string in IST (TODAY, YESTERDAY, SEP 27, 2026)
  */
 export function formatTimelineDateGroup(dateStr) {
   if (!dateStr) return 'EARLIER';
   const eventDate = new Date(dateStr);
+  if (isNaN(eventDate.getTime())) return 'EARLIER';
+
   const now = new Date();
-
-  const isToday = eventDate.toDateString() === now.toDateString();
+  const optionsIST = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
   
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday = eventDate.toDateString() === yesterday.toDateString();
+  const eventIST = new Intl.DateTimeFormat('en-CA', optionsIST).format(eventDate); // YYYY-MM-DD in IST
+  const nowIST = new Intl.DateTimeFormat('en-CA', optionsIST).format(now);
 
-  if (isToday) return 'TODAY';
-  if (isYesterday) return 'YESTERDAY';
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayIST = new Intl.DateTimeFormat('en-CA', optionsIST).format(yesterday);
 
-  return eventDate.toLocaleDateString('en-IN', {
-    day: 'numeric',
+  if (eventIST === nowIST) return 'TODAY';
+  if (eventIST === yesterdayIST) return 'YESTERDAY';
+
+  // Format as SEP 27, 2026 for older activity
+  const dateFormatted = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
     month: 'short',
+    day: 'numeric',
     year: 'numeric'
-  }).toUpperCase();
+  }).format(eventDate); // e.g. "Sep 27, 2026"
+
+  return dateFormatted.toUpperCase(); // "SEP 27, 2026"
+}
+
+/**
+ * Formats exact event time in 12-hour IST format (e.g. 11:43 AM)
+ */
+export function formatTimelineTimeIST(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(date); // e.g. "11:43 AM"
 }
 
 /**
