@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — REAL SERVICE CATALOG PRODUCTION MIGRATION
--- Total Normalized Services: 2206 records
+-- Total Normalized Services: 2207 records
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS public.services (
@@ -35423,10 +35423,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-basic-health-check-preventive', 'PKG-1', 'HEX Basic Health Check', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 9 essential diagnostic tests.', 'Comprehensive preventive health package including 9 essential diagnostic tests.', 4000.0, 4000.0, NULL, NULL,
+  'hex-basic-health-check-preventive', 'PKG-PREV-3', 'HEX Basic Health Check', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 9 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 9 diagnostic parameters.', 4000.0, 4000.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)"]'::jsonb, 9, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)"]'::jsonb, 9, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35439,10 +35439,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-master-health-check-preventive', 'PKG-1', 'HEX Master Health Check', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 15 essential diagnostic tests.', 'Comprehensive preventive health package including 15 essential diagnostic tests.', 9900.0, 9900.0, NULL, NULL,
+  'hex-master-health-check-preventive', 'PKG-PREV-4', 'HEX Master Health Check', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 16 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 16 diagnostic parameters.', 9900.0, 9900.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "ECG", "Chest X-Ray", "Ultrasound Abdomen", "Physician Evaluation"]'::jsonb, 15, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "ECG", "Chest X-Ray", "Ultrasound Abdomen", "Physician Evaluation", "Dietician/Wellness"]'::jsonb, 16, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35455,10 +35455,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-whole-body-comprehesive-preventive', 'PKG-1', 'HEX Whole Body Comprehesive', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 28 essential diagnostic tests.', 'Comprehensive preventive health package including 28 essential diagnostic tests.', 19000.0, 19000.0, NULL, NULL,
+  'hex-whole-body-comprehesive-preventive', 'PKG-PREV-5', 'HEX Whole Body Comprehesive', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 29 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 29 diagnostic parameters.', 19000.0, 19000.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Urine Culture & Sensitiviy", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "Electrolyte Profile (Na+,K+,CL)", "Bone Marker - Calcium", "Bone Marker - Phosphorus", "Total Iron", "Testosterone", "Magnesium", "Stool Occult Blood", "ECG", "2D Echo", "TMT (Stress Test)", "Chest X-Ray", "Ultrasound Abdomen", "Physician Evaluation", "Cardiology", "ENT", "Ophthalmology"]'::jsonb, 28, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Urine Culture & Sensitiviy", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "Electrolyte Profile (Na+,K+,CL)", "Bone Marker - Calcium", "Bone Marker - Phosphorus", "Total Iron", "Testosterone", "Magnesium", "Stool Occult Blood", "ECG", "2D Echo", "TMT (Stress Test)", "Chest X-Ray", "Ultrasound Abdomen", "Physician Evaluation", "Cardiology", "ENT", "Ophthalmology", "Dietician/Wellness"]'::jsonb, 29, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35471,10 +35471,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-fever-profile-preventive', 'PKG-1', 'HEX Fever Profile', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 7 essential diagnostic tests.', 'Comprehensive preventive health package including 7 essential diagnostic tests.', 3350.0, 3350.0, NULL, NULL,
+  'hex-fever-profile-preventive', 'PKG-PREV-6', 'HEX Fever Profile', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 7 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 7 diagnostic parameters.', 3350.0, 3350.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "HbA1c", "Urine Routine Analysis", "Widal", "Dengue Profile", "C-Reactive Protein", "Malarial Parasite"]'::jsonb, 7, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "HbA1c", "Urine Routine Analysis", "Widal", "Dengue Profile", "C-Reactive Protein", "Malarial Parasite"]'::jsonb, 7, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35487,10 +35487,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-pregnancy-profile-preventive', 'PKG-1', 'HEX Pregnancy Profile', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 10 essential diagnostic tests.', 'Comprehensive preventive health package including 10 essential diagnostic tests.', 4500.0, 4500.0, NULL, NULL,
+  'hex-pregnancy-profile-preventive', 'PKG-PREV-7', 'HEX Pregnancy Profile', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 10 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 10 diagnostic parameters.', 4500.0, 4500.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "HbA1c", "Urine Routine Analysis", "Thyroid Profile (T3, T4, TSH)", "Serum Creatinine", "Blood Group", "HIV", "HBsAG", "HCV", "VDRL"]'::jsonb, 10, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "HbA1c", "Urine Routine Analysis", "Thyroid Profile (T3, T4, TSH)", "Serum Creatinine", "Blood Group", "HIV", "HBsAG", "HCV", "VDRL"]'::jsonb, 10, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35503,10 +35503,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-primary-preventive-health-checkup-preventive', 'PKG-1', 'HEX Primary Preventive Health Checkup', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 15 essential diagnostic tests.', 'Comprehensive preventive health package including 15 essential diagnostic tests.', 8350.0, 8350.0, NULL, NULL,
+  'hex-primary-preventive-health-checkup-preventive', 'PKG-PREV-8', 'HEX Primary Preventive Health Checkup', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 16 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 16 diagnostic parameters.', 8350.0, 8350.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "Electrolyte Profile (Na+,K+,CL)", "Bone Marker - Calcium", "Bone Marker - Phosphorus", "Physician Evaluation"]'::jsonb, 15, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "ESR", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "Electrolyte Profile (Na+,K+,CL)", "Bone Marker - Calcium", "Bone Marker - Phosphorus", "Physician Evaluation", "Dietician/Wellness"]'::jsonb, 16, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35519,10 +35519,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-wonen-wellness-preventive', 'PKG-1', 'HEX Wonen Wellness', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 10 essential diagnostic tests.', 'Comprehensive preventive health package including 10 essential diagnostic tests.', 3950.0, 3950.0, NULL, NULL,
+  'hex-wonen-wellness-preventive', 'PKG-PREV-9', 'HEX Wonen Wellness', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 10 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 10 diagnostic parameters.', 3950.0, 3950.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Liver Function Test", "Thyroid Profile (T3, T4, TSH)", "Bone Marker - Calcium", "Bone Marker - Phosphorus", "Total Iron", "Peripheral Smear"]'::jsonb, 10, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Liver Function Test", "Thyroid Profile (T3, T4, TSH)", "Bone Marker - Calcium", "Bone Marker - Phosphorus", "Total Iron", "Peripheral Smear"]'::jsonb, 10, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35535,10 +35535,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-routine-diabetic-checkup-preventive', 'PKG-1', 'HEX Routine Diabetic Checkup', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 7 essential diagnostic tests.', 'Comprehensive preventive health package including 7 essential diagnostic tests.', 3300.0, 3300.0, NULL, NULL,
+  'hex-routine-diabetic-checkup-preventive', 'PKG-PREV-10', 'HEX Routine Diabetic Checkup', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 7 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 7 diagnostic parameters.', 3300.0, 3300.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test"]'::jsonb, 7, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "Fasting Blood Sugar", "HbA1c", "Urine Routine Analysis", "Lipid Profile", "Liver Function Test", "Renal Function Test"]'::jsonb, 7, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35551,10 +35551,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'hex-pediatric-checkup-preventive', 'PKG-1', 'HEX Pediatric Checkup', 'health-packages', 'Health Packages', 'Preventive Care', 'Health Express Network',
-  'Comprehensive preventive health package including 8 essential diagnostic tests.', 'Comprehensive preventive health package including 8 essential diagnostic tests.', 4450.0, 4450.0, NULL, NULL,
+  'hex-pediatric-checkup-preventive', 'PKG-PREV-11', 'HEX Pediatric Checkup', 'health-packages', 'Health Packages', 'Preventive Health', 'Health Express Network',
+  'Comprehensive preventive checkup panel containing 8 diagnostic parameters.', 'Comprehensive preventive checkup panel containing 8 diagnostic parameters.', 4450.0, 4450.0, NULL, NULL,
   '24 Hours', '10-12 hours fasting required before sample collection.', 'Blood & Urine', TRUE,
-  FALSE, '["CBC", "Urine Routine Analysis", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "Bone Marker - Calcium", "Total Iron", "Blood Group"]'::jsonb, 8, 'package', 'PreventiveCare'
+  FALSE, '["CBC", "Urine Routine Analysis", "Thyroid Profile (T3, T4, TSH)", "Vitamin D", "Vitamin B12", "Bone Marker - Calcium", "Total Iron", "Blood Group"]'::jsonb, 8, 'package', 'Preventive Care'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35567,10 +35567,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'essential-sexual-health-sexual-wellness', 'SWP-1', 'Essential Sexual Health', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
-  'Specialized wellness package for Essential Sexual Health.', 'Specialized wellness package for Essential Sexual Health.', 8750.0, 8750.0, NULL, NULL,
-  '24-48 Hours', 'No fasting required. Confidential home collection.', 'Blood & Urine', TRUE,
-  FALSE, '[]'::jsonb, 0, 'package', 'SexualWellness'
+  'mens-sexual-health-essential-sexual-health-sexual-wellness', 'PKG-SEX-2', 'Men’s Sexual Health - Essential Sexual Health', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
+  'Specialized sexual health and fertility package including 9 diagnostic parameters & specialist consultation.', 'Specialized sexual health and fertility package including 9 diagnostic parameters & specialist consultation.', 8750.0, 8750.0, NULL, NULL,
+  '24-48 Hours', 'Confidential home sample pickup. No fasting required unless specified.', 'Blood & Urine', TRUE,
+  FALSE, '["HIV 1 & 2 Ag/Ab", "Hepatitis B Surface Antigen (HBsAg)", "Hepatitis C Antibody HCV", "Syphilis (VDRL)", "Chlamydia PCR (Urine) - IgG IgM", "Complete Blood Count (CBC)", "HbA1c", "Urine Routine Examination", "Urologist / Andrologist"]'::jsonb, 9, 'package', 'Sexual Wellness'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35583,10 +35583,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'comprehensive-sexual-wellness-sexual-wellness', 'SWP-1', 'Comprehensive Sexual Wellness', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
-  'Specialized wellness package for Comprehensive Sexual Wellness.', 'Specialized wellness package for Comprehensive Sexual Wellness.', 18750.0, 18750.0, NULL, NULL,
-  '24-48 Hours', 'No fasting required. Confidential home collection.', 'Blood & Urine', TRUE,
-  FALSE, '[]'::jsonb, 0, 'package', 'SexualWellness'
+  'mens-sexual-health-comprehensive-sexual-wellness-sexual-wellness', 'PKG-SEX-3', 'Men’s Sexual Health - Comprehensive Sexual Wellness', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
+  'Specialized sexual health and fertility package including 23 diagnostic parameters & specialist consultation.', 'Specialized sexual health and fertility package including 23 diagnostic parameters & specialist consultation.', 18750.0, 18750.0, NULL, NULL,
+  '24-48 Hours', 'Confidential home sample pickup. No fasting required unless specified.', 'Blood & Urine', TRUE,
+  FALSE, '["HIV 1 & 2 Ag/Ab", "Hepatitis B Surface Antigen (HBsAg)", "Hepatitis C Antibody HCV", "Syphilis (VDRL)", "Chlamydia PCR (Urine) - IgG IgM", "Complete Blood Count (CBC)", "HbA1c", "Urine Routine Examination", "Lipid Profile", "Liver Function Test", "Kidney Function Test", "Vitamin D", "Vitamin B12", "Total Testosterone", "Free Testosterone", "LH (Luteinizing Hormone)", "FSH (Follicular Stimulating Hormone)", "PRL (Prolactin)", "Estradiol (E2)", "TSH (Thyroid Stimulating Hormone)", "Semen Analysis", "Urologist / Andrologist", "Dietitian"]'::jsonb, 23, 'package', 'Sexual Wellness'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35599,10 +35599,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'executive-mens-reproductive-health-sexual-wellness', 'SWP-1', 'Executive Men’s Reproductive Health', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
-  'Specialized wellness package for Executive Men’s Reproductive Health.', 'Specialized wellness package for Executive Men’s Reproductive Health.', 23750.0, 23750.0, NULL, NULL,
-  '24-48 Hours', 'No fasting required. Confidential home collection.', 'Blood & Urine', TRUE,
-  FALSE, '[]'::jsonb, 0, 'package', 'SexualWellness'
+  'mens-sexual-health-executive-mens-reproductive-health-sexual-wellness', 'PKG-SEX-4', 'Men’s Sexual Health - Executive Men’s Reproductive Health', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
+  'Specialized sexual health and fertility package including 27 diagnostic parameters & specialist consultation.', 'Specialized sexual health and fertility package including 27 diagnostic parameters & specialist consultation.', 23750.0, 23750.0, NULL, NULL,
+  '24-48 Hours', 'Confidential home sample pickup. No fasting required unless specified.', 'Blood & Urine', TRUE,
+  FALSE, '["HIV 1 & 2 Ag/Ab", "Hepatitis B Surface Antigen (HBsAg)", "Hepatitis C Antibody HCV", "Syphilis (VDRL)", "Chlamydia PCR (Urine) - IgG IgM", "Complete Blood Count (CBC)", "HbA1c", "Urine Routine Examination", "Lipid Profile", "Liver Function Test", "Kidney Function Test", "Vitamin D", "Vitamin B12", "Total Testosterone", "Free Testosterone", "LH (Luteinizing Hormone)", "FSH (Follicular Stimulating Hormone)", "PRL (Prolactin)", "Estradiol (E2)", "TSH (Thyroid Stimulating Hormone)", "Semen Analysis", "PSA (Age >45 years or high-risk individuals)", "Scrotal Ultrasound (if indicated)", "Fertility Specialist", "Sexual Medicine Specialist", "Urologist / Andrologist", "Dietitian"]'::jsonb, 27, 'package', 'Sexual Wellness'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35615,10 +35615,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'comprehensive-womens-wellness-sexual-wellness', 'SWP-1', 'Comprehensive Women’s Wellness', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
-  'Specialized wellness package for Comprehensive Women’s Wellness.', 'Specialized wellness package for Comprehensive Women’s Wellness.', 8750.0, 8750.0, NULL, NULL,
-  '24-48 Hours', 'No fasting required. Confidential home collection.', 'Blood & Urine', TRUE,
-  FALSE, '[]'::jsonb, 0, 'package', 'SexualWellness'
+  'womens-sexual-health-essential-sexual-health-sexual-wellness', 'PKG-SEX-5', 'Women’s Sexual Health - Essential Sexual Health', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
+  'Specialized sexual health and fertility package including 9 diagnostic parameters & specialist consultation.', 'Specialized sexual health and fertility package including 9 diagnostic parameters & specialist consultation.', 8750.0, 8750.0, NULL, NULL,
+  '24-48 Hours', 'Confidential home sample pickup. No fasting required unless specified.', 'Blood & Urine', TRUE,
+  FALSE, '["HIV 1 & 2 Ag/Ab", "Hepatitis B Surface Antigen (HBsAg)", "Hepatitis C Antibody HCV", "Syphilis (VDRL)", "Chlamydia PCR (Urine) - IgG IgM", "Complete Blood Count (CBC)", "HbA1c", "Urine Routine Examination", "General Physician"]'::jsonb, 9, 'package', 'Sexual Wellness'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35631,10 +35631,10 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'executive-womens-reproductive-health-sexual-wellness', 'SWP-1', 'Executive Women’s Reproductive Health', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
-  'Specialized wellness package for Executive Women’s Reproductive Health.', 'Specialized wellness package for Executive Women’s Reproductive Health.', 20750.0, 20750.0, NULL, NULL,
-  '24-48 Hours', 'No fasting required. Confidential home collection.', 'Blood & Urine', TRUE,
-  FALSE, '[]'::jsonb, 0, 'package', 'SexualWellness'
+  'womens-sexual-health-comprehensive-womens-wellness-sexual-wellness', 'PKG-SEX-6', 'Women’s Sexual Health - Comprehensive Women’s Wellness', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
+  'Specialized sexual health and fertility package including 24 diagnostic parameters & specialist consultation.', 'Specialized sexual health and fertility package including 24 diagnostic parameters & specialist consultation.', 20750.0, 20750.0, NULL, NULL,
+  '24-48 Hours', 'Confidential home sample pickup. No fasting required unless specified.', 'Blood & Urine', TRUE,
+  FALSE, '["HIV 1 & 2 Ag/Ab", "Hepatitis B Surface Antigen (HBsAg)", "Hepatitis C Antibody HCV", "Syphilis (VDRL)", "Chlamydia PCR (Urine) - IgG IgM", "Complete Blood Count (CBC)", "HbA1c", "Urine Routine Examination", "Lipid Profile", "Liver Function Test", "Kidney Function Test", "Vitamin D", "Vitamin B12", "Total Testosterone", "LH (Luteinizing Hormone)", "FSH (Follicular Stimulating Hormone)", "PRL (Prolactin)", "Estradiol (E2)", "TSH (Thyroid Stimulating Hormone)", "AMH (Anti-M\u00fcllerian Hormone)", "Progesterone", "General Physician", "Gynecologist", "Dietitian"]'::jsonb, 24, 'package', 'Sexual Wellness'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,
@@ -35647,10 +35647,26 @@ INSERT INTO public.services (
   turnaround_time, patient_preparation, specimen_type, home_collection_available,
   centre_visit_required, parameters, parameters_count, service_type, source
 ) VALUES (
-  'infection-screening-both-partners-sexual-wellness', 'SWP-1', 'Infection Screening (Both Partners)', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
-  'Specialized wellness package for Infection Screening (Both Partners).', 'Specialized wellness package for Infection Screening (Both Partners).', 26750.0, 26750.0, NULL, NULL,
-  '24-48 Hours', 'No fasting required. Confidential home collection.', 'Blood & Urine', TRUE,
-  FALSE, '[]'::jsonb, 0, 'package', 'SexualWellness'
+  'womens-sexual-health-executive-womens-reproductive-health-sexual-wellness', 'PKG-SEX-7', 'Women’s Sexual Health - Executive Women’s Reproductive Health', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
+  'Specialized sexual health and fertility package including 28 diagnostic parameters & specialist consultation.', 'Specialized sexual health and fertility package including 28 diagnostic parameters & specialist consultation.', 26750.0, 26750.0, NULL, NULL,
+  '24-48 Hours', 'Confidential home sample pickup. No fasting required unless specified.', 'Blood & Urine', TRUE,
+  FALSE, '["HIV 1 & 2 Ag/Ab", "Hepatitis B Surface Antigen (HBsAg)", "Hepatitis C Antibody HCV", "Syphilis (VDRL)", "Chlamydia PCR (Urine) - IgG IgM", "Complete Blood Count (CBC)", "HbA1c", "Urine Routine Examination", "Lipid Profile", "Liver Function Test", "Kidney Function Test", "Vitamin D", "Vitamin B12", "Total Testosterone", "LH (Luteinizing Hormone)", "FSH (Follicular Stimulating Hormone)", "PRL (Prolactin)", "Estradiol (E2)", "TSH (Thyroid Stimulating Hormone)", "AMH (Anti-M\u00fcllerian Hormone)", "Progesterone", "Pelvic Ultrasound", "Transvaginal Ultrasound (when appropriate)", "Fertility Specialist", "Sexual Medicine Specialist", "General Physician", "Gynecologist", "Dietitian"]'::jsonb, 28, 'package', 'Sexual Wellness'
+) ON CONFLICT (slug) DO UPDATE SET
+  service_name = EXCLUDED.service_name,
+  selling_price = EXCLUDED.selling_price,
+  mrp = EXCLUDED.mrp,
+  turnaround_time = EXCLUDED.turnaround_time,
+  updated_at = now();
+INSERT INTO public.services (
+  slug, service_code, service_name, category_id, category_name, subcategory, provider,
+  description, overview, mrp, selling_price, b2b_price, discount_percentage,
+  turnaround_time, patient_preparation, specimen_type, home_collection_available,
+  centre_visit_required, parameters, parameters_count, service_type, source
+) VALUES (
+  'couples-fertility-sexual-wellness-package-infection-screening-both-partners-sexual-wellness', 'PKG-SEX-8', 'Couples Fertility & Sexual Wellness Package - Infection Screening (Both Partners)', 'health-packages', 'Health Packages', 'Sexual Wellness', 'Health Express Network',
+  'Specialized sexual health and fertility package including 18 diagnostic parameters & specialist consultation.', 'Specialized sexual health and fertility package including 18 diagnostic parameters & specialist consultation.', 25150.0, 25150.0, NULL, NULL,
+  '24-48 Hours', 'Confidential home sample pickup. No fasting required unless specified.', 'Blood & Urine', TRUE,
+  FALSE, '["HIV 1 & 2 Ag/Ab", "Hepatitis B Surface Antigen (HBsAg)", "Hepatitis C Antibody HCV", "Syphilis (VDRL)", "Chlamydia PCR (Urine) - IgG IgM", "Total Testosterone", "Free Testosterone", "LH (Luteinizing Hormone)", "FSH (Follicular Stimulating Hormone)", "Estradiol (E2)", "AMH (Anti-M\u00fcllerian Hormone)", "Progesterone", "Semen Analysis", "Pap Smear", "Pelvic Ultrasound", "Fertility Specialist", "Urologist / Andrologist", "Gynecologist"]'::jsonb, 18, 'package', 'Sexual Wellness'
 ) ON CONFLICT (slug) DO UPDATE SET
   service_name = EXCLUDED.service_name,
   selling_price = EXCLUDED.selling_price,

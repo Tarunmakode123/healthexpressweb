@@ -222,7 +222,7 @@ if f3.exists():
         })
         stats['genomics'] += 1
 
-# 4. IMPORT HEALTH PACKAGES
+# 4. IMPORT HEALTH PACKAGES (PREVENTIVE CARE + SEXUAL WELLNESS MATRIX)
 f4 = downloads_dir / 'HealthPackages.xlsx'
 if f4.exists():
     wb4 = openpyxl.load_workbook(f4, data_only=True)
@@ -230,24 +230,25 @@ if f4.exists():
     # Sheet 1: Preventive Care
     if 'Preventive Care' in wb4.sheetnames:
         sp = wb4['Preventive Care']
-        rows_p = list(sp.iter_rows(values_only=True))
-        pkg_headers = [c for c in rows_p[2] if c is not None][2:]  # columns starting from index 3
-        mrp_row = rows_p[43]
-        
-        # Build parameter mapping for each package
-        pkg_params = {pkg: [] for pkg in pkg_headers}
-        for r in rows_p[3:42]:
-            param_name = r[1]
-            if not param_name: continue
-            for col_idx, pkg in enumerate(pkg_headers, start=3):
-                if col_idx < len(r) and r[col_idx] == 'yes':
-                    pkg_params[pkg].append(str(param_name).strip())
+        rows_sp = list(sp.iter_rows(values_only=True))
+        header_p = rows_sp[2]
+        mrp_row_p = rows_sp[43]
 
-        for col_idx, pkg_name in enumerate(pkg_headers, start=3):
+        for col_idx in range(3, 12):
+            pkg_name = str(header_p[col_idx]).strip() if header_p[col_idx] else None
             if not pkg_name: continue
-            mrp_val = mrp_row[col_idx] if col_idx < len(mrp_row) else None
-            mrp = float(mrp_val) if mrp_val is not None and str(mrp_val).replace('.','',1).isdigit() else 2999
             
+            mrp_val = mrp_row_p[col_idx] if col_idx < len(mrp_row_p) else None
+            mrp = float(mrp_val) if mrp_val and str(mrp_val).replace('.', '', 1).isdigit() else 2999
+            
+            params = []
+            for r_idx in range(3, 43):
+                r = rows_sp[r_idx]
+                test_name = r[1]
+                val = str(r[col_idx]).strip().lower() if col_idx < len(r) and r[col_idx] is not None else ''
+                if test_name and val == 'yes':
+                    params.append(str(test_name).strip())
+                    
             base_slug = slugify(f"{pkg_name}-preventive")
             slug = base_slug
             idx = 1
@@ -256,19 +257,17 @@ if f4.exists():
                 idx += 1
             slug_set.add(slug)
 
-            params_list = pkg_params.get(pkg_name, [])
-
             services.append({
                 'id': slug,
                 'slug': slug,
-                'service_code': f"PKG-{idx}",
-                'name': str(pkg_name).strip(),
+                'service_code': f"PKG-PREV-{col_idx}",
+                'name': pkg_name,
                 'category_id': 'health-packages',
                 'category_name': 'Health Packages',
-                'subcategory': 'Preventive Care',
+                'subcategory': 'Preventive Health',
                 'provider': 'Health Express Network',
-                'description': f"Comprehensive preventive health package including {len(params_list)} essential diagnostic tests.",
-                'overview': f"Comprehensive preventive health package including {len(params_list)} essential diagnostic tests.",
+                'description': f"Comprehensive preventive checkup panel containing {len(params)} diagnostic parameters.",
+                'overview': f"Comprehensive preventive checkup panel containing {len(params)} diagnostic parameters.",
                 'mrp': mrp,
                 'price': mrp,
                 'selling_price': mrp,
@@ -282,32 +281,46 @@ if f4.exists():
                 'sample_type': 'Blood & Urine',
                 'home_collection_available': True,
                 'centre_visit_required': False,
-                'parameters': params_list,
-                'parameters_count': len(params_list),
+                'parameters': params,
+                'parameters_count': len(params),
                 'service_type': 'package',
-                'source': 'PreventiveCare'
+                'source': 'Preventive Care'
             })
             stats['packages'] += 1
 
     # Sheet 2: SexualWellness
     if 'SexualWellness' in wb4.sheetnames:
         sw = wb4['SexualWellness']
-        rows_w = list(sw.iter_rows(values_only=True))
-        pkg_w_headers = [r[2] for r in rows_w[1:2]][0] if len(rows_w) > 1 else []
-        
-        pkg_names_w = []
-        for c in rows_w[1]:
-            if c and str(c).strip() and str(c).strip() not in pkg_names_w:
-                pkg_names_w.append(str(c).strip())
-        
-        mrp_row_w = rows_w[38] if len(rows_w) > 38 else []
-        
-        for idx_w, pkg_name in enumerate(pkg_names_w, start=2):
-            if not pkg_name: continue
-            mrp_val = mrp_row_w[idx_w] if idx_w < len(mrp_row_w) else None
-            mrp = float(mrp_val) if mrp_val is not None and str(mrp_val).replace('.','',1).isdigit() and float(mrp_val) > 0 else 4999
+        rows_sw = list(sw.iter_rows(values_only=True))
+        header_group = rows_sw[0]
+        header_name = rows_sw[1]
+        mrp_row_sw = rows_sw[38]
+
+        for col_idx in range(2, 9):
+            group_title = ''
+            for prev in range(col_idx, -1, -1):
+                if header_group[prev]:
+                    group_title = str(header_group[prev]).strip()
+                    break
+                    
+            pkg_name = str(header_name[col_idx]).strip() if header_name[col_idx] else f"Package {col_idx}"
+            mrp_val = mrp_row_sw[col_idx] if col_idx < len(mrp_row_sw) else None
+            mrp = float(mrp_val) if mrp_val and str(mrp_val).replace('.', '', 1).isdigit() else 4999
             
-            base_slug = slugify(f"{pkg_name}-sexual-wellness")
+            params = []
+            for r_idx in range(2, 38):
+                r = rows_sw[r_idx]
+                test_name = r[1]
+                val = str(r[col_idx]).strip().lower() if col_idx < len(r) and r[col_idx] is not None else ''
+                if test_name and val == 'yes':
+                    params.append(str(test_name).strip())
+                    
+            clean_group = group_title.replace('Packages', '').replace('(Premium)', '').strip()
+            full_name = f"{clean_group} - {pkg_name}"
+            if pkg_name.lower() in clean_group.lower():
+                full_name = clean_group
+
+            base_slug = slugify(f"{full_name}-sexual-wellness")
             slug = base_slug
             idx = 1
             while slug in slug_set:
@@ -318,14 +331,14 @@ if f4.exists():
             services.append({
                 'id': slug,
                 'slug': slug,
-                'service_code': f"SWP-{idx}",
-                'name': pkg_name,
+                'service_code': f"PKG-SEX-{col_idx}",
+                'name': full_name,
                 'category_id': 'health-packages',
                 'category_name': 'Health Packages',
                 'subcategory': 'Sexual Wellness',
                 'provider': 'Health Express Network',
-                'description': f"Specialized wellness package for {pkg_name}.",
-                'overview': f"Specialized wellness package for {pkg_name}.",
+                'description': f"Specialized sexual health and fertility package including {len(params)} diagnostic parameters & specialist consultation.",
+                'overview': f"Specialized sexual health and fertility package including {len(params)} diagnostic parameters & specialist consultation.",
                 'mrp': mrp,
                 'price': mrp,
                 'selling_price': mrp,
@@ -333,14 +346,16 @@ if f4.exists():
                 'b2b_price': None,
                 'discount_percentage': None,
                 'turnaround_time': '24-48 Hours',
-                'patient_preparation': 'No fasting required. Confidential home collection.',
-                'preparation': 'No fasting required. Confidential home collection.',
+                'patient_preparation': 'Confidential home sample pickup. No fasting required unless specified.',
+                'preparation': 'Confidential home sample pickup. No fasting required unless specified.',
                 'specimen_type': 'Blood & Urine',
                 'sample_type': 'Blood & Urine',
                 'home_collection_available': True,
                 'centre_visit_required': False,
+                'parameters': params,
+                'parameters_count': len(params),
                 'service_type': 'package',
-                'source': 'SexualWellness'
+                'source': 'Sexual Wellness'
             })
             stats['packages'] += 1
 
@@ -350,11 +365,6 @@ print(f"LabSpring Records: {stats['labspring']}")
 print(f"Imaging Records: {stats['imaging']}")
 print(f"Genomics Records: {stats['genomics']}")
 print(f"Health Package Records: {stats['packages']}")
-print(f"Duplicates Handled: {stats['duplicates_handled']}")
-print(f"Missing Prices Preserved: {stats['missing_prices']}")
-print(f"Missing TAT Preserved: {stats['missing_tat']}")
-print(f"Missing Prep Preserved: {stats['missing_prep']}")
-print(f"Missing Sample Preserved: {stats['missing_sample']}")
 
 # Write to src/data/services.js
 categories_map = {
