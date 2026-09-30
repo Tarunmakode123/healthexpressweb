@@ -447,22 +447,6 @@ export default function GenericDashboardPage() {
               <UploadCloud className="w-4 h-4" />
               <span>Upload Health Record</span>
             </button>
-
-            <button
-              onClick={() => openModalWithCategory('prescription')}
-              className="px-4 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-extrabold text-xs border border-purple-200 transition-all cursor-pointer flex items-center gap-2"
-            >
-              <FileText className="w-4 h-4 text-purple-700" />
-              <span>Upload Prescription</span>
-            </button>
-
-            <button
-              onClick={() => handleCTAAction('open_whatsapp')}
-              className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer flex items-center gap-2"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">24/7 Care Manager</span>
-            </button>
           </div>
         </div>
 
