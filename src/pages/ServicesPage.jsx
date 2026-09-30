@@ -372,11 +372,12 @@ export default function ServicesPage({ onOpenUploadModal }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* 3. LEFT FILTER SIDEBAR (DESKTOP) */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 sticky top-20">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-5 text-xs">
+          <aside className="hidden lg:block lg:col-span-3">
+            <div className="sticky top-24 space-y-4">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-5 text-xs">
               
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <span className="font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5 text-xs">
@@ -519,9 +520,10 @@ export default function ServicesPage({ onOpenUploadModal }) {
 
             </div>
           </div>
+        </aside>
 
-          {/* 4. RIGHT SERVICE RESULTS CATALOG (AT LEAST 3 CARDS IN A ROW ON DESKTOP) */}
-          <div className="col-span-1 lg:col-span-9 space-y-6">
+        {/* 4. RIGHT SERVICE RESULTS CATALOG (AT LEAST 3 CARDS IN A ROW ON DESKTOP) */}
+        <main className="col-span-1 lg:col-span-9 space-y-6">
             
             {isLoading ? (
               /* SKELETON LOADING GRID */
@@ -700,7 +702,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
               </div>
             )}
 
-          </div>
+          </main>
 
         </div>
 
