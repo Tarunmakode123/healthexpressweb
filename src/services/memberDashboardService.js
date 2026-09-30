@@ -48,13 +48,23 @@ export async function getMemberOverview(userId) {
   }
 
   try {
+    // 1. Ensure any guest prescriptions/orders are linked to this authenticated user prior to fetching
+    await supabase.rpc('link_guest_records_on_otp_login').catch((err) => {
+      console.warn('[LINK] Auto account linking notice in getMemberOverview:', err?.message || err);
+    });
+
     const patient = await getMemberPatientProfile(userId);
     const patientId = patient?.id || null;
 
-    // Parallel fetch scoped strictly to auth.uid() / patientId
+    console.info(`[AUTH] Authenticated user: ${userId}`);
+    console.info(`[PATIENT] Resolved patient: ${patientId || 'none'}`);
+
+    // 2. Parallel fetch scoped strictly to auth.uid() / patientId
     const [ordRes, presRes, enqRes, payRes, evtRes, walRes] = await Promise.all([
       supabase.from('orders').select('*, payments(*)').eq('user_id', userId).order('created_at', { ascending: false }),
-      supabase.from('prescriptions').select('*, enquiries(*)').eq('user_id', userId).order('created_at', { ascending: false }),
+      patientId
+        ? supabase.from('prescriptions').select('*, enquiries(*)').or(`user_id.eq.${userId},patient_id.eq.${patientId}`).order('created_at', { ascending: false })
+        : supabase.from('prescriptions').select('*, enquiries(*)').eq('user_id', userId).order('created_at', { ascending: false }),
       patientId 
         ? supabase.from('enquiries').select('*, prescriptions(*)').eq('patient_id', patientId).order('created_at', { ascending: false })
         : Promise.resolve({ data: [] }),
@@ -86,6 +96,8 @@ export async function getMemberOverview(userId) {
         }
       })
     );
+
+    console.info(`[DASHBOARD] Loaded ${prescriptionsWithSignedUrls.length} prescriptions for member`);
 
     return {
       success: true,
