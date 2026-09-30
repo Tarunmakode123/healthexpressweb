@@ -50,7 +50,7 @@ export default function GenericDashboardPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [customRecords, setCustomRecords] = useState([]);
 
-  // Timeline Filter State
+  // Timeline Filter State: 'all' (Key Milestones) | 'orders' | 'prescriptions' | 'payments' | 'account' | 'website' (Page Visits)
   const [activeTimelineFilter, setActiveTimelineFilter] = useState('all');
   const [timelineVisibleCount, setTimelineVisibleCount] = useState(15);
 
@@ -165,9 +165,16 @@ export default function GenericDashboardPage() {
     payments: memberData.payments
   });
 
-  // Filtered Timeline Items
+  // Filtered Timeline Items (Option A: Hide page visit noise from default 'All' milestones view!)
   const filteredTimelineItems = timelineStream.allItems.filter(item => {
-    if (activeTimelineFilter === 'all') return true;
+    if (activeTimelineFilter === 'all') {
+      // Default view: Show ONLY Key Healthcare & Account Milestones (exclude website page visit noise)
+      return item.category !== 'website';
+    }
+    if (activeTimelineFilter === 'website') {
+      // Explicit Page Visits filter tab
+      return item.category === 'website';
+    }
     return item.category === activeTimelineFilter;
   });
 
@@ -807,7 +814,7 @@ export default function GenericDashboardPage() {
               </div>
             )}
 
-            {/* TAB VIEW 4: ACTIVITY AUDIT STREAM */}
+            {/* TAB VIEW 4: ACTIVITY AUDIT STREAM (Option A: Clean Healthcare Milestones Feed!) */}
             {activeWorkspaceTab === 'activity' && (
               <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
                 
@@ -815,18 +822,22 @@ export default function GenericDashboardPage() {
                   <div>
                     <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
                       <Activity className="w-4 h-4 text-purple-600" />
-                      <span>Chronological Activity Audit Log</span>
+                      <span>Key Patient Activity Milestones</span>
                     </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      History of your medical orders, prescription uploads, health vault files, and security logins.
+                    </p>
                   </div>
 
+                  {/* Clean Milestone Filter Pills */}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {[
-                      { id: 'all', label: 'All' },
+                      { id: 'all', label: 'All Milestones' },
                       { id: 'orders', label: 'Orders' },
                       { id: 'prescriptions', label: 'Prescriptions' },
                       { id: 'payments', label: 'Payments' },
-                      { id: 'website', label: 'Website' },
-                      { id: 'account', label: 'Account' }
+                      { id: 'account', label: 'Security & Auth' },
+                      { id: 'website', label: 'Page Visits' }
                     ].map(f => (
                       <button
                         key={f.id}
@@ -847,7 +858,14 @@ export default function GenericDashboardPage() {
                 {filteredTimelineItems.length === 0 ? (
                   <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
                     <Clock className="w-8 h-8 text-slate-400 mx-auto" />
-                    <h4 className="text-xs font-bold text-slate-800">No activity recorded for this filter</h4>
+                    <h4 className="text-xs font-bold text-slate-800">
+                      {activeTimelineFilter === 'all' ? 'No medical milestone events logged yet' : 'No activity recorded for this filter'}
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      {activeTimelineFilter === 'all' 
+                        ? 'Upload a doctor prescription or save a lab report to build your health history.'
+                        : 'Select another filter pill to view timeline logs.'}
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 sm:before:left-4 before:w-0.5 before:bg-purple-100">
