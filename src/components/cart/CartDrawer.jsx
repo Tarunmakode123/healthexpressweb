@@ -736,6 +736,17 @@ export default function CartDrawer() {
                             Remove
                           </button>
                         </div>
+                      ) : !user ? (
+                        <div className="bg-white p-3.5 rounded-2xl border border-amber-100/90 shadow-2xs flex items-center justify-between gap-3">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-slate-900">
+                              Sign in to use Health Coins
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-medium">
+                              Earn and redeem Health Coins on every test booking.
+                            </p>
+                          </div>
+                        </div>
                       ) : (
                         <div className="bg-white p-3.5 rounded-2xl border border-amber-100/90 shadow-2xs flex items-center justify-between gap-3">
                           <div className="space-y-0.5">

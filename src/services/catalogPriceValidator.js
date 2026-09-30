@@ -7,7 +7,7 @@ import { DEFAULT_WALLET_SETTINGS, calculateCoinDiscount } from './walletService.
  * with explicit scope eligibility matching, and recalculates trusted total payable amount.
  * PREVENTS CLIENT-SIDE PRICE, PROMO, AND COIN DISCOUNT TAMPERING
  */
-export function validateCartTotal(items, promoCode = null, coinsToUse = 0, walletBalance = 1000, walletSettings = DEFAULT_WALLET_SETTINGS) {
+export function validateCartTotal(items, promoCode = null, coinsToUse = 0, walletBalance = 0, walletSettings = DEFAULT_WALLET_SETTINGS) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     return {
       isValid: false,

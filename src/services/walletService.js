@@ -64,18 +64,8 @@ export async function fetchWalletData(patientId) {
   if (!isSupabaseConfigured || !supabase || !patientId) {
     return {
       success: true,
-      balance: 1000, // Demo fallback balance for unlinked offline sessions
-      transactions: [
-        {
-          id: 'demo-tx-1',
-          transaction_type: 'signup_reward',
-          coins: 1000,
-          balance_before: 0,
-          balance_after: 1000,
-          description: '🎁 Welcome Reward — Health Express Signup',
-          created_at: new Date().toISOString()
-        }
-      ]
+      balance: 0,
+      transactions: []
     };
   }
 
@@ -121,7 +111,7 @@ export async function fetchWalletData(patientId) {
  */
 export async function claimSignupReward(patientId) {
   if (!isSupabaseConfigured || !supabase || !patientId) {
-    return { success: true, already_claimed: true, balance: 1000 };
+    return { success: true, already_claimed: true, balance: 0 };
   }
 
   try {

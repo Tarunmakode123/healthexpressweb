@@ -54,7 +54,7 @@ export function loadRazorpaySDK() {
 /**
  * Calls server-side endpoint /api/create-razorpay-order to generate an official Razorpay Order ID (order_...)
  */
-export async function createRazorpayOrderServer({ items, promoCode = null, coinsToUse = 0, walletBalance = 1000, walletSettings = null, customerName, customerPhone, customerEmail }) {
+export async function createRazorpayOrderServer({ items, promoCode = null, coinsToUse = 0, walletBalance = 0, walletSettings = null, customerName, customerPhone, customerEmail }) {
   try {
     const response = await fetch('/api/create-razorpay-order', {
       method: 'POST',
@@ -78,7 +78,7 @@ export async function createRazorpayOrderServer({ items, promoCode = null, coins
 /**
  * Creates internal order in database for either COD or ONLINE payment method
  */
-export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, promoCode = null, coinsToUse = 0, walletBalance = 1000, walletSettings = null, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null }) {
+export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, promoCode = null, coinsToUse = 0, walletBalance = 0, walletSettings = null, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null }) {
   // 1. Validate inputs
   if (!customerName || customerName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
