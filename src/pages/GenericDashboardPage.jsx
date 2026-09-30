@@ -27,7 +27,7 @@ export default function GenericDashboardPage() {
     enquiries: [],
     payments: [],
     events: [],
-    walletCoins: 1000
+    walletCoins: 0
   });
   const [isLoadingStats, setIsLoadingStats] = useState(true);
 
@@ -116,10 +116,9 @@ export default function GenericDashboardPage() {
             setWalletSettings(walletConfig.settings);
           }
 
-          const defaultBonus = walletConfig?.settings?.signup_reward_coins || 1000;
           setMemberData({
             ...data,
-            walletCoins: data.walletCoins || defaultBonus
+            walletCoins: typeof data?.walletCoins === 'number' ? data.walletCoins : 0
           });
         }
       } catch (err) {
@@ -213,7 +212,7 @@ export default function GenericDashboardPage() {
   
   // Compute current wallet coins & rupee conversion using live Supabase backend settings
   const coinsPerRupee = walletSettings.coins_per_rupee || 10;
-  const currentWalletCoins = memberData.walletCoins || walletSettings.signup_reward_coins || 1000;
+  const currentWalletCoins = typeof memberData?.walletCoins === 'number' ? memberData.walletCoins : 0;
   const rupeesDiscountValue = Math.floor(currentWalletCoins / coinsPerRupee);
 
   // Handle Document Upload Submission to Health Vault

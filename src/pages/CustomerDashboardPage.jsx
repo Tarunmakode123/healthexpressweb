@@ -21,7 +21,7 @@ export default function CustomerDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'records' | 'prescriptions' | 'orders' | 'wallet'
   const [records, setRecords] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [walletBalance, setWalletBalance] = useState(1000);
+  const [walletBalance, setWalletBalance] = useState(0);
   const [walletTransactions, setWalletTransactions] = useState([]);
   const [stats, setStats] = useState({
     totalFiles: 0,

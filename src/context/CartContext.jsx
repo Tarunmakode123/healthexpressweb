@@ -29,7 +29,7 @@ export function CartProvider({ children }) {
   const [availablePromos, setAvailablePromos] = useState([]);
 
   // HEALTH COINS STATES
-  const [walletBalance, setWalletBalance] = useState(1000);
+  const [walletBalance, setWalletBalance] = useState(0);
   const [walletSettings, setWalletSettings] = useState(DEFAULT_WALLET_SETTINGS);
   const [coinsRequested, setCoinsRequested] = useState(0);
   const [coinDiscount, setCoinDiscount] = useState(0);
@@ -64,11 +64,11 @@ export function CartProvider({ children }) {
     if (user?.id) {
       fetchWalletData(user.id).then((res) => {
         if (res.success) {
-          setWalletBalance(res.balance);
+          setWalletBalance(typeof res.balance === 'number' ? res.balance : 0);
         }
       }).catch(() => {});
     } else {
-      setWalletBalance(1000); // Demo default
+      setWalletBalance(0);
     }
   }, [user?.id]);
 
