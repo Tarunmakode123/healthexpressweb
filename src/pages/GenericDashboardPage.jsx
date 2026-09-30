@@ -5,12 +5,14 @@ import {
   HelpCircle, LogOut, ArrowRight, Activity, PlusCircle, CheckCircle2,
   Clock, Coins, RefreshCw, MessageSquare, ExternalLink, Filter, ChevronDown,
   Sparkles, CreditCard, Eye, Calculator, Globe, Hospital, Compass, ChevronRight, Settings,
-  Zap, ArrowUpRight, Check, AlertCircle
+  Zap, ArrowUpRight, Check, AlertCircle, Folder, UploadCloud, Download, Share2, Search,
+  FileCheck, X, HardDrive
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import { getMemberOverview, buildUnifiedTimelineStream, formatTimelineDateGroup, formatTimelineTimeIST } from '../services/memberDashboardService';
 import { classifyMemberActivity } from '../services/memberActivityClassifier';
+import { validatePrescriptionFile } from '../services/prescriptionService';
 
 export default function GenericDashboardPage() {
   const navigate = useNavigate();
@@ -32,8 +34,21 @@ export default function GenericDashboardPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
 
-  // Dashboard Main View Tab State: 'feed' | 'requests' | 'actions'
-  const [activeDashboardTab, setActiveDashboardTab] = useState('feed');
+  // Patient Workspace Main Tab State: 'vault' | 'orders' | 'prescriptions' | 'activity'
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState('vault');
+
+  // Health Vault Records Search & Filter
+  const [vaultSearchQuery, setVaultSearchQuery] = useState('');
+  const [vaultCategoryFilter, setVaultCategoryFilter] = useState('all');
+
+  // Local Upload Modal State for Health Records
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState('lab_report');
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadError, setUploadError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [customRecords, setCustomRecords] = useState([]);
 
   // Timeline Filter State
   const [activeTimelineFilter, setActiveTimelineFilter] = useState('all');
@@ -48,6 +63,15 @@ export default function GenericDashboardPage() {
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Listen for global open upload modal event
+  useEffect(() => {
+    function handleOpenModal() {
+      setIsUploadModalOpen(true);
+    }
+    window.addEventListener('open-upload-modal', handleOpenModal);
+    return () => window.removeEventListener('open-upload-modal', handleOpenModal);
   }, []);
 
   // Load 100% Real Authenticated Member Records from Supabase
@@ -94,15 +118,31 @@ export default function GenericDashboardPage() {
     }
   };
 
-  // Compute 2-Dimensional Activity Classification State
-  const classification = classifyMemberActivity({
-    user,
-    events: memberData.events,
-    orders: memberData.orders,
-    prescriptions: memberData.prescriptions,
-    enquiries: memberData.enquiries,
-    payments: memberData.payments,
-    walletCoins: memberData.walletCoins
+  // Build Unified Health Records list (Combines Prescriptions + Custom Uploaded Health Vault Documents)
+  const healthVaultRecords = [
+    // Include all uploaded prescriptions formatted as health vault records
+    ...memberData.prescriptions.map((rx, idx) => ({
+      id: rx.id || `rx-${idx}`,
+      title: rx.file_name || `Prescription Record #${idx + 1}`,
+      category: 'prescription',
+      categoryLabel: 'Prescription',
+      uploadedAt: rx.created_at || new Date().toISOString(),
+      fileSize: rx.file_size ? `${Math.round(rx.file_size / 1024)} KB` : 'PDF / Image',
+      status: 'Under Care Manager Review',
+      publicUrl: rx.public_url || null,
+      isPrescription: true
+    })),
+    // Include custom uploaded records
+    ...customRecords
+  ];
+
+  // Filtered Health Vault Records
+  const filteredVaultRecords = healthVaultRecords.filter(record => {
+    const matchesCategory = vaultCategoryFilter === 'all' || record.category === vaultCategoryFilter;
+    const matchesSearch = !vaultSearchQuery.trim() || 
+      record.title.toLowerCase().includes(vaultSearchQuery.toLowerCase()) ||
+      record.categoryLabel.toLowerCase().includes(vaultSearchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
   });
 
   // Build Unified Timeline Stream
@@ -135,31 +175,66 @@ export default function GenericDashboardPage() {
   const displayName = memberData.patient?.full_name || user?.name || session?.user?.user_metadata?.full_name || null;
   const displayPhone = user?.phone || session?.user?.phone || memberData.patient?.phone_e164 || 'Verified Mobile Number';
 
-  const accountCreatedDateLabel = session?.user?.created_at 
-    ? new Date(session.user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-    : 'Today';
+  // Handle Document Upload Submission to Health Vault
+  const handleUploadSubmit = (e) => {
+    e.preventDefault();
+    setUploadError('');
 
-  // Compute completed journey step count (1 to 5) for progress bar
-  let completedStepCount = 1;
-  if (classification.milestones.careFulfillment) completedStepCount = 5;
-  else if (classification.milestones.orderPlaced) completedStepCount = 4;
-  else if (classification.milestones.prescriptionUploaded) completedStepCount = 3;
-  else if (classification.milestones.exploredServices) completedStepCount = 2;
+    if (!selectedFile) {
+      setUploadError('Please select a medical document to upload.');
+      return;
+    }
 
-  const progressPercentage = ((completedStepCount - 1) / 4) * 100;
+    const val = validatePrescriptionFile(selectedFile);
+    if (!val.isValid) {
+      setUploadError(val.error);
+      return;
+    }
 
-  // Quick Action Dispatcher
+    setIsUploading(true);
+
+    setTimeout(() => {
+      const categoryLabels = {
+        lab_report: 'Lab Report',
+        prescription: 'Prescription',
+        imaging_scan: 'MRI / Scan Report',
+        doctor_notes: 'Doctor Consultation Note',
+        discharge_summary: 'Discharge Summary'
+      };
+
+      const newRecord = {
+        id: `doc-${Date.now()}`,
+        title: uploadTitle.trim() || selectedFile.name,
+        category: uploadCategory,
+        categoryLabel: categoryLabels[uploadCategory] || 'Medical Record',
+        uploadedAt: new Date().toISOString(),
+        fileSize: `${Math.round(selectedFile.size / 1024)} KB`,
+        status: 'Saved in Vault',
+        publicUrl: URL.createObjectURL(selectedFile),
+        isPrescription: uploadCategory === 'prescription'
+      };
+
+      setCustomRecords(prev => [newRecord, ...prev]);
+      setIsUploading(false);
+      setIsUploadModalOpen(false);
+      setSelectedFile(null);
+      setUploadTitle('');
+      setUploadCategory('lab_report');
+    }, 600);
+  };
+
+  // Quick CTA Dispatcher
   const handleCTAAction = (actionType) => {
     if (actionType === 'open_upload_modal') {
-      window.dispatchEvent(new CustomEvent('open-upload-modal'));
+      setIsUploadModalOpen(true);
     } else if (actionType === 'navigate_services') {
       navigate('/services');
-    } else if (actionType === 'filter_prescriptions') {
-      setActiveDashboardTab('feed');
-      setActiveTimelineFilter('prescriptions');
-    } else if (actionType === 'filter_orders') {
-      setActiveDashboardTab('feed');
-      setActiveTimelineFilter('orders');
+    } else if (actionType === 'switch_vault') {
+      setActiveWorkspaceTab('vault');
+    } else if (actionType === 'switch_orders') {
+      setActiveWorkspaceTab('orders');
+    } else if (actionType === 'switch_prescriptions') {
+      setActiveWorkspaceTab('prescriptions');
     } else if (actionType === 'open_whatsapp') {
       openWhatsApp(DEFAULT_MESSAGES.general);
     }
@@ -167,25 +242,23 @@ export default function GenericDashboardPage() {
 
   if (isAuthLoading || isLoadingStats) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-purple-900">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-purple-900 font-sans">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
-          <span className="text-xs font-extrabold tracking-wide">Loading Health Express Account...</span>
+          <span className="text-xs font-extrabold tracking-wide">Loading Health Express Patient Portal...</span>
         </div>
       </div>
     );
   }
 
-  const totalRequestsCount = memberData.prescriptions.length + memberData.orders.length + memberData.enquiries.length;
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900">
+    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900">
       
       {/* 1. DEDICATED MEMBER DASHBOARD HEADER */}
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           
-          {/* Left Side: Brand Logo & Site Link */}
+          {/* Left Side: Brand Logo & Website Link */}
           <div className="flex items-center gap-6">
             <Link 
               to="/dashboard" 
@@ -197,7 +270,7 @@ export default function GenericDashboardPage() {
                 className="h-9 sm:h-10 w-auto object-contain bg-white px-2.5 py-1 rounded-xl shadow-md border border-purple-100 group-hover:scale-[1.02] transition-transform" 
               />
               <span className="bg-purple-800/90 text-purple-200 text-[10px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-full border border-purple-700/80 shadow-xs">
-                Member
+                Patient Portal
               </span>
             </Link>
 
@@ -209,12 +282,12 @@ export default function GenericDashboardPage() {
               rel="noopener noreferrer"
               className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-purple-300 transition-colors"
             >
-              <span>Visit Health Express Website</span>
+              <span>Visit Main Website</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
 
-          {/* Right Side: Authenticated Member Dropdown */}
+          {/* Right Side: Authenticated Member Account Dropdown */}
           <div className="relative" ref={profileMenuRef}>
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -226,7 +299,7 @@ export default function GenericDashboardPage() {
 
               <div className="text-left hidden sm:block">
                 <div className="text-xs font-bold text-white leading-tight">{displayName || 'My Account'}</div>
-                <div className="text-[10px] font-semibold text-purple-300 leading-tight">Verified Account</div>
+                <div className="text-[10px] font-semibold text-purple-300 leading-tight">Verified Patient</div>
               </div>
 
               <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
@@ -242,23 +315,23 @@ export default function GenericDashboardPage() {
 
                 <div className="py-1">
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('all'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveWorkspaceTab('vault'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
-                    <User className="w-4 h-4 text-purple-600" />
-                    <span>My Profile</span>
+                    <Folder className="w-4 h-4 text-purple-600" />
+                    <span>My Health Vault ({healthVaultRecords.length})</span>
                   </button>
 
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('all'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveWorkspaceTab('orders'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
-                    <Activity className="w-4 h-4 text-sky-600" />
-                    <span>My Activity Timeline</span>
+                    <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                    <span>My Orders ({memberData.orders.length})</span>
                   </button>
 
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('prescriptions'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveWorkspaceTab('prescriptions'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
                     <FileText className="w-4 h-4 text-purple-600" />
@@ -266,11 +339,11 @@ export default function GenericDashboardPage() {
                   </button>
 
                   <button
-                    onClick={() => { setIsProfileMenuOpen(false); setActiveDashboardTab('feed'); setActiveTimelineFilter('orders'); }}
+                    onClick={() => { setIsProfileMenuOpen(false); setActiveWorkspaceTab('activity'); }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-purple-50 text-slate-700 hover:text-purple-900 flex items-center gap-2.5"
                   >
-                    <ShoppingBag className="w-4 h-4 text-emerald-600" />
-                    <span>My Orders ({memberData.orders.length})</span>
+                    <Activity className="w-4 h-4 text-sky-600" />
+                    <span>Activity Audit Log</span>
                   </button>
 
                   <a
@@ -291,7 +364,7 @@ export default function GenericDashboardPage() {
                     className="w-full text-left px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 text-rose-600" />
-                    <span>Logout</span>
+                    <span>Logout Account</span>
                   </button>
                 </div>
               </div>
@@ -301,545 +374,530 @@ export default function GenericDashboardPage() {
         </div>
       </header>
 
-      {/* MAIN DASHBOARD CONTENT BODY */}
-      <main className="flex-1 max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {/* MAIN PATIENT PORTAL BODY */}
+      <main className="flex-1 max-w-7xl w-full mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
         
-        {/* OPTION A: 2-COLUMN SPLIT GRID WITH INTEGRATED HERO COMMAND CENTER */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* 2. COMPACT APPLICATION PATIENT IDENTITY BAR */}
+        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-900 text-white font-black text-xl flex items-center justify-center shadow-md shrink-0">
+              {displayName ? displayName.charAt(0).toUpperCase() : <User className="w-7 h-7 text-white" />}
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                  {displayName || 'Verified Member'}
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold flex items-center gap-1 border border-emerald-200">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" /> OTP Verified Patient
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-mono flex items-center gap-3">
+                <span>Phone: {displayPhone}</span>
+                <span>•</span>
+                <span>Member ID: {session?.user?.id ? session.user.id.slice(0, 8).toUpperCase() : 'HE-PATIENT'}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Action Workspace Bar */}
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="px-4 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-sm transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Upload Health Record</span>
+            </button>
+
+            <button
+              onClick={() => handleCTAAction('open_whatsapp')}
+              className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2"
+            >
+              <MessageSquare className="w-4 h-4 text-emerald-600" />
+              <span className="hidden sm:inline">24/7 Care Manager</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 3. PATIENT WORKSPACE & SIDEBAR (2-Column App Grid) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* LEFT MAIN WORKSPACE COLUMN (lg:col-span-8 - 66% width) */}
-          <div className="lg:col-span-8 space-y-8">
+          {/* LEFT MAIN PATIENT WORKSPACE (lg:col-span-8 - 66% width) */}
+          <div className="lg:col-span-8 space-y-6">
             
-            {/* 2. UNIFIED HERO COMMAND CENTER (Combines Greeting + Recommended Action + Line-Connected Stepper) */}
-            <div className="bg-gradient-to-br from-purple-950 via-purple-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden space-y-6">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+            {/* WORKSPACE NAVIGATION TABS */}
+            <div className="bg-white rounded-2xl p-1.5 border border-slate-200 shadow-xs flex items-center gap-1 overflow-x-auto no-scrollbar">
+              
+              <button
+                onClick={() => setActiveWorkspaceTab('vault')}
+                className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                  activeWorkspaceTab === 'vault'
+                    ? 'bg-purple-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Folder className="w-4 h-4" />
+                <span>Health Vault & Records</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                  activeWorkspaceTab === 'vault' ? 'bg-purple-800 text-purple-200' : 'bg-slate-100 text-slate-700'
+                }`}>
+                  {healthVaultRecords.length}
+                </span>
+              </button>
 
-              {/* Top Row: Greeting & Primary Smart Action */}
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-purple-800/60">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-3 py-1 rounded-full bg-purple-700/80 text-purple-200 text-xs font-bold border border-purple-500/40 uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-purple-300" />
-                      <span>
-                        {classification.primaryStage === 'new_member' && 'New Member'}
-                        {classification.primaryStage === 'explorer' && 'Healthcare Explorer'}
-                        {classification.primaryStage === 'prescription_user' && 'Prescription Care Member'}
-                        {classification.primaryStage === 'active_customer' && 'Active Customer'}
-                      </span>
-                    </span>
-
-                    <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30 capitalize">
-                      {classification.engagement.replace('_', ' ')}
-                    </span>
-                  </div>
-
-                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    {displayName ? `Welcome back, ${displayName} 👋` : 'Welcome back 👋'}
-                  </h1>
-
-                  <p className="text-xs sm:text-sm text-purple-200/90 max-w-xl font-medium leading-relaxed">
-                    {classification.nextBestAction.description}
-                  </p>
-                </div>
-
-                {/* Single Smart Dynamic Primary Action Button */}
-                <div className="flex items-center gap-3 shrink-0">
-                  {classification.nextBestAction.primaryCTA && (
-                    <button
-                      onClick={() => handleCTAAction(classification.nextBestAction.primaryCTA.action)}
-                      className="px-5 py-3.5 rounded-2xl bg-white hover:bg-purple-50 text-purple-950 font-black text-xs shadow-xl transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2"
-                    >
-                      <PlusCircle className="w-4 h-4 text-purple-700" />
-                      <span>{classification.nextBestAction.primaryCTA.label}</span>
-                      <ArrowRight className="w-4 h-4 text-purple-700" />
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => handleCTAAction('open_whatsapp')}
-                    className="p-3.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-extrabold text-xs border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-2"
-                    title="WhatsApp Care Manager"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span className="hidden sm:inline">Care Manager</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Bottom Row: Connected Stepper Progress Bar */}
-              <div className="relative z-10 space-y-3 pt-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-extrabold text-purple-200 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                    <Compass className="w-3.5 h-3.5 text-purple-300" />
-                    <span>Your Health Express Journey</span>
+              <button
+                onClick={() => setActiveWorkspaceTab('orders')}
+                className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                  activeWorkspaceTab === 'orders'
+                    ? 'bg-purple-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>Orders & Diagnostic Bookings</span>
+                {memberData.orders.length > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                    activeWorkspaceTab === 'orders' ? 'bg-purple-800 text-purple-200' : 'bg-emerald-100 text-emerald-800'
+                  }`}>
+                    {memberData.orders.length}
                   </span>
-                  <span className="text-[11px] font-mono text-purple-300 font-semibold">
-                    Step {completedStepCount} of 5
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveWorkspaceTab('prescriptions')}
+                className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                  activeWorkspaceTab === 'prescriptions'
+                    ? 'bg-purple-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>Prescriptions</span>
+                {memberData.prescriptions.length > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                    activeWorkspaceTab === 'prescriptions' ? 'bg-purple-800 text-purple-200' : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    {memberData.prescriptions.length}
                   </span>
-                </div>
+                )}
+              </button>
 
-                {/* Line-Connected Stepper Nodes Container */}
-                <div className="relative pt-2 pb-1">
-                  {/* Connecting Background Line */}
-                  <div className="absolute top-5 left-4 right-4 h-1 bg-purple-800/80 rounded-full z-0" />
-                  
-                  {/* Connecting Completed Fill Line */}
-                  <div 
-                    className="absolute top-5 left-4 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-purple-300 rounded-full z-0 transition-all duration-700"
-                    style={{ width: `calc(${progressPercentage}% - 8px)` }}
-                  />
-
-                  {/* 5 Connected Step Nodes */}
-                  <div className="relative z-10 grid grid-cols-5 gap-2 text-center">
-                    
-                    {/* Step 1 */}
-                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110">
-                        <Check className="w-4 h-4 stroke-[3]" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-[10px] sm:text-xs font-extrabold text-white leading-tight">Account</p>
-                        <p className="text-[9px] text-emerald-300 font-bold hidden sm:block">Created</p>
-                      </div>
-                    </div>
-
-                    {/* Step 2 */}
-                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
-                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
-                        classification.milestones.exploredServices 
-                          ? 'bg-emerald-500 text-slate-950' 
-                          : 'bg-purple-800 text-purple-300 ring-2 ring-purple-500/50'
-                      }`}>
-                        {classification.milestones.exploredServices ? <Check className="w-4 h-4 stroke-[3]" /> : '2'}
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-[10px] sm:text-xs font-extrabold text-white leading-tight">Explore</p>
-                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
-                          {classification.milestones.exploredServices ? 'Reviewed' : 'Services'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 3 */}
-                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
-                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
-                        classification.milestones.prescriptionUploaded 
-                          ? 'bg-emerald-500 text-slate-950' 
-                          : 'bg-purple-900 text-purple-400 border-purple-800'
-                      }`}>
-                        {classification.milestones.prescriptionUploaded ? <Check className="w-4 h-4 stroke-[3]" /> : '3'}
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-[10px] sm:text-xs font-extrabold text-purple-100 leading-tight">Prescription</p>
-                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
-                          {classification.milestones.prescriptionUploaded ? `${memberData.prescriptions.length} Uploaded` : 'Optional'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 4 */}
-                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
-                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
-                        classification.milestones.orderPlaced 
-                          ? 'bg-emerald-500 text-slate-950' 
-                          : 'bg-purple-900 text-purple-400 border-purple-800'
-                      }`}>
-                        {classification.milestones.orderPlaced ? <Check className="w-4 h-4 stroke-[3]" /> : '4'}
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-[10px] sm:text-xs font-extrabold text-purple-200 leading-tight">Order</p>
-                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
-                          {classification.milestones.orderPlaced ? `${memberData.orders.length} Placed` : 'Pending'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Step 5 */}
-                    <div className="flex flex-col items-center space-y-1.5 group cursor-default">
-                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md border-2 border-purple-900 transition-transform group-hover:scale-110 ${
-                        classification.milestones.careFulfillment 
-                          ? 'bg-emerald-500 text-slate-950' 
-                          : 'bg-purple-900 text-purple-400 border-purple-800'
-                      }`}>
-                        {classification.milestones.careFulfillment ? <Check className="w-4 h-4 stroke-[3]" /> : '5'}
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-[10px] sm:text-xs font-extrabold text-purple-200 leading-tight">Care</p>
-                        <p className="text-[9px] text-purple-300 font-medium hidden sm:block">
-                          {classification.milestones.careFulfillment ? 'Fulfilled' : 'Pending'}
-                        </p>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
+              <button
+                onClick={() => setActiveWorkspaceTab('activity')}
+                className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+                  activeWorkspaceTab === 'activity'
+                    ? 'bg-purple-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Clock className="w-4 h-4" />
+                <span>Activity Audit</span>
+              </button>
 
             </div>
 
-            {/* 3. INTERACTIVE SECTION TABS HEADER & WORKSPACE */}
-            <div className="space-y-6">
-              
-              {/* Dynamic Interactive Navigation Tabs */}
-              <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
+            {/* TAB VIEW 1: HEALTH RECORDS & MEDICAL VAULT */}
+            {activeWorkspaceTab === 'vault' && (
+              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
                 
-                <button
-                  onClick={() => setActiveDashboardTab('feed')}
-                  className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                    activeDashboardTab === 'feed'
-                      ? 'bg-purple-900 text-white shadow-md'
-                      : 'bg-white text-slate-600 hover:bg-purple-50 hover:text-purple-900 border border-slate-200'
-                  }`}
-                >
-                  <Clock className="w-4 h-4" />
-                  <span>Activity Feed</span>
-                  <span className="ml-1 px-2 py-0.5 rounded-full bg-purple-800 text-purple-200 text-[10px]">
-                    {timelineStream.allItems.length}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setActiveDashboardTab('requests')}
-                  className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                    activeDashboardTab === 'requests'
-                      ? 'bg-purple-900 text-white shadow-md'
-                      : 'bg-white text-slate-600 hover:bg-purple-50 hover:text-purple-900 border border-slate-200'
-                  }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>My Requests</span>
-                  {totalRequestsCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[10px]">
-                      {totalRequestsCount}
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setActiveDashboardTab('actions')}
-                  className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                    activeDashboardTab === 'actions'
-                      ? 'bg-purple-900 text-white shadow-md'
-                      : 'bg-white text-slate-600 hover:bg-purple-50 hover:text-purple-900 border border-slate-200'
-                  }`}
-                >
-                  <Zap className="w-4 h-4 text-amber-400" />
-                  <span>Quick Services</span>
-                </button>
-
-              </div>
-
-              {/* TAB CONTENT AREA 1: CHRONOLOGICAL ACTIVITY FEED */}
-              {activeDashboardTab === 'feed' && (
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-                  
-                  {/* Timeline Filter Pills Bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                    <div>
-                      <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
-                        <Activity className="w-4 h-4 text-purple-600" />
-                        <span>Chronological History Stream</span>
-                      </h3>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {[
-                        { id: 'all', label: 'All' },
-                        { id: 'orders', label: 'Orders' },
-                        { id: 'prescriptions', label: 'Prescriptions' },
-                        { id: 'payments', label: 'Payments' },
-                        { id: 'website', label: 'Website' },
-                        { id: 'account', label: 'Account' }
-                      ].map(f => (
-                        <button
-                          key={f.id}
-                          onClick={() => { setActiveTimelineFilter(f.id); setTimelineVisibleCount(15); }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            activeTimelineFilter === f.id
-                              ? 'bg-purple-700 text-white shadow-xs'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
+                {/* Vault Header Bar */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                  <div>
+                    <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                      <HardDrive className="w-5 h-5 text-purple-700" />
+                      <span>My Health Locker & Medical Records</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Safely maintain doctor prescriptions, lab test reports, MRI/CT scans, and medical notes under your authenticated profile.
+                    </p>
                   </div>
 
-                  {/* Timeline Output List Grouped by Date */}
-                  {filteredTimelineItems.length === 0 ? (
-                    <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
-                      <Clock className="w-8 h-8 text-slate-400 mx-auto" />
-                      <h4 className="text-xs font-bold text-slate-800">No activity recorded for this filter</h4>
-                      <p className="text-[11px] text-slate-500">
-                        Explore services or upload a prescription to see your activity timeline build up.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 sm:before:left-4 before:w-0.5 before:bg-purple-100">
-                      {Object.keys(groupedTimelineVisible).map(groupLabel => (
-                        <div key={groupLabel} className="space-y-3 relative">
-                          
-                          {/* Date Banner Header */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-black uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 px-3 py-0.5 rounded-full z-10">
-                              {groupLabel}
-                            </span>
-                            <div className="h-px bg-slate-100 flex-1" />
-                          </div>
-
-                          {/* Group Items */}
-                          <div className="space-y-3">
-                            {groupedTimelineVisible[groupLabel].map((item, idx) => (
-                              <div key={item.id || idx} className="flex items-start gap-3.5 group pl-1">
-                                
-                                {/* Event Category Icon Badge */}
-                                <div className="w-7 h-7 rounded-full bg-white border-2 border-purple-600 text-purple-700 flex items-center justify-center text-xs shrink-0 z-10 shadow-xs">
-                                  {item.category === 'orders' && <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />}
-                                  {item.category === 'prescriptions' && <FileText className="w-3.5 h-3.5 text-purple-600" />}
-                                  {item.category === 'payments' && <CreditCard className="w-3.5 h-3.5 text-sky-600" />}
-                                  {item.category === 'account' && <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />}
-                                  {item.category === 'website' && <Globe className="w-3.5 h-3.5 text-indigo-600" />}
-                                </div>
-
-                                {/* Event Details Card */}
-                                <div className="flex-1 bg-slate-50/80 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 transition-colors space-y-1">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="text-xs font-extrabold text-slate-900">{item.title}</h4>
-                                    <span className="text-xs font-bold text-slate-500 shrink-0 ml-2">
-                                      {formatTimelineTimeIST(item.timestamp)}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-slate-600 font-medium">{item.description}</p>
-                                </div>
-
-                              </div>
-                            ))}
-                          </div>
-
-                        </div>
-                      ))}
-
-                      {/* Load More Timeline Events Button */}
-                      {filteredTimelineItems.length > timelineVisibleCount && (
-                        <div className="text-center pt-4">
-                          <button
-                            onClick={() => setTimelineVisibleCount(prev => prev + 15)}
-                            className="px-5 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-extrabold text-xs transition-colors cursor-pointer"
-                          >
-                            Load More Activity ({filteredTimelineItems.length - timelineVisibleCount} remaining)
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
+                  <button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Upload Document</span>
+                  </button>
                 </div>
-              )}
 
-              {/* TAB CONTENT AREA 2: MY REQUESTS & PRESCRIPTIONS */}
-              {activeDashboardTab === 'requests' && (
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <div>
-                      <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-purple-600" />
-                        <span>Active Patient Requests & Uploads</span>
-                      </h3>
-                      <p className="text-xs text-slate-500 font-medium">
-                        View status of doctor prescriptions, lab orders, and diagnostic enquiries.
-                      </p>
-                    </div>
+                {/* Search & Category Filter Bar */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  {/* Search Input */}
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search medical records..."
+                      value={vaultSearchQuery}
+                      onChange={(e) => setVaultSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-600 focus:bg-white transition-all"
+                    />
+                  </div>
 
+                  {/* Category Filter Pills */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { id: 'all', label: 'All Records' },
+                      { id: 'prescription', label: 'Prescriptions' },
+                      { id: 'lab_report', label: 'Lab Reports' },
+                      { id: 'imaging_scan', label: 'Scans' },
+                      { id: 'doctor_notes', label: 'Doctor Notes' }
+                    ].map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => setVaultCategoryFilter(c.id)}
+                        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold transition-all cursor-pointer ${
+                          vaultCategoryFilter === c.id
+                            ? 'bg-purple-700 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Vault Records List */}
+                {filteredVaultRecords.length === 0 ? (
+                  <div className="p-10 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-300 space-y-3">
+                    <Folder className="w-10 h-10 text-slate-400 mx-auto" />
+                    <h3 className="text-sm font-black text-slate-800">No medical records found</h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                      Upload doctor prescriptions, lab test PDFs, or hospital reports to maintain your digital health locker.
+                    </p>
                     <button
-                      onClick={() => handleCTAAction('open_upload_modal')}
-                      className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      onClick={() => setIsUploadModalOpen(true)}
+                      className="px-5 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
                     >
-                      <PlusCircle className="w-4 h-4" />
-                      <span>Upload New</span>
+                      <UploadCloud className="w-4 h-4" />
+                      <span>Upload Your First Record</span>
                     </button>
                   </div>
-
-                  {totalRequestsCount === 0 ? (
-                    <div className="p-10 text-center bg-purple-50/50 rounded-3xl border border-purple-100 space-y-3">
-                      <FileText className="w-10 h-10 text-purple-400 mx-auto" />
-                      <h4 className="text-sm font-extrabold text-purple-950">No Requests Submitted Yet</h4>
-                      <p className="text-xs text-purple-700 max-w-md mx-auto">
-                        Upload your doctor prescription or book a lab package to start receiving fast-tracked diagnostic updates.
-                      </p>
-                      <button
-                        onClick={() => handleCTAAction('open_upload_modal')}
-                        className="px-5 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
-                      >
-                        <PlusCircle className="w-4 h-4" />
-                        <span>Upload Prescription Now</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Prescriptions List */}
-                      {memberData.prescriptions.map((rx, idx) => (
-                        <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredVaultRecords.map(record => (
+                      <div key={record.id} className="p-4 rounded-2xl bg-slate-50/90 hover:bg-slate-50 border border-slate-200/90 hover:border-purple-200 transition-all space-y-3 flex flex-col justify-between group">
+                        
+                        <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                              <FileText className="w-5 h-5" />
+                            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black shrink-0">
+                              {record.category === 'prescription' ? <FileText className="w-5 h-5" /> : <FileCheck className="w-5 h-5" />}
                             </div>
-                            <div>
-                              <h4 className="text-xs font-black text-slate-900">
-                                {rx.file_name || `Prescription #${rx.id ? String(rx.id).slice(0, 6) : idx + 1}`}
+                            <div className="space-y-0.5 overflow-hidden">
+                              <h4 className="text-xs font-black text-slate-900 truncate group-hover:text-purple-900 transition-colors">
+                                {record.title}
                               </h4>
-                              <p className="text-[11px] text-slate-500 font-medium">
-                                Uploaded on {new Date(rx.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              <p className="text-[10px] text-slate-500 font-mono">
+                                {new Date(record.uploadedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {record.fileSize}
                               </p>
                             </div>
                           </div>
-                          <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-extrabold">
-                            Under Review
+
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border shrink-0 ${
+                            record.category === 'prescription' 
+                              ? 'bg-purple-100 text-purple-800 border-purple-200'
+                              : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          }`}>
+                            {record.categoryLabel}
                           </span>
                         </div>
-                      ))}
 
-                      {/* Orders List */}
-                      {memberData.orders.map((ord, idx) => (
-                        <div key={ord.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
+                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                          <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> {record.status}
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            {record.publicUrl ? (
+                              <a
+                                href={record.publicUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-900 text-xs font-bold flex items-center gap-1 transition-colors"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View</span>
+                              </a>
+                            ) : (
+                              <button
+                                onClick={() => handleCTAAction('open_whatsapp')}
+                                className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-900 text-xs font-bold flex items-center gap-1 transition-colors"
+                              >
+                                <Share2 className="w-3.5 h-3.5" />
+                                <span>Share</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* TAB VIEW 2: ORDERS & DIAGNOSTIC BOOKINGS */}
+            {activeWorkspaceTab === 'orders' && (
+              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                      <span>My Orders & Diagnostic Test Bookings</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Track sample collection, lab processing status, and download final test reports.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => handleCTAAction('navigate_services')}
+                    className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>Browse Catalog</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {memberData.orders.length === 0 ? (
+                  <div className="p-10 text-center bg-emerald-50/40 rounded-3xl border border-emerald-100 space-y-3">
+                    <ShoppingBag className="w-10 h-10 text-emerald-500 mx-auto" />
+                    <h4 className="text-sm font-extrabold text-slate-900">No Orders Placed Yet</h4>
+                    <p className="text-xs text-slate-600 max-w-sm mx-auto font-medium">
+                      Book full body checkup packages or blood tests with free home sample collection.
+                    </p>
+                    <button
+                      onClick={() => handleCTAAction('navigate_services')}
+                      className="px-5 py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>Explore Diagnostic Services</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {memberData.orders.map((ord, idx) => (
+                      <div key={ord.id || idx} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black">
                               <ShoppingBag className="w-5 h-5" />
                             </div>
                             <div>
                               <h4 className="text-xs font-black text-slate-900">
-                                {ord.service_title || `Order #${ord.id ? String(ord.id).slice(0, 6) : idx + 1}`}
+                                {ord.service_title || `Diagnostic Order #${ord.id ? String(ord.id).slice(0, 6) : idx + 1}`}
                               </h4>
-                              <p className="text-[11px] text-slate-500 font-medium">
-                                Placed on {new Date(ord.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              <p className="text-[11px] text-slate-500 font-mono">
+                                Placed: {new Date(ord.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </p>
                             </div>
                           </div>
-                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold capitalize">
+
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black uppercase">
                             {ord.status || 'Active'}
                           </span>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-                </div>
-              )}
-
-              {/* TAB CONTENT AREA 3: QUICK SERVICES HUB */}
-              {activeDashboardTab === 'actions' && (
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+            {/* TAB VIEW 3: PRESCRIPTIONS */}
+            {activeWorkspaceTab === 'prescriptions' && (
+              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <div>
                     <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-amber-500" />
-                      <span>Fast-Tracked Health Services</span>
+                      <FileText className="w-4 h-4 text-purple-600" />
+                      <span>Uploaded Prescriptions</span>
                     </h3>
                     <p className="text-xs text-slate-500 font-medium">
-                      Direct access to Health Express diagnostic booking tools and priority support.
+                      Doctor prescription files submitted for care manager verification and lab booking.
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button
-                      onClick={() => handleCTAAction('open_upload_modal')}
-                      className="p-5 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200/80 text-left transition-all group cursor-pointer space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="w-10 h-10 rounded-xl bg-purple-700 text-white flex items-center justify-center font-bold">
-                          <PlusCircle className="w-5 h-5" />
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-purple-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900">Upload Doctor Prescription</h4>
-                        <p className="text-xs text-slate-600 font-medium">Instant upload for care manager verification & lab booking.</p>
-                      </div>
-                    </button>
+                  <button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Upload Prescription</span>
+                  </button>
+                </div>
 
+                {memberData.prescriptions.length === 0 ? (
+                  <div className="p-10 text-center bg-purple-50/50 rounded-3xl border border-purple-100 space-y-3">
+                    <FileText className="w-10 h-10 text-purple-400 mx-auto" />
+                    <h4 className="text-sm font-extrabold text-purple-950">No Prescriptions Uploaded</h4>
+                    <p className="text-xs text-purple-700 max-w-sm mx-auto font-medium">
+                      Upload your prescription for quick analysis by our certified medical team.
+                    </p>
                     <button
-                      onClick={() => handleCTAAction('navigate_services')}
-                      className="p-5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-left transition-all group cursor-pointer space-y-2"
+                      onClick={() => setIsUploadModalOpen(true)}
+                      className="px-5 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold">
-                          <ShoppingBag className="w-5 h-5" />
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900">Browse Full Diagnostic Catalog</h4>
-                        <p className="text-xs text-slate-600 font-medium">Explore full body health checkups, blood tests, and MRI/CT services.</p>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => handleCTAAction('open_whatsapp')}
-                      className="p-5 rounded-2xl bg-sky-50 hover:bg-sky-100 border border-sky-200/80 text-left transition-all group cursor-pointer space-y-2 sm:col-span-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="w-10 h-10 rounded-xl bg-sky-700 text-white flex items-center justify-center font-bold">
-                          <MessageSquare className="w-5 h-5" />
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-sky-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900">Chat with 24/7 Care Manager on WhatsApp</h4>
-                        <p className="text-xs text-slate-600 font-medium">Get instant assistance for home blood collection, report delivery, or doctor consultation.</p>
-                      </div>
+                      <PlusCircle className="w-4 h-4" />
+                      <span>Upload Prescription Now</span>
                     </button>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-4">
+                    {memberData.prescriptions.map((rx, idx) => (
+                      <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black text-slate-900">
+                              {rx.file_name || `Prescription #${rx.id ? String(rx.id).slice(0, 6) : idx + 1}`}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 font-medium">
+                              Uploaded on {new Date(rx.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
 
-            </div>
+                        <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-black">
+                          Under Review
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB VIEW 4: ACTIVITY AUDIT STREAM */}
+            {activeWorkspaceTab === 'activity' && (
+              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
+                      <Activity className="w-4 h-4 text-purple-600" />
+                      <span>Chronological Activity Audit Log</span>
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { id: 'all', label: 'All' },
+                      { id: 'orders', label: 'Orders' },
+                      { id: 'prescriptions', label: 'Prescriptions' },
+                      { id: 'payments', label: 'Payments' },
+                      { id: 'website', label: 'Website' },
+                      { id: 'account', label: 'Account' }
+                    ].map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => { setActiveTimelineFilter(f.id); setTimelineVisibleCount(15); }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          activeTimelineFilter === f.id
+                            ? 'bg-purple-700 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Timeline Stream */}
+                {filteredTimelineItems.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                    <Clock className="w-8 h-8 text-slate-400 mx-auto" />
+                    <h4 className="text-xs font-bold text-slate-800">No activity recorded for this filter</h4>
+                  </div>
+                ) : (
+                  <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 sm:before:left-4 before:w-0.5 before:bg-purple-100">
+                    {Object.keys(groupedTimelineVisible).map(groupLabel => (
+                      <div key={groupLabel} className="space-y-3 relative">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 px-3 py-0.5 rounded-full z-10">
+                            {groupLabel}
+                          </span>
+                          <div className="h-px bg-slate-100 flex-1" />
+                        </div>
+
+                        <div className="space-y-3">
+                          {groupedTimelineVisible[groupLabel].map((item, idx) => (
+                            <div key={item.id || idx} className="flex items-start gap-3.5 group pl-1">
+                              <div className="w-7 h-7 rounded-full bg-white border-2 border-purple-600 text-purple-700 flex items-center justify-center text-xs shrink-0 z-10 shadow-xs">
+                                {item.category === 'orders' && <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />}
+                                {item.category === 'prescriptions' && <FileText className="w-3.5 h-3.5 text-purple-600" />}
+                                {item.category === 'payments' && <CreditCard className="w-3.5 h-3.5 text-sky-600" />}
+                                {item.category === 'account' && <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />}
+                                {item.category === 'website' && <Globe className="w-3.5 h-3.5 text-indigo-600" />}
+                              </div>
+
+                              <div className="flex-1 bg-slate-50/80 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 transition-colors space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-xs font-extrabold text-slate-900">{item.title}</h4>
+                                  <span className="text-xs font-bold text-slate-500 shrink-0 ml-2">
+                                    {formatTimelineTimeIST(item.timestamp)}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-600 font-medium">{item.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {filteredTimelineItems.length > timelineVisibleCount && (
+                      <div className="text-center pt-4">
+                        <button
+                          onClick={() => setTimelineVisibleCount(prev => prev + 15)}
+                          className="px-5 py-2.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-extrabold text-xs transition-colors cursor-pointer"
+                        >
+                          Load More Log Events ({filteredTimelineItems.length - timelineVisibleCount} remaining)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            )}
 
           </div>
 
           {/* RIGHT SIDEBAR COLUMN (lg:col-span-4 - 34% width - Sticky on scroll) */}
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-20">
             
-            {/* A. AUTHENTICATED MEMBER PROFILE CARD */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white font-black text-lg flex items-center justify-center shadow-inner shrink-0">
-                  {displayName ? displayName.charAt(0).toUpperCase() : <User className="w-6 h-6 text-white" />}
-                </div>
-                <div className="space-y-0.5 overflow-hidden">
-                  <h3 className="text-sm font-black text-slate-900 truncate">{displayName || 'Verified Member'}</h3>
-                  <p className="text-xs font-mono text-slate-500 truncate">{displayPhone}</p>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Account Protection</span>
-                <span className="text-emerald-700 font-extrabold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> SMS OTP Verified
-                </span>
-              </div>
-            </div>
-
-            {/* B. REAL SUMMARY STAT CARDS (Interactive 2x2 Grid inside Sidebar) */}
+            {/* A. ACCOUNT SUMMARY METRICS GRID */}
             <div className="space-y-3">
-              <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider px-1">
-                Account Summary
-              </h4>
+              <h3 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider px-1">
+                Patient Metrics Summary
+              </h3>
 
               <div className="grid grid-cols-2 gap-3">
-                {/* Prescriptions Card */}
+                {/* Health Vault Card */}
                 <div 
-                  onClick={() => handleCTAAction('filter_prescriptions')}
-                  className="bg-white hover:bg-purple-50/50 rounded-2xl p-4 border border-slate-200 hover:border-purple-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                  onClick={() => handleCTAAction('switch_vault')}
+                  className="bg-white hover:bg-purple-50/60 rounded-2xl p-4 border border-slate-200 hover:border-purple-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between">
                     <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700 group-hover:scale-105 transition-transform">
-                      <FileText className="w-4 h-4" />
+                      <Folder className="w-4 h-4" />
                     </span>
-                    <span className="text-base font-black text-slate-900">{memberData.prescriptions.length}</span>
+                    <span className="text-base font-black text-slate-900">{healthVaultRecords.length}</span>
                   </div>
                   <div>
-                    <div className="text-xs font-black text-slate-800">Prescriptions</div>
+                    <div className="text-xs font-black text-slate-800">Health Vault</div>
                     <div className="text-[10px] text-slate-500 font-medium">
-                      {memberData.prescriptions.length > 0 ? `${memberData.prescriptions.length} Uploaded` : 'Click to Upload'}
+                      {healthVaultRecords.length > 0 ? `${healthVaultRecords.length} Saved Records` : 'Click to Upload'}
                     </div>
                   </div>
                   <div className="w-full py-1 px-2 rounded-xl bg-purple-50 group-hover:bg-purple-700 group-hover:text-white text-purple-800 font-extrabold text-[10px] transition-colors text-center">
@@ -849,8 +907,8 @@ export default function GenericDashboardPage() {
 
                 {/* Orders Card */}
                 <div 
-                  onClick={() => handleCTAAction('filter_orders')}
-                  className="bg-white hover:bg-emerald-50/50 rounded-2xl p-4 border border-slate-200 hover:border-emerald-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                  onClick={() => handleCTAAction('switch_orders')}
+                  className="bg-white hover:bg-emerald-50/60 rounded-2xl p-4 border border-slate-200 hover:border-emerald-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between">
                     <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 group-hover:scale-105 transition-transform">
@@ -869,32 +927,32 @@ export default function GenericDashboardPage() {
                   </div>
                 </div>
 
-                {/* Enquiries Card */}
+                {/* Prescriptions Card */}
                 <div 
-                  onClick={() => handleCTAAction('open_whatsapp')}
-                  className="bg-white hover:bg-sky-50/50 rounded-2xl p-4 border border-slate-200 hover:border-sky-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                  onClick={() => handleCTAAction('switch_prescriptions')}
+                  className="bg-white hover:bg-purple-50/60 rounded-2xl p-4 border border-slate-200 hover:border-purple-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-sky-100 text-sky-700 group-hover:scale-105 transition-transform">
-                      <MessageSquare className="w-4 h-4" />
+                    <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700 group-hover:scale-105 transition-transform">
+                      <FileText className="w-4 h-4" />
                     </span>
-                    <span className="text-base font-black text-slate-900">{memberData.enquiries.length}</span>
+                    <span className="text-base font-black text-slate-900">{memberData.prescriptions.length}</span>
                   </div>
                   <div>
-                    <div className="text-xs font-black text-slate-800">Enquiries</div>
+                    <div className="text-xs font-black text-slate-800">Prescriptions</div>
                     <div className="text-[10px] text-slate-500 font-medium">
-                      {memberData.enquiries.length > 0 ? `${memberData.enquiries.length} Active` : 'Click to Contact'}
+                      {memberData.prescriptions.length > 0 ? `${memberData.prescriptions.length} Active` : 'Click to Upload'}
                     </div>
                   </div>
-                  <div className="w-full py-1 px-2 rounded-xl bg-sky-50 group-hover:bg-sky-700 group-hover:text-white text-sky-800 font-extrabold text-[10px] transition-colors text-center">
-                    Contact
+                  <div className="w-full py-1 px-2 rounded-xl bg-purple-50 group-hover:bg-purple-700 group-hover:text-white text-purple-800 font-extrabold text-[10px] transition-colors text-center">
+                    View Rx
                   </div>
                 </div>
 
                 {/* Health Coins Card */}
                 <div 
                   onClick={() => handleCTAAction('navigate_services')}
-                  className="bg-white hover:bg-amber-50/50 rounded-2xl p-4 border border-slate-200 hover:border-amber-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
+                  className="bg-white hover:bg-amber-50/60 rounded-2xl p-4 border border-slate-200 hover:border-amber-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between">
                     <span className="p-1.5 rounded-lg bg-amber-100 text-amber-800 group-hover:scale-105 transition-transform">
@@ -915,7 +973,7 @@ export default function GenericDashboardPage() {
               </div>
             </div>
 
-            {/* C. WHATSAPP CARE MANAGER SUPPORT WIDGET */}
+            {/* B. 24/7 WHATSAPP CARE MANAGER SUPPORT WIDGET */}
             <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white rounded-3xl p-5 space-y-3 shadow-md border border-emerald-800/60">
               <div className="space-y-1">
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-400/30">
@@ -941,6 +999,121 @@ export default function GenericDashboardPage() {
         </div>
 
       </main>
+
+      {/* 4. HEALTH VAULT DOCUMENT UPLOAD MODAL */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white text-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 border border-slate-200">
+            
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                  <UploadCloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">Upload to Health Vault</h3>
+                  <p className="text-xs text-slate-500 font-medium">Maintain medical records securely under your account.</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => { setIsUploadModalOpen(false); setUploadError(''); setSelectedFile(null); }}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUploadSubmit} className="space-y-4">
+              
+              {/* Document Category Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-slate-800">Document Category</label>
+                <select
+                  value={uploadCategory}
+                  onChange={(e) => setUploadCategory(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-600"
+                >
+                  <option value="lab_report">Lab Report (Blood Test, Urine, Pathology)</option>
+                  <option value="prescription">Doctor Prescription</option>
+                  <option value="imaging_scan">MRI / CT / X-Ray Scan Report</option>
+                  <option value="doctor_notes">Doctor Consultation Note</option>
+                  <option value="discharge_summary">Hospital Discharge Summary</option>
+                </select>
+              </div>
+
+              {/* Document Title Input */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-slate-800">Document Title / Name (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Blood Report Sep 2026 or Dr Sharma Prescription"
+                  value={uploadTitle}
+                  onChange={(e) => setUploadTitle(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-600"
+                />
+              </div>
+
+              {/* File Dropzone */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-extrabold text-slate-800">File Attachment (PDF, JPG, PNG, WEBP, DOCX)</label>
+                <div className="p-4 border-2 border-dashed border-purple-200 rounded-2xl bg-purple-50/40 text-center space-y-2 relative hover:bg-purple-50 transition-colors">
+                  <UploadCloud className="w-8 h-8 text-purple-600 mx-auto" />
+                  <div>
+                    <span className="text-xs font-bold text-purple-900">
+                      {selectedFile ? selectedFile.name : 'Click or drop file here'}
+                    </span>
+                    <p className="text-[10px] text-slate-500">Maximum file size: 10MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                    onChange={(e) => setSelectedFile(e.target.files[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {uploadError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{uploadError}</span>
+                </div>
+              )}
+
+              {/* Submit Buttons */}
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsUploadModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center gap-2"
+                >
+                  {isUploading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Saving to Vault...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4" />
+                      <span>Save to Health Vault</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
