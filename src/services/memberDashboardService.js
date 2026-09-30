@@ -93,7 +93,7 @@ export async function getMemberOverview(userId) {
 }
 
 /**
- * Formats date into readable group string in IST (TODAY, YESTERDAY, SEP 27, 2026)
+ * Formats date into readable group string in IST (TODAY • SEP 30, 2026, YESTERDAY • SEP 29, 2026, SEP 27, 2026)
  */
 export function formatTimelineDateGroup(dateStr) {
   if (!dateStr) return 'EARLIER';
@@ -109,18 +109,18 @@ export function formatTimelineDateGroup(dateStr) {
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const yesterdayIST = new Intl.DateTimeFormat('en-CA', optionsIST).format(yesterday);
 
-  if (eventIST === nowIST) return 'TODAY';
-  if (eventIST === yesterdayIST) return 'YESTERDAY';
-
-  // Format as SEP 27, 2026 for older activity
+  // Format calendar date in IST: e.g. "SEP 30, 2026"
   const dateFormatted = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Kolkata',
     month: 'short',
     day: 'numeric',
     year: 'numeric'
-  }).format(eventDate); // e.g. "Sep 27, 2026"
+  }).format(eventDate).toUpperCase(); // "SEP 30, 2026"
 
-  return dateFormatted.toUpperCase(); // "SEP 27, 2026"
+  if (eventIST === nowIST) return `TODAY • ${dateFormatted}`;
+  if (eventIST === yesterdayIST) return `YESTERDAY • ${dateFormatted}`;
+
+  return dateFormatted; // "SEP 27, 2026"
 }
 
 /**
