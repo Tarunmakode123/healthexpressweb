@@ -91,7 +91,7 @@ export async function createInternalOrder({ customerName, customerPhone, custome
   const phone_e164 = phoneValidation.phone_e164;
 
   // 2. Validate Cart & Recalculate trusted total amount on server/backend logic
-  const cartValidation = validateCartTotal(items, promoCode, coinsToUse, walletBalance, walletSettings);
+  const cartValidation = await validateCartTotal(items, promoCode, coinsToUse, walletBalance, walletSettings);
   if (!cartValidation.isValid) {
     return { success: false, error: cartValidation.error };
   }

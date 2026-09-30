@@ -139,7 +139,24 @@ export async function updateAdminOrderStatus(orderId, nextStatus) {
       .select();
 
     if (error) return { success: false, error: error.message };
-    return { success: true, data: data[0] };
+
+    const updatedOrder = data && data[0] ? data[0] : null;
+
+    if (updatedOrder && nextStatus.toUpperCase() === 'CANCELLED') {
+      if (updatedOrder.patient_id) {
+        await supabase.rpc('restore_wallet_coins_atomic', {
+          p_patient_id: updatedOrder.patient_id,
+          p_order_id: updatedOrder.id,
+          p_description: `Restored Health Coins from Cancelled Order #${updatedOrder.order_code || updatedOrder.id}`
+        }).catch(() => {});
+      }
+      await supabase.rpc('restore_promo_usage_atomic', {
+        p_order_id: updatedOrder.id,
+        p_patient_id: updatedOrder.patient_id || null
+      }).catch(() => {});
+    }
+
+    return { success: true, data: updatedOrder };
   } catch (err) {
     return { success: false, error: err.message };
   }

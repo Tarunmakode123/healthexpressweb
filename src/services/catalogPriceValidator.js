@@ -1,13 +1,14 @@
 import { ALL_SERVICES } from '../data/services.js';
 import { DEMO_PROMO_CODES, calculateDiscountAmount } from './promoService.js';
 import { DEFAULT_WALLET_SETTINGS, calculateCoinDiscount } from './walletService.js';
+import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
 
 /**
  * Validates cart items against canonical catalog data, evaluates optional promoCode & Health Coins server-side
  * with explicit scope eligibility matching, and recalculates trusted total payable amount.
  * PREVENTS CLIENT-SIDE PRICE, PROMO, AND COIN DISCOUNT TAMPERING
  */
-export function validateCartTotal(items, promoCode = null, coinsToUse = 0, walletBalance = 0, walletSettings = DEFAULT_WALLET_SETTINGS) {
+export async function validateCartTotal(items, promoCode = null, coinsToUse = 0, walletBalance = 0, walletSettings = DEFAULT_WALLET_SETTINGS) {
   if (!items || !Array.isArray(items) || items.length === 0) {
     return {
       isValid: false,
@@ -77,14 +78,34 @@ export function validateCartTotal(items, promoCode = null, coinsToUse = 0, walle
     };
   }
 
-  // 1. Server-side Promo Code Validation
+  // 1. Server-side Promo Code Validation (Production-Ready Supabase Query)
   let promoDiscount = 0;
   let promoCodeApplied = null;
   let promoError = null;
 
   if (promoCode && typeof promoCode === 'string' && promoCode.trim().length > 0) {
     const normalizedCode = promoCode.trim().toUpperCase();
-    let promo = DEMO_PROMO_CODES.find((p) => p.code.toUpperCase() === normalizedCode);
+    let promo = null;
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: dbPromo, error: dbErr } = await supabase
+          .from('promo_codes')
+          .select('*')
+          .eq('code', normalizedCode)
+          .maybeSingle();
+
+        if (!dbErr && dbPromo) {
+          promo = dbPromo;
+        }
+      } catch (err) {
+        console.warn('validateCartTotal Supabase promo lookup exception:', err);
+      }
+    }
+
+    if (!promo && !isSupabaseConfigured) {
+      promo = DEMO_PROMO_CODES.find((p) => p.code.toUpperCase() === normalizedCode);
+    }
 
     if (promo) {
       const now = new Date();
