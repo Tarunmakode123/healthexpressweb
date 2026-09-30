@@ -6,7 +6,7 @@ import {
   Clock, Coins, RefreshCw, MessageSquare, ExternalLink, Filter, ChevronDown,
   Sparkles, CreditCard, Eye, Calculator, Globe, Hospital, Compass, ChevronRight, Settings,
   Zap, ArrowUpRight, Check, AlertCircle, Folder, UploadCloud, Download, Share2, Search,
-  FileCheck, X, HardDrive
+  FileCheck, X, HardDrive, Headphones, PhoneCall, Stethoscope
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
@@ -377,7 +377,7 @@ export default function GenericDashboardPage() {
       {/* MAIN PATIENT PORTAL BODY */}
       <main className="flex-1 max-w-7xl w-full mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
         
-        {/* 2. COMPACT APPLICATION PATIENT IDENTITY BAR */}
+        {/* 2. COMPACT APPLICATION PATIENT IDENTITY BAR (Includes Health Coins Wallet Pill!) */}
         <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-900 text-white font-black text-xl flex items-center justify-center shadow-md shrink-0">
@@ -391,7 +391,18 @@ export default function GenericDashboardPage() {
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold flex items-center gap-1 border border-emerald-200">
                   <ShieldCheck className="w-3 h-3 text-emerald-600" /> OTP Verified Patient
                 </span>
+
+                {/* Health Coins Badge moved into identity header */}
+                <button
+                  onClick={() => navigate('/services')}
+                  className="px-2.5 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-extrabold flex items-center gap-1 border border-amber-200 transition-colors cursor-pointer"
+                  title="Click to view health coin rewards"
+                >
+                  <Coins className="w-3 h-3 text-amber-600" />
+                  <span>{memberData.walletCoins.toLocaleString('en-IN')} Health Coins</span>
+                </button>
               </div>
+
               <p className="text-xs text-slate-500 font-mono flex items-center gap-3">
                 <span>Phone: {displayPhone}</span>
                 <span>•</span>
@@ -420,7 +431,7 @@ export default function GenericDashboardPage() {
           </div>
         </div>
 
-        {/* 3. PATIENT WORKSPACE & SIDEBAR (2-Column App Grid) */}
+        {/* 3. PATIENT WORKSPACE & STREAMLINED SIDEBAR (2-Column App Grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* LEFT MAIN PATIENT WORKSPACE (lg:col-span-8 - 66% width) */}
@@ -873,125 +884,105 @@ export default function GenericDashboardPage() {
 
           </div>
 
-          {/* RIGHT SIDEBAR COLUMN (lg:col-span-4 - 34% width - Sticky on scroll) */}
+          {/* RIGHT SIDEBAR COLUMN: STREAMLINED CARE ASSISTANT DOCK (No repetitive stat grid!) */}
           <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-20">
             
-            {/* A. ACCOUNT SUMMARY METRICS GRID */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider px-1">
-                Patient Metrics Summary
-              </h3>
-
-              <div className="grid grid-cols-2 gap-3">
-                {/* Health Vault Card */}
-                <div 
-                  onClick={() => handleCTAAction('switch_vault')}
-                  className="bg-white hover:bg-purple-50/60 rounded-2xl p-4 border border-slate-200 hover:border-purple-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700 group-hover:scale-105 transition-transform">
-                      <Folder className="w-4 h-4" />
-                    </span>
-                    <span className="text-base font-black text-slate-900">{healthVaultRecords.length}</span>
-                  </div>
-                  <div>
-                    <div className="text-xs font-black text-slate-800">Health Vault</div>
-                    <div className="text-[10px] text-slate-500 font-medium">
-                      {healthVaultRecords.length > 0 ? `${healthVaultRecords.length} Saved Records` : 'Click to Upload'}
-                    </div>
-                  </div>
-                  <div className="w-full py-1 px-2 rounded-xl bg-purple-50 group-hover:bg-purple-700 group-hover:text-white text-purple-800 font-extrabold text-[10px] transition-colors text-center">
-                    + Upload
-                  </div>
-                </div>
-
-                {/* Orders Card */}
-                <div 
-                  onClick={() => handleCTAAction('switch_orders')}
-                  className="bg-white hover:bg-emerald-50/60 rounded-2xl p-4 border border-slate-200 hover:border-emerald-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 group-hover:scale-105 transition-transform">
-                      <ShoppingBag className="w-4 h-4" />
-                    </span>
-                    <span className="text-base font-black text-slate-900">{memberData.orders.length}</span>
-                  </div>
-                  <div>
-                    <div className="text-xs font-black text-slate-800">Orders</div>
-                    <div className="text-[10px] text-slate-500 font-medium">
-                      {memberData.orders.length > 0 ? `${memberData.orders.length} Placed` : 'Click to Browse'}
-                    </div>
-                  </div>
-                  <div className="w-full py-1 px-2 rounded-xl bg-emerald-50 group-hover:bg-emerald-700 group-hover:text-white text-emerald-800 font-extrabold text-[10px] transition-colors text-center">
-                    Browse
-                  </div>
-                </div>
-
-                {/* Prescriptions Card */}
-                <div 
-                  onClick={() => handleCTAAction('switch_prescriptions')}
-                  className="bg-white hover:bg-purple-50/60 rounded-2xl p-4 border border-slate-200 hover:border-purple-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700 group-hover:scale-105 transition-transform">
-                      <FileText className="w-4 h-4" />
-                    </span>
-                    <span className="text-base font-black text-slate-900">{memberData.prescriptions.length}</span>
-                  </div>
-                  <div>
-                    <div className="text-xs font-black text-slate-800">Prescriptions</div>
-                    <div className="text-[10px] text-slate-500 font-medium">
-                      {memberData.prescriptions.length > 0 ? `${memberData.prescriptions.length} Active` : 'Click to Upload'}
-                    </div>
-                  </div>
-                  <div className="w-full py-1 px-2 rounded-xl bg-purple-50 group-hover:bg-purple-700 group-hover:text-white text-purple-800 font-extrabold text-[10px] transition-colors text-center">
-                    View Rx
-                  </div>
-                </div>
-
-                {/* Health Coins Card */}
-                <div 
-                  onClick={() => handleCTAAction('navigate_services')}
-                  className="bg-white hover:bg-amber-50/60 rounded-2xl p-4 border border-slate-200 hover:border-amber-200 shadow-sm space-y-2 flex flex-col justify-between transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="p-1.5 rounded-lg bg-amber-100 text-amber-800 group-hover:scale-105 transition-transform">
-                      <Coins className="w-4 h-4 text-amber-600" />
-                    </span>
-                    <span className="text-base font-black text-amber-600">{memberData.walletCoins.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div>
-                    <div className="text-xs font-black text-slate-800">Health Coins</div>
-                    <div className="text-[10px] text-slate-500 font-medium">
-                      {memberData.walletCoins > 0 ? `≈ ₹${Math.floor(memberData.walletCoins / 10)}` : '0 Coins'}
-                    </div>
-                  </div>
-                  <div className="w-full py-1 px-2 rounded-xl bg-amber-50 group-hover:bg-amber-700 group-hover:text-white text-amber-900 font-extrabold text-[10px] transition-colors text-center">
-                    Redeem
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* B. 24/7 WHATSAPP CARE MANAGER SUPPORT WIDGET */}
-            <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white rounded-3xl p-5 space-y-3 shadow-md border border-emerald-800/60">
-              <div className="space-y-1">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-400/30">
-                  24/7 Priority Support
+            {/* A. 24/7 WHATSAPP CARE MANAGER ASSIST WIDGET */}
+            <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white rounded-3xl p-6 space-y-4 shadow-md border border-emerald-800/60">
+              <div className="space-y-1.5">
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-400/30 flex items-center gap-1.5 w-fit">
+                  <Headphones className="w-3 h-3" />
+                  <span>24/7 Priority Support</span>
                 </span>
-                <h4 className="text-sm font-black text-white">Need Personal Care Assistance?</h4>
-                <p className="text-[11px] text-emerald-200/90 leading-relaxed font-medium">
-                  Connect with Health Express care managers on WhatsApp for home sample collection, prescription verification, and lab reports.
+                <h4 className="text-base font-black text-white">Need Personal Care Assistance?</h4>
+                <p className="text-xs text-emerald-200/90 leading-relaxed font-medium">
+                  Connect directly with Health Express care managers on WhatsApp for home sample collection, prescription verification, and lab reports.
                 </p>
               </div>
 
               <button
                 onClick={() => handleCTAAction('open_whatsapp')}
-                className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-2xl transition-all shadow-sm cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-2xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>WhatsApp Care Team</span>
               </button>
+            </div>
+
+            {/* B. INSTANT PATIENT SERVICES & FAST TOOLS DOCK */}
+            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <Zap className="w-4 h-4 text-purple-700" />
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  Instant Services & Tools
+                </h4>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-900 group-hover:text-purple-900">Upload Prescription</h5>
+                      <p className="text-[10px] text-slate-500">Fast review by care team</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                      <UploadCloud className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-900 group-hover:text-purple-900">Upload Health Record</h5>
+                      <p className="text-[10px] text-slate-500">Store lab reports in vault</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+
+                <button
+                  onClick={() => handleCTAAction('open_whatsapp')}
+                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <Stethoscope className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-900 group-hover:text-emerald-900">Book Home Sample Collection</h5>
+                      <p className="text-[10px] text-slate-500">Free door-step collection</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+
+                <button
+                  onClick={() => handleCTAAction('navigate_services')}
+                  className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                      <ShoppingBag className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h5 className="text-xs font-black text-slate-900 group-hover:text-purple-900">Browse Full Checkups</h5>
+                      <p className="text-[10px] text-slate-500">Diagnostic test packages</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
             </div>
 
           </div>
