@@ -376,7 +376,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
           
           {/* 3. LEFT FILTER SIDEBAR (DESKTOP) */}
           <aside className="hidden lg:block lg:col-span-3">
-            <div className="sticky top-24 space-y-4">
+            <div className="sticky bottom-6 space-y-4">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-5 text-xs">
               
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
