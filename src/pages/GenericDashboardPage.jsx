@@ -172,16 +172,15 @@ export default function GenericDashboardPage() {
           <div className="flex items-center gap-6">
             <Link 
               to="/dashboard" 
-              className="flex items-center gap-2.5 group hover:opacity-90 transition-opacity"
+              className="flex items-center gap-3 group hover:opacity-95 transition-opacity"
             >
-              <div className="w-9 h-9 rounded-xl bg-purple-700 flex items-center justify-center font-black text-white text-base shadow-sm group-hover:scale-105 transition-transform">
-                HE
-              </div>
-              <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
-                <span>Health Express</span>
-                <span className="bg-purple-800 text-purple-200 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-purple-700">
-                  Member
-                </span>
+              <img 
+                src="/logo.png" 
+                alt="Health Express - Everything Health Fast Tracked" 
+                className="h-9 sm:h-10 w-auto object-contain bg-white px-2.5 py-1 rounded-xl shadow-md border border-purple-100 group-hover:scale-[1.02] transition-transform" 
+              />
+              <span className="bg-purple-800/90 text-purple-200 text-[10px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-full border border-purple-700/80 shadow-xs">
+                Member
               </span>
             </Link>
 
