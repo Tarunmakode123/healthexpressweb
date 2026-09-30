@@ -13,6 +13,7 @@ import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import { getMemberOverview, buildUnifiedTimelineStream, formatTimelineDateGroup, formatTimelineTimeIST } from '../services/memberDashboardService';
 import { classifyMemberActivity } from '../services/memberActivityClassifier';
 import { validatePrescriptionFile } from '../services/prescriptionService';
+import { fetchWalletSettings, DEFAULT_WALLET_SETTINGS } from '../services/walletService';
 
 export default function GenericDashboardPage() {
   const navigate = useNavigate();
@@ -29,6 +30,9 @@ export default function GenericDashboardPage() {
     walletCoins: 1000
   });
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  // Live Wallet Rules Config State (Fetched from Supabase backend)
+  const [walletSettings, setWalletSettings] = useState(DEFAULT_WALLET_SETTINGS);
 
   // Profile Menu Dropdown Toggle
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -88,7 +92,7 @@ export default function GenericDashboardPage() {
     setIsUploadModalOpen(true);
   };
 
-  // Load 100% Real Authenticated Member Records from Supabase
+  // Load 100% Real Authenticated Member Records & Live Backend Wallet Rules from Supabase
   useEffect(() => {
     let isMounted = true;
 
@@ -100,12 +104,22 @@ export default function GenericDashboardPage() {
 
       try {
         const userId = session.user.id;
-        const data = await getMemberOverview(userId);
+        
+        // Fetch patient dashboard data and wallet settings in parallel
+        const [data, walletConfig] = await Promise.all([
+          getMemberOverview(userId),
+          fetchWalletSettings()
+        ]);
         
         if (isMounted) {
+          if (walletConfig?.settings) {
+            setWalletSettings(walletConfig.settings);
+          }
+
+          const defaultBonus = walletConfig?.settings?.signup_reward_coins || 1000;
           setMemberData({
             ...data,
-            walletCoins: data.walletCoins || 1000
+            walletCoins: data.walletCoins || defaultBonus
           });
         }
       } catch (err) {
@@ -196,7 +210,11 @@ export default function GenericDashboardPage() {
 
   const displayName = memberData.patient?.full_name || user?.name || session?.user?.user_metadata?.full_name || null;
   const displayPhone = user?.phone || session?.user?.phone || memberData.patient?.phone_e164 || 'Verified Mobile Number';
-  const currentWalletCoins = memberData.walletCoins || 1000;
+  
+  // Compute current wallet coins & rupee conversion using live Supabase backend settings
+  const coinsPerRupee = walletSettings.coins_per_rupee || 10;
+  const currentWalletCoins = memberData.walletCoins || walletSettings.signup_reward_coins || 1000;
+  const rupeesDiscountValue = Math.floor(currentWalletCoins / coinsPerRupee);
 
   // Handle Document Upload Submission to Health Vault
   const handleUploadSubmit = (e) => {
@@ -1089,7 +1107,7 @@ export default function GenericDashboardPage() {
         </div>
       )}
 
-      {/* 5. INTERACTIVE HEALTH WALLET REWARDS MODAL */}
+      {/* 5. DYNAMIC INTERACTIVE HEALTH WALLET REWARDS MODAL (Synchronized with Supabase backend wallet settings!) */}
       {isWalletModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white text-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 border border-slate-200">
@@ -1120,10 +1138,10 @@ export default function GenericDashboardPage() {
               
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-amber-100 flex items-center gap-1">
-                  <Gift className="w-3.5 h-3.5" /> Welcome Bonus Active
+                  <Gift className="w-3.5 h-3.5" /> {walletSettings.signup_reward_enabled ? 'Welcome Bonus Active' : 'Rewards Active'}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-extrabold border border-white/30">
-                  ≈ ₹{Math.floor(currentWalletCoins / 10)} Discount Value
+                  ≈ ₹{rupeesDiscountValue} Discount Value
                 </span>
               </div>
 
@@ -1160,14 +1178,19 @@ export default function GenericDashboardPage() {
               </div>
             </div>
 
-            {/* Wallet Rules Info Box */}
-            <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1 text-xs text-amber-900">
+            {/* Dynamic Wallet Rules Info Box (Fetched from Supabase backend) */}
+            <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1.5 text-xs text-amber-900">
               <p className="font-extrabold flex items-center gap-1.5 text-amber-950">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" /> How Health Coins Work:
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" /> How Health Coins Work (Live Rules):
               </p>
-              <ul className="list-disc pl-5 text-[11px] space-y-0.5 font-medium text-amber-900">
+              <ul className="list-disc pl-5 text-[11px] space-y-1 font-medium text-amber-900">
                 <li>Earn 10 Health Coins for every ₹100 spent on diagnostic tests.</li>
-                <li>Redeem up to 500 Coins (₹50 discount) per order at checkout.</li>
+                <li>
+                  Redeem up to {walletSettings.maximum_coins_per_order || 500} Coins (₹{Math.floor((walletSettings.maximum_coins_per_order || 500) / coinsPerRupee)} discount) per order at checkout.
+                </li>
+                <li>
+                  Minimum order amount to redeem: ₹{walletSettings.minimum_order_amount || 299} (min. {walletSettings.minimum_coins_to_redeem || 100} coins required).
+                </li>
               </ul>
             </div>
 
