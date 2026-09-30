@@ -665,7 +665,7 @@ export default function GenericDashboardPage() {
                         <div className="flex-1 bg-slate-50/80 hover:bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70 transition-colors space-y-1">
                           <div className="flex items-center justify-between">
                             <h4 className="text-xs font-extrabold text-slate-900">{item.title}</h4>
-                            <span className="text-[10px] font-mono text-slate-400">
+                            <span className="text-xs font-bold text-slate-500 shrink-0 ml-2">
                               {formatTimelineTimeIST(item.timestamp)}
                             </span>
                           </div>

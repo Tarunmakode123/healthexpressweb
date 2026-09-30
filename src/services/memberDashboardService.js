@@ -124,19 +124,27 @@ export function formatTimelineDateGroup(dateStr) {
 }
 
 /**
- * Formats exact event time in 12-hour IST format (e.g. 11:43 AM)
+ * Formats exact event date and 12-hour time in IST format (e.g. Sep 30, 12:35 PM)
  */
 export function formatTimelineTimeIST(dateStr) {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '';
 
-  return new Intl.DateTimeFormat('en-US', {
+  const datePart = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    month: 'short',
+    day: 'numeric'
+  }).format(date); // e.g. "Sep 30"
+
+  const timePart = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Kolkata',
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
-  }).format(date); // e.g. "11:43 AM"
+  }).format(date); // e.g. "12:35 PM"
+
+  return `${datePart}, ${timePart}`; // e.g. "Sep 30, 12:35 PM"
 }
 
 /**
