@@ -67,12 +67,23 @@ export default function GenericDashboardPage() {
 
   // Listen for global open upload modal event
   useEffect(() => {
-    function handleOpenModal() {
+    function handleOpenModal(e) {
+      const cat = e?.detail?.category || 'lab_report';
+      setUploadCategory(cat);
       setIsUploadModalOpen(true);
     }
     window.addEventListener('open-upload-modal', handleOpenModal);
     return () => window.removeEventListener('open-upload-modal', handleOpenModal);
   }, []);
+
+  // Smart Modal Opener with Category Pre-Selection
+  const openModalWithCategory = (cat = 'lab_report') => {
+    setUploadCategory(cat);
+    setUploadError('');
+    setSelectedFile(null);
+    setUploadTitle('');
+    setIsUploadModalOpen(true);
+  };
 
   // Load 100% Real Authenticated Member Records from Supabase
   useEffect(() => {
@@ -181,7 +192,7 @@ export default function GenericDashboardPage() {
     setUploadError('');
 
     if (!selectedFile) {
-      setUploadError('Please select a medical document to upload.');
+      setUploadError('Please select a file to upload.');
       return;
     }
 
@@ -209,7 +220,7 @@ export default function GenericDashboardPage() {
         categoryLabel: categoryLabels[uploadCategory] || 'Medical Record',
         uploadedAt: new Date().toISOString(),
         fileSize: `${Math.round(selectedFile.size / 1024)} KB`,
-        status: 'Saved in Vault',
+        status: uploadCategory === 'prescription' ? 'Under Care Manager Review' : 'Saved in Vault',
         publicUrl: URL.createObjectURL(selectedFile),
         isPrescription: uploadCategory === 'prescription'
       };
@@ -220,13 +231,22 @@ export default function GenericDashboardPage() {
       setSelectedFile(null);
       setUploadTitle('');
       setUploadCategory('lab_report');
+
+      // Auto-switch to vault or prescription tab
+      if (uploadCategory === 'prescription') {
+        setActiveWorkspaceTab('prescriptions');
+      } else {
+        setActiveWorkspaceTab('vault');
+      }
     }, 600);
   };
 
   // Quick CTA Dispatcher
   const handleCTAAction = (actionType) => {
     if (actionType === 'open_upload_modal') {
-      setIsUploadModalOpen(true);
+      openModalWithCategory('lab_report');
+    } else if (actionType === 'open_rx_modal') {
+      openModalWithCategory('prescription');
     } else if (actionType === 'navigate_services') {
       navigate('/services');
     } else if (actionType === 'switch_vault') {
@@ -414,7 +434,7 @@ export default function GenericDashboardPage() {
           {/* Quick Action Workspace Bar */}
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <button
-              onClick={() => setIsUploadModalOpen(true)}
+              onClick={() => openModalWithCategory('lab_report')}
               className="px-4 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-sm transition-all hover:scale-[1.02] cursor-pointer flex items-center gap-2"
             >
               <UploadCloud className="w-4 h-4" />
@@ -526,7 +546,7 @@ export default function GenericDashboardPage() {
                   </div>
 
                   <button
-                    onClick={() => setIsUploadModalOpen(true)}
+                    onClick={() => openModalWithCategory('lab_report')}
                     className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
                   >
                     <PlusCircle className="w-4 h-4" />
@@ -581,7 +601,7 @@ export default function GenericDashboardPage() {
                       Upload doctor prescriptions, lab test PDFs, or hospital reports to maintain your digital health locker.
                     </p>
                     <button
-                      onClick={() => setIsUploadModalOpen(true)}
+                      onClick={() => openModalWithCategory('lab_report')}
                       className="px-5 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
                     >
                       <UploadCloud className="w-4 h-4" />
@@ -736,7 +756,7 @@ export default function GenericDashboardPage() {
                   </div>
 
                   <button
-                    onClick={() => setIsUploadModalOpen(true)}
+                    onClick={() => openModalWithCategory('prescription')}
                     className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <PlusCircle className="w-4 h-4" />
@@ -752,7 +772,7 @@ export default function GenericDashboardPage() {
                       Upload your prescription for quick analysis by our certified medical team.
                     </p>
                     <button
-                      onClick={() => setIsUploadModalOpen(true)}
+                      onClick={() => openModalWithCategory('prescription')}
                       className="px-5 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
                     >
                       <PlusCircle className="w-4 h-4" />
@@ -909,7 +929,7 @@ export default function GenericDashboardPage() {
               </button>
             </div>
 
-            {/* B. INSTANT PATIENT SERVICES & FAST TOOLS DOCK */}
+            {/* B. INSTANT PATIENT SERVICES & FAST TOOLS DOCK (Smart pre-selected category triggers!) */}
             <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <Zap className="w-4 h-4 text-purple-700" />
@@ -919,8 +939,9 @@ export default function GenericDashboardPage() {
               </div>
 
               <div className="space-y-2">
+                {/* Button 1: Upload Doctor Prescription -> Preselects 'prescription' category */}
                 <button
-                  onClick={() => setIsUploadModalOpen(true)}
+                  onClick={() => openModalWithCategory('prescription')}
                   className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
@@ -935,8 +956,9 @@ export default function GenericDashboardPage() {
                   <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 
+                {/* Button 2: Upload Health Record -> Preselects 'lab_report' category */}
                 <button
-                  onClick={() => setIsUploadModalOpen(true)}
+                  onClick={() => openModalWithCategory('lab_report')}
                   className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
@@ -951,6 +973,7 @@ export default function GenericDashboardPage() {
                   <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 
+                {/* Button 3: Book Home Sample Collection */}
                 <button
                   onClick={() => handleCTAAction('open_whatsapp')}
                   className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
@@ -967,6 +990,7 @@ export default function GenericDashboardPage() {
                   <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
                 </button>
 
+                {/* Button 4: Browse Full Body Checkups */}
                 <button
                   onClick={() => handleCTAAction('navigate_services')}
                   className="w-full p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 text-left transition-colors flex items-center justify-between group cursor-pointer"
@@ -991,7 +1015,7 @@ export default function GenericDashboardPage() {
 
       </main>
 
-      {/* 4. HEALTH VAULT DOCUMENT UPLOAD MODAL */}
+      {/* 4. HEALTH VAULT DOCUMENT UPLOAD MODAL (Dynamically adapts header based on pre-selected category!) */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-white text-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 border border-slate-200">
@@ -999,11 +1023,17 @@ export default function GenericDashboardPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                  <UploadCloud className="w-5 h-5" />
+                  {uploadCategory === 'prescription' ? <FileText className="w-5 h-5" /> : <UploadCloud className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Upload to Health Vault</h3>
-                  <p className="text-xs text-slate-500 font-medium">Maintain medical records securely under your account.</p>
+                  <h3 className="text-base font-black text-slate-900">
+                    {uploadCategory === 'prescription' ? 'Upload Doctor Prescription' : 'Upload to Health Vault'}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    {uploadCategory === 'prescription' 
+                      ? 'Submit prescription for fast review & lab booking by care team.' 
+                      : 'Safely maintain medical records under your account.'}
+                  </p>
                 </div>
               </div>
 
@@ -1025,8 +1055,8 @@ export default function GenericDashboardPage() {
                   onChange={(e) => setUploadCategory(e.target.value)}
                   className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-600"
                 >
-                  <option value="lab_report">Lab Report (Blood Test, Urine, Pathology)</option>
                   <option value="prescription">Doctor Prescription</option>
+                  <option value="lab_report">Lab Report (Blood Test, Urine, Pathology)</option>
                   <option value="imaging_scan">MRI / CT / X-Ray Scan Report</option>
                   <option value="doctor_notes">Doctor Consultation Note</option>
                   <option value="discharge_summary">Hospital Discharge Summary</option>
@@ -1038,7 +1068,7 @@ export default function GenericDashboardPage() {
                 <label className="text-xs font-extrabold text-slate-800">Document Title / Name (Optional)</label>
                 <input
                   type="text"
-                  placeholder="e.g. Blood Report Sep 2026 or Dr Sharma Prescription"
+                  placeholder={uploadCategory === 'prescription' ? "e.g. Dr Sharma Prescription Sep 2026" : "e.g. Blood Test Report Sep 2026"}
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
                   className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-600"
@@ -1090,12 +1120,12 @@ export default function GenericDashboardPage() {
                   {isUploading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Saving to Vault...</span>
+                      <span>Saving...</span>
                     </>
                   ) : (
                     <>
                       <UploadCloud className="w-4 h-4" />
-                      <span>Save to Health Vault</span>
+                      <span>{uploadCategory === 'prescription' ? 'Submit Prescription' : 'Save to Health Vault'}</span>
                     </>
                   )}
                 </button>
