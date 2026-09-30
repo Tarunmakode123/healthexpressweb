@@ -67,11 +67,31 @@ export async function getMemberOverview(userId) {
         : Promise.resolve({ data: null })
     ]);
 
+    // Batch generate short-lived (300s) private signed URLs for prescriptions
+    const rawPrescriptions = presRes.data || [];
+    const prescriptionsWithSignedUrls = await Promise.all(
+      rawPrescriptions.map(async (rx) => {
+        if (!rx.file_path) return rx;
+        try {
+          const { data: signedData } = await supabase.storage
+            .from('prescriptions')
+            .createSignedUrl(rx.file_path, 300);
+          return {
+            ...rx,
+            public_url: signedData?.signedUrl || null,
+            signed_url: signedData?.signedUrl || null
+          };
+        } catch (e) {
+          return rx;
+        }
+      })
+    );
+
     return {
       success: true,
       patient,
       orders: ordRes.data || [],
-      prescriptions: presRes.data || [],
+      prescriptions: prescriptionsWithSignedUrls,
       enquiries: enqRes.data || [],
       payments: payRes.data || [],
       events: evtRes.data || [],

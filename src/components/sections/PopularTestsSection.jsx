@@ -5,6 +5,7 @@ import {
   Heart, UserCheck, Shield, ShoppingBag, ChevronLeft, ChevronRight, CheckCircle2, ShoppingCart 
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import AutoCarousel from '../common/AutoCarousel';
 
 export default function PopularTestsSection() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -156,24 +157,6 @@ export default function PopularTestsSection() {
               Search diagnostic tests and checkup packages available across verified partner labs in Bengaluru.
             </p>
           </div>
-
-          {/* Slider Navigation Buttons */}
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <button 
-              onClick={() => handleScroll('left')}
-              className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
-              aria-label="Previous test"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => handleScroll('right')}
-              className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 flex items-center justify-center transition-all shadow-2xs active:scale-95 cursor-pointer"
-              aria-label="Next test"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
         </div>
 
         {/* Search Bar & Suggestion Chips */}
@@ -204,23 +187,15 @@ export default function PopularTestsSection() {
           </div>
         </div>
 
-        {/* Horizontal Slider Track with Auto-Play & Hover Pause */}
-        <div 
-          ref={scrollContainerRef}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onTouchStart={() => setIsHovered(true)}
-          onTouchEnd={() => setIsHovered(false)}
-          className="flex items-stretch gap-5 overflow-x-auto snap-x snap-mandatory py-2 px-1 scrollbar-none text-left"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+        {/* Auto-Rotating Smooth Infinite Carousel */}
+        <AutoCarousel autoSlideInterval={5000}>
           {filteredTests.map((service) => {
             const IconComp = service.icon;
             return (
               <div
                 key={service.id}
                 onClick={(e) => handleAddToCart(service, e)}
-                className="w-[280px] sm:w-[320px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between text-left transform hover:-translate-y-1 relative overflow-hidden min-h-[260px]"
+                className="w-full bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-md shadow-slate-900/5 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between text-left transform hover:-translate-y-1 relative overflow-hidden min-h-[260px] h-full"
               >
                 <div className="space-y-3 flex-1 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
@@ -252,7 +227,7 @@ export default function PopularTestsSection() {
               </div>
             );
           })}
-        </div>
+        </AutoCarousel>
 
       </div>
 

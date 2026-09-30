@@ -118,11 +118,21 @@ values (
 create policy "Allow guest upload to prescriptions bucket" on storage.objects
   for insert with check (bucket_id = 'prescriptions');
 
--- Storage Policy: Authenticated users can view their own files
-create policy "Allow authorized user access to prescriptions" on storage.objects
+-- Storage Policy: Users can view own storage objects in prescriptions bucket
+create policy "Users can view own prescription storage objects" on storage.objects
   for select using (
-    bucket_id = 'prescriptions' and
-    (auth.role() = 'service_role' or auth.uid() is not null)
+    bucket_id = 'prescriptions' and (
+      auth.role() = 'service_role' or
+      public.check_is_admin() = true or
+      exists (
+        select 1 from public.prescriptions p
+        where p.file_path = storage.objects.name
+          and (
+            p.user_id = auth.uid() or
+            p.patient_id in (select id from public.patients where user_id = auth.uid())
+          )
+      )
+    )
   );
 
 -- ============================================================

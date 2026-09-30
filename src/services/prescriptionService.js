@@ -331,3 +331,27 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
     };
   }
 }
+
+/**
+ * Generates temporary 300s Signed URL for private prescription file access
+ */
+export async function getPrescriptionSignedUrl(filePath, expiresInSeconds = 300) {
+  if (!filePath || !isSupabaseConfigured || !supabase) return null;
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('prescriptions')
+      .createSignedUrl(filePath, expiresInSeconds);
+
+    if (error || !data?.signedUrl) {
+      console.warn('Failed to generate prescription signed URL:', error?.message);
+      return null;
+    }
+
+    return data.signedUrl;
+  } catch (err) {
+    console.warn('getPrescriptionSignedUrl exception:', err);
+    return null;
+  }
+}
+
