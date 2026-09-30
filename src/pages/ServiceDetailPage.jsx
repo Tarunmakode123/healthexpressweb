@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   FlaskConical, Scan, Dna, Home, Stethoscope, ShieldCheck, 
@@ -25,13 +25,29 @@ function getCategoryIcon(categoryId) {
   }
 }
 
+import { fetchServiceBySlug } from '../services/catalogService';
+
 export default function ServiceDetailPage({ onOpenUploadModal }) {
   const { slug } = useParams();
   const { addToCart } = useCart();
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
-  // Find service by slug or fallback to first
-  const service = ALL_SERVICES.find(s => s.slug === slug) || ALL_SERVICES[0];
+  // Sync initial state + async fetch
+  const initialService = ALL_SERVICES.find(s => s.slug === slug) || ALL_SERVICES[0];
+  const [service, setService] = useState(initialService);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (slug) {
+      fetchServiceBySlug(slug).then(res => {
+        if (isMounted && res) {
+          setService(res);
+        }
+      }).catch(() => {});
+    }
+    return () => { isMounted = false; };
+  }, [slug]);
+
   const category = CATEGORIES.find(c => c.id === service.category_id) || CATEGORIES[0];
   const IconComponent = getCategoryIcon(service.category_id);
 
@@ -39,7 +55,7 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
 
   // Related services (4 items max for 4-column desktop grid)
   const relatedServices = ALL_SERVICES
-    .filter(s => s.category_id === service.category_id && s.id !== service.id)
+    .filter(s => s.category_id === service.category_id && s.slug !== service.slug)
     .slice(0, 4);
 
   // Track SERVICE_VIEW analytics event

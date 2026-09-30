@@ -1,16 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { 
-  ALL_SERVICES, CATEGORIES 
-} from '../data/services';
-import { 
   FlaskConical, Scan, Dna, Home, Stethoscope, ShieldCheck, 
-  Search, Clock, ChevronRight, MessageSquare, PhoneCall, 
-  Upload, ArrowRight, Zap, AlertCircle, CheckCircle2, SlidersHorizontal, 
-  X, ChevronDown, ChevronUp, ShoppingBag, Plus, Sparkles, RefreshCw, Filter
+  Search, Clock, ChevronRight, MessageSquare, Upload, SlidersHorizontal, 
+  X, ChevronDown, ChevronUp, ShoppingBag, RefreshCw, Filter, Building2, TestTube2
 } from 'lucide-react';
-import { openWhatsApp } from '../utils/whatsapp';
-import { HEALTH_MANAGER_PHONE } from '../config/constants';
+import { fetchServices } from '../services/catalogService';
 import { useCart } from '../context/CartContext';
 import PrescriptionHeroBanner from '../components/common/PrescriptionHeroBanner';
 
@@ -24,20 +19,17 @@ const categoryIconMap = {
   'health-packages': ShieldCheck
 };
 
-// Expanded Marketplace Dataset Generator for 4,000+ Scalable Service Catalog Architecture
-const TOTAL_CATALOG_SCALE = 4126;
-
 const PRICE_RANGES = [
   { id: 'all', label: 'All Prices' },
-  { id: 'under-500', label: 'Under ₹500', min: 0, max: 500 },
-  { id: '500-1000', label: '₹500 – ₹1,000', min: 500, max: 1000 },
-  { id: '1000-5000', label: '₹1,000 – ₹5,000', min: 1000, max: 5000 },
-  { id: 'above-5000', label: 'Above ₹5,000', min: 5000, max: Infinity }
+  { id: 'under-500', label: 'Under ₹500' },
+  { id: '500-1000', label: '₹500 – ₹1,000' },
+  { id: '1000-5000', label: '₹1,000 – ₹5,000' },
+  { id: 'above-5000', label: 'Above ₹5,000' }
 ];
 
 const TURNAROUND_TIMES = [
-  { id: 'all', label: 'Any Turnaround Time' },
-  { id: 'same-day', label: 'Same Day (6–8 Hours)' },
+  { id: 'all', label: 'Any Turnaround' },
+  { id: 'same-day', label: 'Same Day' },
   { id: '24-hours', label: '24 Hours' },
   { id: '48-hours', label: '48+ Hours' }
 ];
@@ -45,30 +37,43 @@ const TURNAROUND_TIMES = [
 export default function ServicesPage({ onOpenUploadModal }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { addToCart } = useCart();
+  const [isPending, startTransition] = useTransition();
 
   // Read URL State parameters
   const initialCategory = searchParams.get('category') || 'all';
   const initialSearch = searchParams.get('search') || '';
   const initialPrice = searchParams.get('price') || 'all';
+  const initialProvider = searchParams.get('provider') || 'all';
   const initialCollection = searchParams.get('homeCollection') === 'true';
   const initialSort = searchParams.get('sort') || 'relevance';
   const initialPage = parseInt(searchParams.get('page') || '1', 10);
 
-  // State
+  // Filter States
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedPriceRange, setSelectedPriceRange] = useState(initialPrice);
+  const [selectedProvider, setSelectedProvider] = useState(initialProvider);
   const [homeCollectionOnly, setHomeCollectionOnly] = useState(initialCollection);
   const [turnaroundFilter, setTurnaroundFilter] = useState('all');
   const [sortBy, setSortBy] = useState(initialSort);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Async Catalog Data State
+  const [catalogData, setCatalogData] = useState({
+    services: [],
+    totalMatches: 0,
+    totalPages: 1,
+    categories: [],
+    providers: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   // Collapsible Filter Accordion Sections
   const [openSections, setOpenSections] = useState({
     categories: true,
     price: true,
+    provider: true,
     collection: true,
     turnaround: true
   });
@@ -90,74 +95,35 @@ export default function ServicesPage({ onOpenUploadModal }) {
     setSearchParams(params, { replace: true });
   };
 
-  // Master Filter & Query Processing
-  const { filteredServices, totalMatches } = useMemo(() => {
-    let result = [...ALL_SERVICES];
+  // Fetch catalog data when filters or pagination changes
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
 
-    // 1. Category Filter
-    if (selectedCategory !== 'all') {
-      result = result.filter(s => s.category_id === selectedCategory);
-    }
-
-    // 2. Search Query Filter
-    const q = searchQuery.toLowerCase().trim();
-    if (q) {
-      result = result.filter(s => 
-        s.name.toLowerCase().includes(q) ||
-        (s.shortDesc && s.shortDesc.toLowerCase().includes(q)) ||
-        (s.subcategory && s.subcategory.toLowerCase().includes(q)) ||
-        (s.parameters && s.parameters.some(p => p.toLowerCase().includes(q)))
-      );
-    }
-
-    // 3. Price Range Filter
-    if (selectedPriceRange !== 'all') {
-      const range = PRICE_RANGES.find(r => r.id === selectedPriceRange);
-      if (range) {
-        result = result.filter(s => s.discount_price >= range.min && s.discount_price <= range.max);
+    fetchServices({
+      category: selectedCategory,
+      search: searchQuery,
+      priceRange: selectedPriceRange,
+      homeCollection: homeCollectionOnly,
+      turnaround: turnaroundFilter,
+      provider: selectedProvider,
+      sortBy,
+      page: currentPage,
+      pageSize: 24
+    }).then(res => {
+      if (isMounted) {
+        setCatalogData(res);
+        setIsLoading(false);
       }
-    }
-
-    // 4. Home Collection Filter
-    if (homeCollectionOnly) {
-      result = result.filter(s => !s.centre_visit_required || s.home_collection_available);
-    }
-
-    // 5. Turnaround Filter
-    if (turnaroundFilter !== 'all') {
-      if (turnaroundFilter === 'same-day') {
-        result = result.filter(s => (s.turnaround_time || '').includes('6-12') || (s.turnaround_time || '').includes('Same'));
-      } else if (turnaroundFilter === '24-hours') {
-        result = result.filter(s => (s.turnaround_time || '').includes('24'));
+    }).catch(err => {
+      if (isMounted) {
+        console.error('Catalog fetch error:', err);
+        setIsLoading(false);
       }
-    }
+    });
 
-    // 6. Sorting
-    if (sortBy === 'price-low') {
-      result.sort((a, b) => a.discount_price - b.discount_price);
-    } else if (sortBy === 'price-high') {
-      result.sort((a, b) => b.discount_price - a.discount_price);
-    } else if (sortBy === 'popularity') {
-      result.sort((a, b) => (b.parameters_count || 0) - (a.parameters_count || 0));
-    } else if (sortBy === 'discount') {
-      result.sort((a, b) => (parseInt(b.discount_percentage) || 0) - (parseInt(a.discount_percentage) || 0));
-    }
-
-    return {
-      filteredServices: result,
-      totalMatches: result.length
-    };
-  }, [selectedCategory, searchQuery, selectedPriceRange, homeCollectionOnly, turnaroundFilter, sortBy]);
-
-  // Pagination Logic (24 Items per page = 8 rows of 3 cards on desktop)
-  const PAGE_SIZE = 24;
-  const totalPages = Math.ceil(totalMatches / PAGE_SIZE) || 1;
-  const validPage = Math.min(Math.max(1, currentPage), totalPages);
-
-  const paginatedServices = useMemo(() => {
-    const start = (validPage - 1) * PAGE_SIZE;
-    return filteredServices.slice(start, start + PAGE_SIZE);
-  }, [filteredServices, validPage]);
+    return () => { isMounted = false; };
+  }, [selectedCategory, searchQuery, selectedPriceRange, homeCollectionOnly, turnaroundFilter, selectedProvider, sortBy, currentPage]);
 
   // Analytics search tracker
   useEffect(() => {
@@ -165,16 +131,16 @@ export default function ServicesPage({ onOpenUploadModal }) {
       const timer = setTimeout(() => {
         import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
           logAnalyticsEvent('SEARCH', {
-            metadata: { results_count: totalMatches },
+            metadata: { results_count: catalogData.totalMatches },
             deduplicate: true
           });
         }).catch(() => {});
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [searchQuery, totalMatches]);
+  }, [searchQuery, catalogData.totalMatches]);
 
-  // Handle Filter Changes
+  // Filter Event Handlers
   const handleCategoryChange = (catId) => {
     setSelectedCategory(catId);
     setCurrentPage(1);
@@ -193,6 +159,12 @@ export default function ServicesPage({ onOpenUploadModal }) {
     updateUrlParams({ price: priceId, page: 1 });
   };
 
+  const handleProviderChange = (provName) => {
+    setSelectedProvider(provName);
+    setCurrentPage(1);
+    updateUrlParams({ provider: provName, page: 1 });
+  };
+
   const handleCollectionToggle = (checked) => {
     setHomeCollectionOnly(checked);
     setCurrentPage(1);
@@ -205,17 +177,16 @@ export default function ServicesPage({ onOpenUploadModal }) {
   };
 
   const handlePageChange = (newPage) => {
-    setIsLoading(true);
     setCurrentPage(newPage);
     updateUrlParams({ page: newPage });
     window.scrollTo({ top: 220, behavior: 'smooth' });
-    setTimeout(() => setIsLoading(false), 200);
   };
 
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedCategory('all');
     setSelectedPriceRange('all');
+    setSelectedProvider('all');
     setHomeCollectionOnly(false);
     setTurnaroundFilter('all');
     setSortBy('relevance');
@@ -223,12 +194,14 @@ export default function ServicesPage({ onOpenUploadModal }) {
     setSearchParams({}, { replace: true });
   };
 
-  const hasActiveFilters = selectedCategory !== 'all' || searchQuery || selectedPriceRange !== 'all' || homeCollectionOnly || turnaroundFilter !== 'all';
+  const hasActiveFilters = selectedCategory !== 'all' || searchQuery || selectedPriceRange !== 'all' || selectedProvider !== 'all' || homeCollectionOnly || turnaroundFilter !== 'all';
+
+  const { services, totalMatches, totalPages, categories, providers } = catalogData;
 
   return (
     <div className="min-h-screen bg-slate-50/70 pb-20 text-slate-900 text-left font-sans">
       
-      {/* 1. SLEEK COMPACT HEADER */}
+      {/* 1. SLEEK COMPACT MARKETPLACE HEADER */}
       <div className="bg-white border-b border-slate-200/80 pt-6 pb-6 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           
@@ -236,17 +209,17 @@ export default function ServicesPage({ onOpenUploadModal }) {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-200">
-                  Healthcare Services Marketplace
+                  Real Service Catalog Marketplace
                 </span>
                 <span className="text-[10px] font-bold text-slate-400">
-                  • 4,000+ Services Directory
+                  • {totalMatches.toLocaleString()} Services Available
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-                Explore Diagnostic Tests, Imaging & Home Care Services
+                Diagnostic Tests, Radiology Scans & Health Packages
               </h1>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                NABL accredited partner labs, high-precision radiology scans, and certified home healthcare nursing.
+                NABL accredited diagnostic labs (LabSpring), Cadabams radiology scans, and preventive wellness checkups.
               </p>
             </div>
 
@@ -267,13 +240,13 @@ export default function ServicesPage({ onOpenUploadModal }) {
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search 4,000+ tests (e.g. CBC, HbA1c, Thyroid, MRI Brain, Chest X-Ray, Home Care)..."
+              placeholder="Search across 2,200+ healthcare services (e.g. Lipid, CBC, MRI, Thyroid, Cadabams)..."
               className="w-full pl-10 pr-24 py-2.5 bg-slate-50 border border-slate-300/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all shadow-xs"
             />
             {searchQuery ? (
               <button
                 onClick={() => handleSearchChange('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 Clear
               </button>
@@ -284,7 +257,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
             )}
           </div>
 
-          {/* Compact Horizontal Category Tabs */}
+          {/* Dynamic Horizontal Category Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-1 no-scrollbar border-t border-slate-100">
             <button
               onClick={() => handleCategoryChange('all')}
@@ -294,10 +267,10 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              All Services ({ALL_SERVICES.length})
+              All Categories ({totalMatches.toLocaleString()})
             </button>
 
-            {CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const IconComp = categoryIconMap[cat.id] || FlaskConical;
               const isSelected = selectedCategory === cat.id;
 
@@ -312,7 +285,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   }`}
                 >
                   <IconComp className="w-3.5 h-3.5" />
-                  <span>{cat.name}</span>
+                  <span>{cat.name} ({cat.count})</span>
                 </button>
               );
             })}
@@ -338,9 +311,8 @@ export default function ServicesPage({ onOpenUploadModal }) {
             </button>
 
             <span className="font-bold text-slate-600">
-              Showing <strong className="text-slate-900 font-extrabold">{paginatedServices.length}</strong> of{' '}
+              Showing <strong className="text-slate-900 font-extrabold">{services.length}</strong> of{' '}
               <strong className="text-purple-900 font-black">{totalMatches.toLocaleString()}</strong> services
-              <span className="hidden sm:inline text-slate-400 font-normal"> (catalog of {TOTAL_CATALOG_SCALE.toLocaleString()}+ options)</span>
             </span>
           </div>
 
@@ -354,10 +326,10 @@ export default function ServicesPage({ onOpenUploadModal }) {
                 className="bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold py-1.5 px-2.5 rounded-xl outline-none focus:ring-2 focus:ring-purple-600 cursor-pointer"
               >
                 <option value="relevance">Relevance</option>
-                <option value="popularity">Popularity</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
-                <option value="discount">Highest Discount</option>
+                <option value="name-az">Name: A–Z</option>
+                <option value="name-za">Name: Z–A</option>
               </select>
             </div>
 
@@ -372,158 +344,200 @@ export default function ServicesPage({ onOpenUploadModal }) {
           </div>
         </div>
 
+        {/* PARALLEL DUAL-COLUMN LAYOUT WITH STICKY BOTTOM BOUNDARY */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* 3. LEFT FILTER SIDEBAR (DESKTOP) */}
           <aside className="hidden lg:block lg:col-span-3">
             <div className="sticky bottom-6 space-y-4">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-5 text-xs">
-              
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5 text-xs">
-                  <Filter className="w-3.5 h-3.5 text-purple-700" /> Filters
-                </span>
-                {hasActiveFilters && (
+                
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <span className="font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                    <Filter className="w-3.5 h-3.5 text-purple-700" /> Catalog Filters
+                  </span>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={handleResetFilters}
+                      className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer"
+                    >
+                      Reset All
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Group 1: Category */}
+                <div className="space-y-2 border-b border-slate-100 pb-4">
                   <button
-                    onClick={handleResetFilters}
-                    className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer"
+                    onClick={() => toggleSection('categories')}
+                    className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
                   >
-                    Reset All
+                    <span>Category</span>
+                    {openSections.categories ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
                   </button>
-                )}
-              </div>
 
-              {/* Filter Group 1: Category */}
-              <div className="space-y-2 border-b border-slate-100 pb-4">
-                <button
-                  onClick={() => toggleSection('categories')}
-                  className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
-                >
-                  <span>Category</span>
-                  {openSections.categories ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-                </button>
+                  {openSections.categories && (
+                    <div className="space-y-1.5 pt-1">
+                      <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                        <input
+                          type="radio"
+                          name="sidebarCategory"
+                          checked={selectedCategory === 'all'}
+                          onChange={() => handleCategoryChange('all')}
+                          className="text-purple-700 focus:ring-purple-600"
+                        />
+                        <span>All Categories</span>
+                      </label>
 
-                {openSections.categories && (
-                  <div className="space-y-1.5 pt-1">
-                    <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
-                      <input
-                        type="radio"
-                        name="sidebarCategory"
-                        checked={selectedCategory === 'all'}
-                        onChange={() => handleCategoryChange('all')}
-                        className="text-purple-700 focus:ring-purple-600"
-                      />
-                      <span>All Categories</span>
-                    </label>
+                      {categories.map((cat) => (
+                        <label key={cat.id} className="flex items-center justify-between font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="sidebarCategory"
+                              checked={selectedCategory === cat.id}
+                              onChange={() => handleCategoryChange(cat.id)}
+                              className="text-purple-700 focus:ring-purple-600"
+                            />
+                            <span>{cat.name}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {cat.count}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                    {CATEGORIES.map((cat) => (
-                      <label key={cat.id} className="flex items-center justify-between font-medium text-slate-700 cursor-pointer hover:text-purple-900">
-                        <div className="flex items-center gap-2">
+                {/* Filter Group 2: Provider */}
+                {providers && providers.length > 0 && (
+                  <div className="space-y-2 border-b border-slate-100 pb-4">
+                    <button
+                      onClick={() => toggleSection('provider')}
+                      className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
+                    >
+                      <span>Healthcare Provider</span>
+                      {openSections.provider ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                    </button>
+
+                    {openSections.provider && (
+                      <div className="space-y-1.5 pt-1">
+                        <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
                           <input
                             type="radio"
-                            name="sidebarCategory"
-                            checked={selectedCategory === cat.id}
-                            onChange={() => handleCategoryChange(cat.id)}
+                            name="sidebarProvider"
+                            checked={selectedProvider === 'all'}
+                            onChange={() => handleProviderChange('all')}
                             className="text-purple-700 focus:ring-purple-600"
                           />
-                          <span>{cat.name}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          {ALL_SERVICES.filter(s => s.category_id === cat.id).length}
-                        </span>
-                      </label>
-                    ))}
+                          <span>All Providers</span>
+                        </label>
+
+                        {providers.map((prov) => (
+                          <label key={prov} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                            <input
+                              type="radio"
+                              name="sidebarProvider"
+                              checked={selectedProvider === prov}
+                              onChange={() => handleProviderChange(prov)}
+                              className="text-purple-700 focus:ring-purple-600"
+                            />
+                            <span className="truncate max-w-[160px]">{prov}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
 
-              {/* Filter Group 2: Price Range */}
-              <div className="space-y-2 border-b border-slate-100 pb-4">
-                <button
-                  onClick={() => toggleSection('price')}
-                  className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
-                >
-                  <span>Price Range</span>
-                  {openSections.price ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-                </button>
+                {/* Filter Group 3: Price Range */}
+                <div className="space-y-2 border-b border-slate-100 pb-4">
+                  <button
+                    onClick={() => toggleSection('price')}
+                    className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
+                  >
+                    <span>Price Range</span>
+                    {openSections.price ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                  </button>
 
-                {openSections.price && (
-                  <div className="space-y-1.5 pt-1">
-                    {PRICE_RANGES.map((range) => (
-                      <label key={range.id} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                  {openSections.price && (
+                    <div className="space-y-1.5 pt-1">
+                      {PRICE_RANGES.map((range) => (
+                        <label key={range.id} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                          <input
+                            type="radio"
+                            name="priceRange"
+                            checked={selectedPriceRange === range.id}
+                            onChange={() => handlePriceChange(range.id)}
+                            className="text-purple-700 focus:ring-purple-600"
+                          />
+                          <span>{range.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter Group 4: Service Fulfillment */}
+                <div className="space-y-2 border-b border-slate-100 pb-4">
+                  <button
+                    onClick={() => toggleSection('collection')}
+                    className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
+                  >
+                    <span>Service Fulfillment</span>
+                    {openSections.collection ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                  </button>
+
+                  {openSections.collection && (
+                    <div className="space-y-2 pt-1">
+                      <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
                         <input
-                          type="radio"
-                          name="priceRange"
-                          checked={selectedPriceRange === range.id}
-                          onChange={() => handlePriceChange(range.id)}
-                          className="text-purple-700 focus:ring-purple-600"
+                          type="checkbox"
+                          checked={homeCollectionOnly}
+                          onChange={(e) => handleCollectionToggle(e.target.checked)}
+                          className="rounded border-slate-300 text-purple-700 focus:ring-purple-600"
                         />
-                        <span>{range.label}</span>
+                        <span>Home Collection Available</span>
                       </label>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter Group 5: Turnaround Time */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => toggleSection('turnaround')}
+                    className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
+                  >
+                    <span>Report Delivery</span>
+                    {openSections.turnaround ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
+                  </button>
+
+                  {openSections.turnaround && (
+                    <div className="space-y-1.5 pt-1">
+                      {TURNAROUND_TIMES.map((tt) => (
+                        <label key={tt.id} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                          <input
+                            type="radio"
+                            name="turnaround"
+                            checked={turnaroundFilter === tt.id}
+                            onChange={() => setTurnaroundFilter(tt.id)}
+                            className="text-purple-700 focus:ring-purple-600"
+                          />
+                          <span>{tt.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
               </div>
-
-              {/* Filter Group 3: Service Fulfillment */}
-              <div className="space-y-2 border-b border-slate-100 pb-4">
-                <button
-                  onClick={() => toggleSection('collection')}
-                  className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
-                >
-                  <span>Service Type</span>
-                  {openSections.collection ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-                </button>
-
-                {openSections.collection && (
-                  <div className="space-y-2 pt-1">
-                    <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
-                      <input
-                        type="checkbox"
-                        checked={homeCollectionOnly}
-                        onChange={(e) => handleCollectionToggle(e.target.checked)}
-                        className="rounded border-slate-300 text-purple-700 focus:ring-purple-600"
-                      />
-                      <span>Home Collection Available</span>
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              {/* Filter Group 4: Turnaround Time */}
-              <div className="space-y-2">
-                <button
-                  onClick={() => toggleSection('turnaround')}
-                  className="w-full flex items-center justify-between font-extrabold text-slate-900 text-xs cursor-pointer"
-                >
-                  <span>Report Delivery</span>
-                  {openSections.turnaround ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
-                </button>
-
-                {openSections.turnaround && (
-                  <div className="space-y-1.5 pt-1">
-                    {TURNAROUND_TIMES.map((tt) => (
-                      <label key={tt.id} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
-                        <input
-                          type="radio"
-                          name="turnaround"
-                          checked={turnaroundFilter === tt.id}
-                          onChange={() => setTurnaroundFilter(tt.id)}
-                          className="text-purple-700 focus:ring-purple-600"
-                        />
-                        <span>{tt.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
             </div>
-          </div>
-        </aside>
+          </aside>
 
-        {/* 4. RIGHT SERVICE RESULTS CATALOG (AT LEAST 3 CARDS IN A ROW ON DESKTOP) */}
-        <main className="col-span-1 lg:col-span-9 space-y-6">
+          {/* 4. RIGHT SERVICE RESULTS CATALOG (AT LEAST 3 CARDS IN A ROW ON DESKTOP) */}
+          <main className="col-span-1 lg:col-span-9 space-y-6">
             
             {isLoading ? (
               /* SKELETON LOADING GRID */
@@ -537,16 +551,17 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   </div>
                 ))}
               </div>
-            ) : paginatedServices.length > 0 ? (
-              /* SLEEK COMPACT MARKETPLACE CARDS (3 PER ROW ON DESKTOP) */
+            ) : services.length > 0 ? (
+              /* SLEEK COMPACT MARKETPLACE CARDS (3 PER ROW ON DESKTOP, NO IMAGES) */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-                {paginatedServices.map((service) => {
-                  const cat = CATEGORIES.find(c => c.id === service.category_id);
+                {services.map((service) => {
                   const IconComp = categoryIconMap[service.category_id] || FlaskConical;
+                  const discountPrice = service.selling_price || service.discount_price || service.mrp;
+                  const mrpPrice = service.mrp || service.price;
 
                   return (
                     <div
-                      key={service.id}
+                      key={service.id || service.slug}
                       className="bg-white rounded-2xl border border-slate-200/90 hover:border-purple-300 p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between text-left group min-h-[220px]"
                     >
                       <div className="space-y-2.5">
@@ -555,7 +570,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                           <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2 py-0.5 rounded border border-purple-100 flex items-center gap-1">
                             <IconComp className="w-3 h-3 text-purple-700 shrink-0" />
-                            <span>{cat?.name || 'Healthcare'}</span>
+                            <span>{service.category_name || 'Healthcare'}</span>
                           </span>
 
                           <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded ${
@@ -567,27 +582,40 @@ export default function ServicesPage({ onOpenUploadModal }) {
                           </span>
                         </div>
 
-                        {/* Title & Short Description */}
+                        {/* Service Code & Title */}
                         <div>
+                          {service.service_code && (
+                            <span className="text-[10px] font-mono text-slate-400 font-bold">
+                              Code: {service.service_code}
+                            </span>
+                          )}
                           <Link
                             to={`/services/${service.slug}`}
-                            className="text-sm font-extrabold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-1 leading-snug"
+                            className="text-sm font-extrabold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-1 leading-snug block"
                           >
                             {service.name}
                           </Link>
-                          <p className="text-[11px] text-slate-500 line-clamp-2 leading-normal font-normal mt-0.5">
-                            {service.shortDesc}
-                          </p>
+                          {service.description && (
+                            <p className="text-[11px] text-slate-500 line-clamp-2 leading-normal font-normal mt-0.5">
+                              {service.description}
+                            </p>
+                          )}
                         </div>
 
                         {/* Compact Metadata Strip */}
-                        <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-500 pt-1">
+                        <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold text-slate-500 pt-0.5">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3 text-purple-700 shrink-0" />
                             {service.turnaround_time}
                           </span>
-                          {service.parameters_count && (
-                            <span>• {service.parameters_count} Parameters</span>
+                          {service.provider && (
+                            <span className="flex items-center gap-1">
+                              <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="truncate max-w-[100px]">{service.provider}</span>
+                            </span>
+                          )}
+                          {service.parameters_count > 0 && (
+                            <span>• {service.parameters_count} Tests</span>
                           )}
                         </div>
 
@@ -597,9 +625,9 @@ export default function ServicesPage({ onOpenUploadModal }) {
                       <div className="pt-3 border-t border-slate-100 space-y-2.5 mt-3">
                         <div className="flex items-baseline justify-between">
                           <div className="flex items-baseline gap-1.5">
-                            <span className="text-lg font-black text-slate-900">₹{service.discount_price}</span>
-                            {service.price && (
-                              <span className="text-xs text-slate-400 line-through">₹{service.price}</span>
+                            <span className="text-lg font-black text-slate-900">₹{discountPrice}</span>
+                            {mrpPrice && mrpPrice > discountPrice && (
+                              <span className="text-xs text-slate-400 line-through">₹{mrpPrice}</span>
                             )}
                           </div>
                           {service.discount_percentage && (
@@ -619,7 +647,10 @@ export default function ServicesPage({ onOpenUploadModal }) {
                           </Link>
 
                           <button
-                            onClick={() => addToCart(service)}
+                            onClick={() => addToCart({
+                              ...service,
+                              price: discountPrice
+                            })}
                             className="py-2 px-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 transition-colors shadow-2xs cursor-pointer touch-target active:scale-95"
                           >
                             <ShoppingBag className="w-3 h-3 text-purple-200" />
@@ -641,12 +672,12 @@ export default function ServicesPage({ onOpenUploadModal }) {
                 <div className="space-y-1">
                   <h3 className="text-base font-extrabold text-slate-900">No matching services found</h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Try clearing filters or search for another diagnostic test or service.
+                    Try clearing filters or searching for another test, scan, or service.
                   </p>
                 </div>
                 <button
                   onClick={handleResetFilters}
-                  className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs shadow-2xs inline-flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Clear All Filters</span>
@@ -658,30 +689,30 @@ export default function ServicesPage({ onOpenUploadModal }) {
             {totalPages > 1 && (
               <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-slate-600">
                 <span>
-                  Page <strong className="text-slate-900">{validPage}</strong> of <strong className="text-slate-900">{totalPages}</strong>
+                  Page <strong className="text-slate-900">{currentPage}</strong> of <strong className="text-slate-900">{totalPages}</strong> ({totalMatches.toLocaleString()} total items)
                 </span>
 
                 <div className="flex items-center gap-1.5">
                   <button
-                    disabled={validPage <= 1}
-                    onClick={() => handlePageChange(validPage - 1)}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-purple-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    disabled={currentPage <= 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-purple-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     Previous
                   </button>
 
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum = i + 1;
-                    if (totalPages > 5 && validPage > 3) {
-                      pageNum = validPage - 3 + i;
+                    if (totalPages > 5 && currentPage > 3) {
+                      pageNum = currentPage - 3 + i;
                       if (pageNum > totalPages) pageNum = totalPages - (4 - i);
                     }
                     return (
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-8 h-8 rounded-lg font-extrabold transition-all ${
-                          validPage === pageNum
+                        className={`w-8 h-8 rounded-lg font-extrabold transition-all cursor-pointer ${
+                          currentPage === pageNum
                             ? 'bg-purple-800 text-white shadow-2xs'
                             : 'border border-slate-200 hover:bg-purple-50 text-slate-700'
                         }`}
@@ -692,9 +723,9 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   })}
 
                   <button
-                    disabled={validPage >= totalPages}
-                    onClick={() => handlePageChange(validPage + 1)}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-purple-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-purple-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     Next
                   </button>
@@ -738,7 +769,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   />
                   <span>All Categories</span>
                 </label>
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <label key={cat.id} className="flex items-center justify-between font-medium text-slate-700">
                     <div className="flex items-center gap-2">
                       <input
@@ -772,32 +803,19 @@ export default function ServicesPage({ onOpenUploadModal }) {
               </div>
             </div>
 
-            {/* Mobile Fulfillment */}
-            <div className="space-y-2 border-t border-slate-100 pt-3">
-              <span className="font-extrabold text-slate-900">Fulfillment</span>
-              <label className="flex items-center gap-2 font-medium text-slate-700 pt-1">
-                <input
-                  type="checkbox"
-                  checked={homeCollectionOnly}
-                  onChange={(e) => handleCollectionToggle(e.target.checked)}
-                />
-                <span>Home Collection Available</span>
-              </label>
-            </div>
-
             <div className="pt-4 border-t border-slate-100 space-y-2">
               <button
                 onClick={() => setIsMobileFilterOpen(false)}
-                className="w-full py-3 bg-purple-700 text-white font-extrabold rounded-xl text-center"
+                className="w-full py-3 bg-purple-700 text-white font-extrabold rounded-xl text-center cursor-pointer"
               >
-                Apply Filters ({totalMatches})
+                Apply Filters ({totalMatches.toLocaleString()})
               </button>
               <button
                 onClick={() => {
                   handleResetFilters();
                   setIsMobileFilterOpen(false);
                 }}
-                className="w-full py-2 text-slate-500 font-bold text-center"
+                className="w-full py-2 text-slate-500 font-bold text-center cursor-pointer"
               >
                 Reset
               </button>
