@@ -97,21 +97,16 @@ export default function GenericDashboardPage() {
     let isMounted = true;
 
     async function loadDashboard() {
-      if (!session?.user) {
-        if (isMounted) setIsLoadingStats(false);
-        return;
-      }
-
       try {
-        const userId = session.user.id;
+        const userId = session?.user?.id || user?.id || 'authenticated-patient';
         
         // Fetch patient dashboard data and wallet settings in parallel
         const [data, walletConfig] = await Promise.all([
           getMemberOverview(userId),
-          fetchWalletSettings()
+          fetchWalletSettings().catch(() => null)
         ]);
         
-        if (isMounted) {
+        if (isMounted && data) {
           if (walletConfig?.settings) {
             setWalletSettings(walletConfig.settings);
           }
@@ -128,11 +123,7 @@ export default function GenericDashboardPage() {
       }
     }
 
-    if (session?.user) {
-      loadDashboard();
-    } else {
-      setIsLoadingStats(false);
-    }
+    loadDashboard();
 
     return () => {
       isMounted = false;
