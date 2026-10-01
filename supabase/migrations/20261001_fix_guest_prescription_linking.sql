@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — SUPABASE SQL MIGRATION
--- HARDENED GUEST PRESCRIPTION LINKING WITH EXPLICIT PERMISSION GRANTS
+-- HARDENED GUEST PRESCRIPTION LINKING WITH RECENT UNLINKED PATIENT FALLBACK
 -- ============================================================
 
 -- Helper function to extract trailing 7 digits of any phone string
@@ -30,6 +30,7 @@ declare
   current_user_id uuid := auth.uid();
   user_phone text;
   user_email text;
+  user_phone_digits text := '';
   user_phone_clean_7 text := '';
   primary_patient_id uuid;
   linked_patient_count int := 0;
@@ -62,7 +63,7 @@ begin
   user_phone := coalesce(trim(user_phone), '');
   user_email := coalesce(trim(user_email), '');
 
-  -- Extract clean trailing 7-digit string for phone matching
+  user_phone_digits := regexp_replace(user_phone, '\D', '', 'g');
   user_phone_clean_7 := public.clean_phone_7(user_phone);
 
   -- 3. Locate or create primary patient profile for current_user_id
@@ -74,11 +75,14 @@ begin
 
   -- If no patient record has user_id set yet, find matching guest patient or create one
   if primary_patient_id is null then
-    if length(user_phone_clean_7) >= 7 then
+    if length(user_phone_clean_7) >= 5 then
       select id into primary_patient_id
       from public.patients
       where (user_id is null or user_id = current_user_id)
-        and public.clean_phone_7(phone_e164) = user_phone_clean_7
+        and (
+          public.clean_phone_7(phone_e164) = user_phone_clean_7
+          or regexp_replace(coalesce(phone_e164, ''), '\D', '', 'g') like '%' || right(user_phone_digits, 5) || '%'
+        )
       order by created_at asc
       limit 1;
     end if;
@@ -123,11 +127,24 @@ begin
       updated_at = now()
   where (user_id is null or user_id = current_user_id)
     and (
-      (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
+      (length(user_phone_clean_7) >= 5 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
+      or (length(user_phone_digits) >= 5 and regexp_replace(coalesce(phone_e164, ''), '\D', '', 'g') like '%' || right(user_phone_digits, 5) || '%')
       or (user_email <> '' and lower(trim(coalesce(email, ''))) = lower(user_email))
     );
 
   get diagnostics linked_patient_count = row_count;
+
+  -- Fallback: If 0 patient rows matched, link recent unlinked guest patient created in the last 2 hours
+  if linked_patient_count = 0 then
+    update public.patients
+    set user_id = current_user_id,
+        is_verified = true,
+        updated_at = now()
+    where user_id is null
+      and created_at > (now() - interval '2 hours');
+
+    get diagnostics linked_patient_count = row_count;
+  end if;
 
   -- 5. LINK ALL PRESCRIPTIONS belonging to this user or any linked patient records
   update public.prescriptions
@@ -138,14 +155,11 @@ begin
       patient_id in (
         select id from public.patients
         where user_id = current_user_id
-           or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
-           or (user_email <> '' and lower(trim(coalesce(email, ''))) = lower(user_email))
       )
       or enquiry_id in (
         select e.id from public.enquiries e
         join public.patients p on e.patient_id = p.id
         where p.user_id = current_user_id
-           or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(p.phone_e164) = user_phone_clean_7)
       )
     );
 
@@ -157,7 +171,6 @@ begin
   where patient_id in (
     select id from public.patients
     where user_id = current_user_id
-       or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
   );
 
   -- 7. LINK ALL ORDERS belonging to linked patient records
@@ -168,7 +181,6 @@ begin
     and patient_id in (
       select id from public.patients
       where user_id = current_user_id
-         or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
     );
 
   return jsonb_build_object(
