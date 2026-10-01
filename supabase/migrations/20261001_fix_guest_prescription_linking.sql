@@ -275,3 +275,67 @@ end;
 $$;
 
 grant execute on function public.debug_get_all_records() to public, anon, authenticated, service_role;
+
+-- 5. PERMISSIVE GUEST RLS POLICIES FOR PATIENTS, PRESCRIPTIONS, AND ENQUIRIES
+drop policy if exists "Users can view own prescriptions" on public.prescriptions;
+create policy "Users can view own prescriptions" on public.prescriptions
+  for select using (
+    public.check_is_admin() = true or
+    auth.uid() = user_id or
+    user_id is null or
+    patient_id in (select id from public.patients where user_id = auth.uid() or user_id is null)
+  );
+
+drop policy if exists "Users can update own prescriptions" on public.prescriptions;
+create policy "Users can update own prescriptions" on public.prescriptions
+  for update using (
+    public.check_is_admin() = true or
+    auth.uid() = user_id or
+    user_id is null or
+    patient_id in (select id from public.patients where user_id = auth.uid() or user_id is null)
+  );
+
+drop policy if exists "Users can view own enquiries" on public.enquiries;
+create policy "Users can view own enquiries" on public.enquiries
+  for select using (
+    public.check_is_admin() = true or
+    patient_id in (select id from public.patients where user_id = auth.uid() or user_id is null)
+  );
+
+drop policy if exists "Users can view own patient profile" on public.patients;
+create policy "Users can view own patient profile" on public.patients
+  for select using (
+    public.check_is_admin() = true or
+    user_id is null or
+    (auth.uid() is not null and auth.uid() = user_id)
+  );
+
+drop policy if exists "Users can update own patient profile" on public.patients;
+create policy "Users can update own patient profile" on public.patients
+  for update using (
+    public.check_is_admin() = true or
+    user_id is null or
+    (auth.uid() is not null and auth.uid() = user_id)
+  );
+
+-- 6. ONE-TIME IMMEDIATE BACKFILL LINKING FOR ALL UNLINKED RECORDS
+do $$
+declare
+  r record;
+begin
+  for r in select id, phone_e164 from public.patients where user_id is null and phone_e164 is not null loop
+    update public.patients p
+    set user_id = u.id, is_verified = true
+    from auth.users u
+    where p.id = r.id
+      and public.clean_phone_7(u.phone) = public.clean_phone_7(r.phone_e164)
+      and length(public.clean_phone_7(r.phone_e164)) >= 5;
+  end loop;
+
+  update public.prescriptions p
+  set user_id = pat.user_id
+  from public.patients pat
+  where p.patient_id = pat.id
+    and p.user_id is null
+    and pat.user_id is not null;
+end $$;
