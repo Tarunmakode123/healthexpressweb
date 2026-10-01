@@ -155,12 +155,14 @@ export default function GenericDashboardPage() {
       id: rx.id || `rx-${idx}`,
       title: rx.file_name || `Prescription Record #${idx + 1}`,
       category: 'prescription',
-      categoryLabel: 'Prescription',
+      categoryLabel: rx.enquiries?.enquiry_code ? `Care Review (${rx.enquiries.enquiry_code})` : 'Prescription',
       uploadedAt: rx.created_at || new Date().toISOString(),
       fileSize: rx.file_size ? `${Math.round(rx.file_size / 1024)} KB` : 'PDF / Image',
-      status: 'Under Care Manager Review',
-      publicUrl: rx.public_url || null,
-      isPrescription: true
+      status: rx.enquiries?.status ? rx.enquiries.status.replace(/_/g, ' ').toUpperCase() : 'Under Care Manager Review',
+      publicUrl: rx.public_url || rx.signed_url || null,
+      isPrescription: true,
+      enquiryCode: rx.enquiries?.enquiry_code || null,
+      sourceTag: rx.enquiries?.enquiry_code ? `Care Review (${rx.enquiries.enquiry_code})` : 'Care Review'
     })),
     // Include custom uploaded records
     ...customRecords
@@ -800,24 +802,53 @@ export default function GenericDashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {memberData.prescriptions.map((rx, idx) => (
-                      <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-4">
+                      <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0">
                             <FileText className="w-5 h-5" />
                           </div>
-                          <div>
-                            <h4 className="text-xs font-black text-slate-900">
-                              {rx.file_name || `Prescription #${rx.id ? String(rx.id).slice(0, 6) : idx + 1}`}
-                            </h4>
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-xs font-black text-slate-900">
+                                {rx.file_name || `Prescription #${rx.id ? String(rx.id).slice(0, 6) : idx + 1}`}
+                              </h4>
+                              {rx.enquiries?.enquiry_code && (
+                                <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-mono text-[10px] font-black">
+                                  {rx.enquiries.enquiry_code}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[11px] text-slate-500 font-medium">
                               Uploaded on {new Date(rx.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </p>
                           </div>
                         </div>
 
-                        <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-black">
-                          Under Review
-                        </span>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-extrabold uppercase tracking-wide">
+                            {rx.enquiries?.status ? rx.enquiries.status.replace(/_/g, ' ') : 'Under Care Review'}
+                          </span>
+
+                          {(rx.public_url || rx.signed_url) && (
+                            <a
+                              href={rx.public_url || rx.signed_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-900 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>View</span>
+                            </a>
+                          )}
+
+                          <button
+                            onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
+                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition-colors"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 fill-current" />
+                            <span>WhatsApp Care Team</span>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
