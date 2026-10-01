@@ -312,6 +312,17 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
       console.warn('Analytics event warning:', anErr);
     }
 
+    // Save guest enquiry to localStorage for seamless single-device OTP login linking
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = JSON.parse(localStorage.getItem('hex_guest_enquiries') || '[]');
+        stored.push({ enquiryId, enquiryCode, patientId, phone_e164, createdAt: Date.now() });
+        localStorage.setItem('hex_guest_enquiries', JSON.stringify(stored));
+      }
+    } catch (lsErr) {
+      console.warn('localStorage save warning:', lsErr);
+    }
+
     // Return successful Enquiry Registration
     return {
       success: true,

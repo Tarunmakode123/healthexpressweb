@@ -75,6 +75,29 @@ export async function getMemberOverview(userId) {
       console.warn('[LINK] Auto account linking notice in getMemberOverview:', err?.message || err);
     });
 
+    // Fallback: Link guest enquiries saved in localStorage directly to this user ID
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const storedGuest = JSON.parse(localStorage.getItem('hex_guest_enquiries') || '[]');
+        const patientIds = Array.from(new Set(storedGuest.map(g => g.patientId).filter(Boolean)));
+        const enquiryCodes = Array.from(new Set(storedGuest.map(g => g.enquiryCode).filter(Boolean)));
+
+        if (patientIds.length > 0) {
+          await supabase
+            .from('patients')
+            .update({ user_id: userId, is_verified: true })
+            .in('id', patientIds);
+
+          await supabase
+            .from('prescriptions')
+            .update({ user_id: userId })
+            .in('patient_id', patientIds);
+        }
+      }
+    } catch (lsLinkErr) {
+      console.warn('[LINK] LocalStorage guest linking notice:', lsLinkErr);
+    }
+
     const patient = await getMemberPatientProfile(userId);
     const patientId = patient?.id || null;
 
