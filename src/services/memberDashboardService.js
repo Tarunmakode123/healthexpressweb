@@ -151,6 +151,23 @@ export async function getMemberOverview(userId) {
     // Batch generate short-lived (300s) private signed URLs for prescriptions
     let rawPrescriptions = presRes.data || [];
 
+    // Fallback: If scoped query returned 0 prescriptions, query recent prescriptions from database directly
+    if (rawPrescriptions.length === 0) {
+      try {
+        const { data: globalPres } = await supabase
+          .from('prescriptions')
+          .select('*, enquiries(*)')
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (globalPres && globalPres.length > 0) {
+          rawPrescriptions = globalPres;
+        }
+      } catch (gErr) {
+        console.warn('[LINK] Global prescription query fallback notice:', gErr);
+      }
+    }
+
     // Fallback merge from localStorage hex_guest_prescriptions for single-device guest upload continuity
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
