@@ -149,7 +149,27 @@ export async function getMemberOverview(userId) {
     ]);
 
     // Batch generate short-lived (300s) private signed URLs for prescriptions
-    const rawPrescriptions = presRes.data || [];
+    let rawPrescriptions = presRes.data || [];
+
+    // Fallback merge from localStorage hex_guest_prescriptions for single-device guest upload continuity
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const localGuestRx = JSON.parse(localStorage.getItem('hex_guest_prescriptions') || '[]');
+        if (localGuestRx.length > 0) {
+          const existingIds = new Set(rawPrescriptions.map(r => r.id).filter(Boolean));
+          const existingPaths = new Set(rawPrescriptions.map(r => r.file_path).filter(Boolean));
+          
+          for (const gRx of localGuestRx) {
+            if (!existingIds.has(gRx.id) && !existingPaths.has(gRx.file_path)) {
+              rawPrescriptions.push(gRx);
+            }
+          }
+        }
+      }
+    } catch (lsRxErr) {
+      console.warn('[LINK] LocalStorage prescription merge notice:', lsRxErr);
+    }
+
     const prescriptionsWithSignedUrls = await Promise.all(
       rawPrescriptions.map(async (rx) => {
         if (!rx.file_path) return rx;
@@ -159,8 +179,8 @@ export async function getMemberOverview(userId) {
             .createSignedUrl(rx.file_path, 300);
           return {
             ...rx,
-            public_url: signedData?.signedUrl || null,
-            signed_url: signedData?.signedUrl || null
+            public_url: signedData?.signedUrl || rx.public_url || null,
+            signed_url: signedData?.signedUrl || rx.signed_url || null
           };
         } catch (e) {
           return rx;

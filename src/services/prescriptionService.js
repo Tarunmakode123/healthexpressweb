@@ -312,12 +312,28 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
       console.warn('Analytics event warning:', anErr);
     }
 
-    // Save guest enquiry to localStorage for seamless single-device OTP login linking
+    // Save guest enquiry & prescription metadata to localStorage for seamless single-device OTP login linking
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
-        const stored = JSON.parse(localStorage.getItem('hex_guest_enquiries') || '[]');
-        stored.push({ enquiryId, enquiryCode, patientId, phone_e164, createdAt: Date.now() });
-        localStorage.setItem('hex_guest_enquiries', JSON.stringify(stored));
+        const storedEnquiries = JSON.parse(localStorage.getItem('hex_guest_enquiries') || '[]');
+        storedEnquiries.push({ enquiryId, enquiryCode, patientId, phone_e164, createdAt: Date.now() });
+        localStorage.setItem('hex_guest_enquiries', JSON.stringify(storedEnquiries));
+
+        const storedPrescriptions = JSON.parse(localStorage.getItem('hex_guest_prescriptions') || '[]');
+        for (const item of uploadedFiles) {
+          storedPrescriptions.push({
+            id: generateUUID(),
+            enquiry_id: enquiryId,
+            patient_id: patientId,
+            file_path: item.filePath,
+            file_name: item.name,
+            file_type: item.type || 'application/octet-stream',
+            file_size: item.size || 0,
+            created_at: new Date().toISOString(),
+            enquiries: { enquiry_code: enquiryCode, status: 'pending_review' }
+          });
+        }
+        localStorage.setItem('hex_guest_prescriptions', JSON.stringify(storedPrescriptions));
       }
     } catch (lsErr) {
       console.warn('localStorage save warning:', lsErr);
