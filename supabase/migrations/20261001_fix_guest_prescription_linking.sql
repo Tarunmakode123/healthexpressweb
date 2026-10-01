@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — SUPABASE SQL MIGRATION
--- COMPLETE GUEST PRESCRIPTION CREATION & AUTHENTICATED LINKING RPCs
+-- COMPLETE GUEST PRESCRIPTION CREATION & AUTHENTICATED LINKING RPCs + DEBUG DIAGNOSTICS
 -- ============================================================
 
 -- 1. Helper function to extract trailing 7 digits of any phone string
@@ -253,3 +253,25 @@ end;
 $$ language plpgsql security definer set search_path = public;
 
 grant execute on function public.link_guest_records_on_otp_login() to authenticated, anon, service_role;
+
+-- 4. DIAGNOSTIC RPC TO INSPECT LIVE DATABASE RECORDS
+create or replace function public.debug_get_all_records()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_patients jsonb;
+  v_prescriptions jsonb;
+  v_enquiries jsonb;
+begin
+  select coalesce(jsonb_agg(p), '[]'::jsonb) into v_patients from public.patients p;
+  select coalesce(jsonb_agg(rx), '[]'::jsonb) into v_prescriptions from public.prescriptions rx;
+  select coalesce(jsonb_agg(e), '[]'::jsonb) into v_enquiries from public.enquiries e;
+
+  return jsonb_build_object(
+    'patients', v_patients,
+    'prescriptions', v_prescriptions,
+    'enquiries', v_enquiries
+  );
+end;
+$$;
+
+grant execute on function public.debug_get_all_records() to public, anon, authenticated, service_role;
