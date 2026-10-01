@@ -1,6 +1,6 @@
 -- ============================================================
 -- HEALTH EXPRESS — SUPABASE SQL MIGRATION
--- HARDENED GUEST PRESCRIPTION LINKING WITH ROBUST 7-DIGIT SUFFIX MATCHING
+-- HARDENED GUEST PRESCRIPTION LINKING WITH EXPLICIT PERMISSION GRANTS
 -- ============================================================
 
 -- Helper function to extract trailing 7 digits of any phone string
@@ -19,6 +19,8 @@ begin
   return right(v_digits, 7);
 end;
 $$;
+
+grant execute on function public.clean_phone_7(text) to public, authenticated, anon, service_role;
 
 drop function if exists public.link_guest_records_on_otp_login();
 
@@ -179,5 +181,4 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
-revoke execute on function public.link_guest_records_on_otp_login() from public, anon;
-grant execute on function public.link_guest_records_on_otp_login() to authenticated;
+grant execute on function public.link_guest_records_on_otp_login() to authenticated, anon, service_role;
