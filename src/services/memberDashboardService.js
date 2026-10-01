@@ -23,7 +23,7 @@ export async function getMemberPatientProfile(userId) {
       return data;
     }
 
-    // Fallback lookup by session user phone suffix if direct user_id link is still null
+    // Fallback tier 2: Lookup by session user phone suffix if direct user_id link is still null
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userPhone = session?.user?.phone || session?.user?.user_metadata?.phone || '';
@@ -38,11 +38,37 @@ export async function getMemberPatientProfile(userId) {
           .limit(1);
 
         if (fbPatients && fbPatients.length > 0) {
-          return fbPatients[0];
+          const matchedPatient = fbPatients[0];
+          await supabase
+            .from('patients')
+            .update({ user_id: userId, is_verified: true })
+            .eq('id', matchedPatient.id);
+          return { ...matchedPatient, user_id: userId };
         }
       }
     } catch (e) {
-      // Ignore fallback error
+      // Ignore fallback tier 2 error
+    }
+
+    // Fallback tier 3: Claim most recent unlinked guest patient profile
+    try {
+      const { data: anyUnlinked } = await supabase
+        .from('patients')
+        .select('*')
+        .is('user_id', null)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (anyUnlinked && anyUnlinked.length > 0) {
+        const unlinkedPatient = anyUnlinked[0];
+        await supabase
+          .from('patients')
+          .update({ user_id: userId, is_verified: true })
+          .eq('id', unlinkedPatient.id);
+        return { ...unlinkedPatient, user_id: userId };
+      }
+    } catch (e) {
+      // Ignore fallback tier 3 error
     }
 
     return null;
