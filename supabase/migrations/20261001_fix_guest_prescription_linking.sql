@@ -1,10 +1,10 @@
 -- ============================================================
 -- HEALTH EXPRESS — SUPABASE SQL MIGRATION
--- HARDENED GUEST PRESCRIPTION LINKING WITH ROBUST PHONE NORMALIZATION (clean_phone_10)
+-- HARDENED GUEST PRESCRIPTION LINKING WITH ROBUST 7-DIGIT SUFFIX MATCHING
 -- ============================================================
 
--- Helper function to normalize any Indian / international phone variation to clean 10-digit national number
-create or replace function public.clean_phone_10(p_input text)
+-- Helper function to extract trailing 7 digits of any phone string
+create or replace function public.clean_phone_7(p_input text)
 returns text language plpgsql immutable as $$
 declare
   v_digits text;
@@ -13,12 +13,10 @@ begin
     return '';
   end if;
   v_digits := regexp_replace(p_input, '\D', '', 'g');
-  if v_digits like '91%' and length(v_digits) >= 11 then
-    v_digits := substring(v_digits from 3);
-  elsif v_digits like '0%' and length(v_digits) >= 11 then
-    v_digits := substring(v_digits from 2);
+  if length(v_digits) < 7 then
+    return v_digits;
   end if;
-  return right(v_digits, 10);
+  return right(v_digits, 7);
 end;
 $$;
 
@@ -30,7 +28,7 @@ declare
   current_user_id uuid := auth.uid();
   user_phone text;
   user_email text;
-  user_phone_clean_10 text := '';
+  user_phone_clean_7 text := '';
   primary_patient_id uuid;
   linked_patient_count int := 0;
   linked_prescription_count int := 0;
@@ -62,8 +60,8 @@ begin
   user_phone := coalesce(trim(user_phone), '');
   user_email := coalesce(trim(user_email), '');
 
-  -- Normalize authenticated user's phone to 10-digit clean string
-  user_phone_clean_10 := public.clean_phone_10(user_phone);
+  -- Extract clean trailing 7-digit string for phone matching
+  user_phone_clean_7 := public.clean_phone_7(user_phone);
 
   -- 3. Locate or create primary patient profile for current_user_id
   select id into primary_patient_id
@@ -74,11 +72,11 @@ begin
 
   -- If no patient record has user_id set yet, find matching guest patient or create one
   if primary_patient_id is null then
-    if length(user_phone_clean_10) >= 7 then
+    if length(user_phone_clean_7) >= 7 then
       select id into primary_patient_id
       from public.patients
       where (user_id is null or user_id = current_user_id)
-        and public.clean_phone_10(phone_e164) = user_phone_clean_10
+        and public.clean_phone_7(phone_e164) = user_phone_clean_7
       order by created_at asc
       limit 1;
     end if;
@@ -123,7 +121,7 @@ begin
       updated_at = now()
   where (user_id is null or user_id = current_user_id)
     and (
-      (length(user_phone_clean_10) >= 7 and public.clean_phone_10(phone_e164) = user_phone_clean_10)
+      (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
       or (user_email <> '' and lower(trim(coalesce(email, ''))) = lower(user_email))
     );
 
@@ -138,14 +136,14 @@ begin
       patient_id in (
         select id from public.patients
         where user_id = current_user_id
-           or (length(user_phone_clean_10) >= 7 and public.clean_phone_10(phone_e164) = user_phone_clean_10)
+           or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
            or (user_email <> '' and lower(trim(coalesce(email, ''))) = lower(user_email))
       )
       or enquiry_id in (
         select e.id from public.enquiries e
         join public.patients p on e.patient_id = p.id
         where p.user_id = current_user_id
-           or (length(user_phone_clean_10) >= 7 and public.clean_phone_10(p.phone_e164) = user_phone_clean_10)
+           or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(p.phone_e164) = user_phone_clean_7)
       )
     );
 
@@ -157,7 +155,7 @@ begin
   where patient_id in (
     select id from public.patients
     where user_id = current_user_id
-       or (length(user_phone_clean_10) >= 7 and public.clean_phone_10(phone_e164) = user_phone_clean_10)
+       or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
   );
 
   -- 7. LINK ALL ORDERS belonging to linked patient records
@@ -168,12 +166,12 @@ begin
     and patient_id in (
       select id from public.patients
       where user_id = current_user_id
-         or (length(user_phone_clean_10) >= 7 and public.clean_phone_10(phone_e164) = user_phone_clean_10)
+         or (length(user_phone_clean_7) >= 7 and public.clean_phone_7(phone_e164) = user_phone_clean_7)
     );
 
   return jsonb_build_object(
     'success', true,
-    'normalized_phone', user_phone_clean_10,
+    'normalized_phone', user_phone_clean_7,
     'linked_patient_count', linked_patient_count,
     'linked_prescription_count', linked_prescription_count,
     'primary_patient_id', primary_patient_id

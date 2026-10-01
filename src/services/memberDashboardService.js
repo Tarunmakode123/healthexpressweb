@@ -19,11 +19,33 @@ export async function getMemberPatientProfile(userId) {
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (error) {
-      console.warn('getMemberPatientProfile notice:', error.message);
-      return null;
+    if (!error && data) {
+      return data;
     }
-    return data;
+
+    // Fallback lookup by session user phone suffix if direct user_id link is still null
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userPhone = session?.user?.phone || session?.user?.user_metadata?.phone || '';
+      const cleanDigits = userPhone.replace(/\D/g, '');
+      const last7 = cleanDigits.slice(-7);
+      if (last7.length >= 7) {
+        const { data: fbPatients } = await supabase
+          .from('patients')
+          .select('*')
+          .ilike('phone_e164', `%${last7}%`)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (fbPatients && fbPatients.length > 0) {
+          return fbPatients[0];
+        }
+      }
+    } catch (e) {
+      // Ignore fallback error
+    }
+
+    return null;
   } catch (e) {
     console.warn('getMemberPatientProfile exception:', e);
     return null;
