@@ -128,20 +128,6 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         };
       }
 
-      // If payment is COD (instantly confirmed order), trigger atomic coin deduction immediately
-      if (isCod && coinsUsed > 0 && data.patient_id) {
-        try {
-          await supabase.rpc('deduct_wallet_coins_atomic', {
-            p_patient_id: data.patient_id,
-            p_coins_to_use: coinsUsed,
-            p_order_id: data.order_id,
-            p_description: `Redeemed on COD Order #${data.order_code}`
-          });
-        } catch (coinErr) {
-          console.warn('COD coin deduction notice:', coinErr);
-        }
-      }
-
       return {
         success: true,
         order_id: data.order_id,
@@ -208,49 +194,30 @@ export async function verifyAndConfirmPayment({ orderId, promoCodeId = null, pat
 
   if (isSupabaseConfigured) {
     try {
-      const { data, error } = await supabase.rpc('verify_and_confirm_order_payment', {
-        p_order_id: orderId,
-        p_razorpay_order_id: razorpayOrderId || 'demo_rzp_order',
-        p_razorpay_payment_id: razorpayPaymentId || 'demo_rzp_pay_' + Date.now(),
-        p_razorpay_signature: razorpaySignature || 'demo_sig_' + Date.now(),
-        p_payment_method: paymentMethod,
-        p_payment_mode: paymentMode
+      const response = await fetch('/api/verify-razorpay-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: orderId,
+          razorpay_order_id: razorpayOrderId,
+          razorpay_payment_id: razorpayPaymentId,
+          razorpay_signature: razorpaySignature,
+          payment_method: paymentMethod,
+          payment_mode: paymentMode,
+          promo_code_id: promoCodeId,
+          patient_id: patientId,
+          promo_discount: promoDiscount,
+          coins_used: coinsUsed
+        })
       });
 
-      if (error) {
-        console.error('Supabase RPC verify_and_confirm_order_payment error:', error);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || (data.isValid === false && data.success === false)) {
         return {
           success: false,
-          error: `[Verification Error ${error.code || 'VERIFY_ERR'}] ${error.message || 'Payment signature verification failed.'}`
+          error: data.error || 'Payment signature verification failed on server.'
         };
-      }
-
-      // Record atomic promo code usage if promo code was applied
-      if (promoCodeId) {
-        try {
-          await supabase.rpc('record_promo_code_usage_atomic', {
-            p_code_id: promoCodeId,
-            p_order_id: orderId,
-            p_patient_id: patientId,
-            p_discount_applied: promoDiscount
-          });
-        } catch (promoErr) {
-          console.warn('Failed to record atomic promo usage:', promoErr);
-        }
-      }
-
-      // Deduct coins atomically if coins were used
-      if (coinsUsed > 0 && patientId) {
-        try {
-          await supabase.rpc('deduct_wallet_coins_atomic', {
-            p_patient_id: patientId,
-            p_coins_to_use: coinsUsed,
-            p_order_id: orderId,
-            p_description: `Redeemed on Order #${data.order_code || orderId}`
-          });
-        } catch (coinErr) {
-          console.warn('Failed to record atomic coin deduction:', coinErr);
-        }
       }
 
       return {
