@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, 
-  ShoppingBag, ShieldAlert, Search, MapPin, Globe, ChevronDown, 
+  ShoppingBag, ShieldAlert, Search, MapPin, ChevronDown, 
   Package, FileText, Navigation, Loader2, AlertCircle 
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
@@ -13,29 +13,20 @@ const LOCATIONS = [
   'Indore', 'Bengaluru', 'Delhi NCR', 'Mumbai', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune'
 ];
 
-const LANGUAGES = [
-  { code: 'EN', name: 'English' },
-  { code: 'HI', name: 'हिंदी (Hindi)' }
-];
-
 export default function Navbar({ onOpenUploadModal }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLocationMenu, setShowLocationMenu] = useState(false);
-  const [showLangMenu, setShowLangMenu] = useState(false);
   const [showAdminExitModal, setShowAdminExitModal] = useState(false);
   const [pendingTarget, setPendingTarget] = useState(null);
 
   // Search input state
   const [headerSearch, setHeaderSearch] = useState('');
 
-  // Location & Language states with local storage persistence
+  // Location state with local storage persistence
   const [selectedLocation, setSelectedLocation] = useState(() => {
     return localStorage.getItem('he_user_city') || 'Indore';
-  });
-  const [selectedLang, setSelectedLang] = useState(() => {
-    return localStorage.getItem('he_user_lang') || 'EN';
   });
 
   // Geolocation states
@@ -86,7 +77,6 @@ export default function Navbar({ onOpenUploadModal }) {
     setIsMobileMenuOpen(false);
     setShowProfileMenu(false);
     setShowLocationMenu(false);
-    setShowLangMenu(false);
     setLocationError(null);
   }, [location]);
 
@@ -117,12 +107,6 @@ export default function Navbar({ onOpenUploadModal }) {
     localStorage.setItem('he_user_city', loc);
     setLocationError(null);
     setShowLocationMenu(false);
-  };
-
-  const handleSelectLang = (langCode) => {
-    setSelectedLang(langCode);
-    localStorage.setItem('he_user_lang', langCode);
-    setShowLangMenu(false);
   };
 
   // Reverse Geocoding helper to resolve city from GPS coordinates
@@ -234,10 +218,7 @@ export default function Navbar({ onOpenUploadModal }) {
               {/* Desktop Location Dropdown */}
               <div className="hidden lg:block relative">
                 <button
-                  onClick={() => {
-                    setShowLocationMenu(!showLocationMenu);
-                    setShowLangMenu(false);
-                  }}
+                  onClick={() => setShowLocationMenu(!showLocationMenu)}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-900 border border-slate-200/90 text-xs font-bold transition-all cursor-pointer"
                   title="Select your delivery location"
                 >
@@ -325,41 +306,8 @@ export default function Navbar({ onOpenUploadModal }) {
               </div>
             </form>
 
-            {/* Right: Language, Auth State, Orders, Cart, WhatsApp */}
+            {/* Right: Auth State, Orders, Cart, WhatsApp */}
             <div className="hidden md:flex items-center gap-2.5 shrink-0 text-xs">
-              
-              {/* Language Selector */}
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    setShowLangMenu(!showLangMenu);
-                    setShowLocationMenu(false);
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 font-extrabold border border-slate-200/90 transition-all cursor-pointer"
-                >
-                  <Globe className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{selectedLang}</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
-                </button>
-
-                {showLangMenu && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 animate-in fade-in duration-100 text-left">
-                    {LANGUAGES.map((l) => (
-                      <button
-                        key={l.code}
-                        onClick={() => handleSelectLang(l.code)}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                          selectedLang === l.code
-                            ? 'bg-purple-50 text-purple-900'
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        {l.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* Logged-In User Actions (Orders & Health Records) */}
               {showCustomerAccount && (
@@ -567,21 +515,6 @@ export default function Navbar({ onOpenUploadModal }) {
                     {locationError}
                   </p>
                 )}
-              </div>
-
-              {/* Language Selector */}
-              <div className="flex items-center justify-between gap-1.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
-                <div className="flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-slate-500" />
-                  <span className="font-bold text-slate-700">Language:</span>
-                </div>
-                <select
-                  value={selectedLang}
-                  onChange={(e) => handleSelectLang(e.target.value)}
-                  className="bg-transparent font-extrabold text-slate-800 outline-none cursor-pointer"
-                >
-                  {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
-                </select>
               </div>
             </div>
 
