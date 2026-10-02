@@ -202,14 +202,14 @@ export async function fetchServiceBySlug(slug) {
         .from('services')
         .select('*')
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         return {
           ...data,
-          name: data.service_name,
-          discount_price: data.selling_price,
-          price: data.mrp,
+          name: data.service_name || data.name,
+          discount_price: Number(data.selling_price || data.discount_price || data.mrp || 299),
+          price: Number(data.mrp || data.price || data.selling_price || 299),
           sample_type: data.specimen_type || data.sample_type || 'Standard Specimen'
         };
       }
