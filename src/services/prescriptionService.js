@@ -114,116 +114,7 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
 
   try {
     // ----------------------------------------------------
-    // STEP A: GET OR CREATE PATIENT RECORD
-    // ----------------------------------------------------
-    let patientId = null;
-
-    // 1. Primary path: SECURITY DEFINER RPC call
-    try {
-      const { data: rpcPatientId, error: rpcError } = await supabase.rpc('get_or_create_guest_patient', {
-        p_full_name: fullName.trim(),
-        p_phone_e164: phone_e164,
-        p_city: city,
-        p_email: email.trim() || null
-      });
-
-      if (!rpcError && rpcPatientId) {
-        patientId = rpcPatientId;
-      } else if (rpcError) {
-        console.warn('RPC get_or_create_guest_patient warning:', rpcError.message);
-      }
-    } catch (rpcErr) {
-      console.warn('RPC execution exception:', rpcErr);
-    }
-
-    // 2. Fallback path 1: Direct select by phone_e164
-    if (!patientId) {
-      try {
-        const { data: existingPatients } = await supabase
-          .from('patients')
-          .select('id')
-          .eq('phone_e164', phone_e164)
-          .limit(1);
-
-        if (existingPatients && existingPatients.length > 0) {
-          patientId = existingPatients[0].id;
-        }
-      } catch (lookupErr) {
-        console.warn('Direct lookup catch:', lookupErr);
-      }
-    }
-
-    // 3. Fallback path 2: Direct insert with 23505 duplicate constraint recovery
-    if (!patientId) {
-      const newPatientId = generateUUID();
-      const { error: createPatientError } = await supabase
-        .from('patients')
-        .insert({
-          id: newPatientId,
-          full_name: fullName.trim(),
-          phone_e164: phone_e164,
-          city: city,
-          email: email.trim() || null,
-          user_id: null,
-          is_verified: false
-        });
-
-      if (createPatientError) {
-        // If PostgreSQL error 23505 (unique constraint violation on phone_e164), fetch existing patient record
-        if (createPatientError.code === '23505' || createPatientError.message?.includes('patients_phone_e164_key')) {
-          console.info('Caught Postgres 23505 unique constraint error for phone_e164. Fetching existing patient ID...');
-          const { data: retryPatients } = await supabase
-            .from('patients')
-            .select('id')
-            .eq('phone_e164', phone_e164)
-            .limit(1);
-
-          if (retryPatients && retryPatients.length > 0) {
-            patientId = retryPatients[0].id;
-          }
-        }
-
-        if (!patientId) {
-          console.error('Create Patient Error:', createPatientError);
-          const errCode = createPatientError.code || 'DB_ERROR';
-          const errMsg = createPatientError.message || 'Failed to create patient record.';
-          return {
-            success: false,
-            error: `[Error ${errCode}] Patient Database Error: ${errMsg}. Please execute 'supabase/schema.sql' in your Supabase SQL Editor.`
-          };
-        }
-      } else {
-        patientId = newPatientId;
-      }
-    }
-
-    // ----------------------------------------------------
-    // STEP B: CREATE ENQUIRY RECORD
-    // ----------------------------------------------------
-    const enquiryId = generateUUID();
-    const { error: enquiryError } = await supabase
-      .from('enquiries')
-      .insert({
-        id: enquiryId,
-        enquiry_code: enquiryCode,
-        patient_id: patientId,
-        source: 'website',
-        status: 'pending_review',
-        notes: notes.trim() || null
-      });
-
-    if (enquiryError) {
-      console.error('Enquiry Insert Error:', enquiryError);
-      const errCode = enquiryError.code || 'DB_ERROR';
-      const errMsg = enquiryError.message || 'Failed to create enquiry record.';
-      return {
-        success: false,
-        error: `[Error ${errCode}] Enquiry Database Error: ${errMsg}. Please execute 'supabase/schema.sql' in your Supabase SQL Editor.`
-      };
-    }
-
-    // ----------------------------------------------------
-    // STEP C: PRIVATE PRESCRIPTION STORAGE UPLOAD
+    // STEP A: PRIVATE PRESCRIPTION STORAGE UPLOAD
     // ----------------------------------------------------
     const uploadedFiles = [];
     const uploadErrors = [];
@@ -260,40 +151,33 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
     }
 
     // ----------------------------------------------------
-    // STEP D: PRESCRIPTION METADATA RECORD CREATION
+    // STEP B: ATOMIC SECURITY DEFINER GUEST SUBMISSION RPC
     // ----------------------------------------------------
-    let currentAuthUserId = null;
-    try {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      currentAuthUserId = authSession?.user?.id || null;
-    } catch (e) {
-      // Ignore
+    const primaryFile = uploadedFiles[0];
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('submit_guest_prescription_secure', {
+      p_full_name: fullName.trim(),
+      p_phone_e164: phone_e164,
+      p_city: city,
+      p_email: email.trim() || null,
+      p_enquiry_code: enquiryCode,
+      p_file_path: primaryFile.filePath,
+      p_file_name: primaryFile.name,
+      p_file_type: primaryFile.type || 'application/octet-stream',
+      p_file_size: primaryFile.size || 0,
+      p_notes: notes.trim() || null
+    });
+
+    if (rpcError || !rpcResult?.success) {
+      console.error('RPC submit_guest_prescription_secure Error:', rpcError || rpcResult);
+      const errCode = rpcError?.code || 'DB_ERROR';
+      const errMsg = rpcError?.message || rpcResult?.error || 'Failed to persist prescription submission.';
+      return {
+        success: false,
+        error: `[Error ${errCode}] Database Submission Error: ${errMsg}. Please run 'supabase/migrations/20261001_fix_guest_prescription_linking.sql' in your Supabase SQL Editor.`
+      };
     }
 
-    for (const item of uploadedFiles) {
-      const { error: prescriptionError } = await supabase
-        .from('prescriptions')
-        .insert({
-          id: generateUUID(),
-          enquiry_id: enquiryId,
-          patient_id: patientId,
-          file_path: item.filePath,
-          file_name: item.name,
-          file_type: item.type || 'application/octet-stream',
-          file_size: item.size || 0,
-          user_id: currentAuthUserId
-        });
-
-      if (prescriptionError) {
-        console.error(`Prescription Record Error for ${item.name}:`, prescriptionError);
-        const errCode = prescriptionError.code || 'DB_ERROR';
-        const errMsg = prescriptionError.message || 'Failed to create prescription record.';
-        return {
-          success: false,
-          error: `[Error ${errCode}] Prescription Metadata Database Error: ${errMsg}. Please execute 'supabase/schema.sql' in your Supabase SQL Editor.`
-        };
-      }
-    }
+    const { patient_id: patientId, enquiry_id: enquiryId } = rpcResult;
 
     // Log non-PII analytics event for admin operations tracking
     try {
@@ -303,37 +187,16 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
         metadata: { enquiry_code: enquiryCode, file_count: uploadedFiles.length },
         patientId: patientId
       });
-      logAnalyticsEvent('PRESCRIPTION_SUBMITTED', {
-        pagePath: '/services',
-        metadata: { enquiry_code: enquiryCode, file_count: uploadedFiles.length },
-        patientId: patientId
-      });
     } catch (anErr) {
       console.warn('Analytics event warning:', anErr);
     }
 
-    // Save guest enquiry & prescription metadata to localStorage for seamless single-device OTP login linking
+    // Save guest enquiry code mapping to localStorage for fast lookup
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         const storedEnquiries = JSON.parse(localStorage.getItem('hex_guest_enquiries') || '[]');
         storedEnquiries.push({ enquiryId, enquiryCode, patientId, phone_e164, createdAt: Date.now() });
         localStorage.setItem('hex_guest_enquiries', JSON.stringify(storedEnquiries));
-
-        const storedPrescriptions = JSON.parse(localStorage.getItem('hex_guest_prescriptions') || '[]');
-        for (const item of uploadedFiles) {
-          storedPrescriptions.push({
-            id: generateUUID(),
-            enquiry_id: enquiryId,
-            patient_id: patientId,
-            file_path: item.filePath,
-            file_name: item.name,
-            file_type: item.type || 'application/octet-stream',
-            file_size: item.size || 0,
-            created_at: new Date().toISOString(),
-            enquiries: { enquiry_code: enquiryCode, status: 'pending_review' }
-          });
-        }
-        localStorage.setItem('hex_guest_prescriptions', JSON.stringify(storedPrescriptions));
       }
     } catch (lsErr) {
       console.warn('localStorage save warning:', lsErr);

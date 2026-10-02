@@ -23,17 +23,17 @@ export async function getMemberPatientProfile(userId) {
       return data;
     }
 
-    // Fallback tier 2: Lookup by session user phone suffix if direct user_id link is still null
+    // Fallback tier 2: Lookup by session user phone canonical 10-digit suffix if direct user_id link is still null
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userPhone = session?.user?.phone || session?.user?.user_metadata?.phone || '';
       const cleanDigits = userPhone.replace(/\D/g, '');
-      const last7 = cleanDigits.slice(-7);
-      if (last7.length >= 7) {
+      const last10 = cleanDigits.slice(-10);
+      if (last10.length >= 10) {
         const { data: fbPatients } = await supabase
           .from('patients')
           .select('*')
-          .ilike('phone_e164', `%${last7}%`)
+          .ilike('phone_e164', `%${last10}%`)
           .order('created_at', { ascending: false })
           .limit(1);
 
@@ -79,108 +79,27 @@ export async function getMemberPatientProfile(userId) {
 }
 
 /**
- * Fetch complete overview statistics for member
+ * Fetch complete overview statistics for member from Supabase database
  */
 export async function getMemberOverview(userId) {
-  // 1. Fallback for unconfigured Supabase or guest/demo mode
   if (!userId || !isSupabaseConfigured || !supabase) {
-    let localPres = [];
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localPres = JSON.parse(localStorage.getItem('hex_guest_prescriptions') || '[]');
-      }
-    } catch (e) {}
-
-    const demoPrescriptions = [
-      ...localPres,
-      {
-        id: 'rx-2026-fwkf2',
-        file_name: 'Prescription_CarePlan_Review.pdf',
-        file_path: 'guest/HE-2026-FWKF2/prescription.pdf',
-        file_size: 284000,
-        created_at: new Date(Date.now() - 1800000).toISOString(),
-        enquiries: { enquiry_code: 'HE-2026-FWKF2', status: 'under_review' }
-      },
-      {
-        id: 'rx-2026-diag8',
-        file_name: 'Diagnostic_Lab_Report.pdf',
-        file_path: 'guest/HE-2026-DIAG8/report.pdf',
-        file_size: 512000,
-        created_at: new Date(Date.now() - 86400000).toISOString(),
-        enquiries: { enquiry_code: 'HE-2026-DIAG8', status: 'verified' }
-      }
-    ];
-
-    const demoOrders = [
-      {
-        id: 'ord-2026-88219',
-        order_code: 'HE-ORD-88219',
-        status: 'completed',
-        final_amount: 1499,
-        subtotal: 1499,
-        created_at: new Date(Date.now() - 172800000).toISOString()
-      }
-    ];
-
     return {
-      success: true,
-      patient: {
-        id: 'patient-2026-001',
-        full_name: 'Verified Patient',
-        phone_e164: '+918305059502',
-        is_verified: true
-      },
-      orders: demoOrders,
-      prescriptions: demoPrescriptions,
-      enquiries: [
-        {
-          id: 'enq-2026-fwkf2',
-          enquiry_code: 'HE-2026-FWKF2',
-          status: 'pending_review',
-          created_at: new Date(Date.now() - 1800000).toISOString()
-        }
-      ],
-      payments: [
-        {
-          id: 'pay-2026-001',
-          amount: 1499,
-          payment_method: 'UPI Online',
-          created_at: new Date(Date.now() - 172800000).toISOString()
-        }
-      ],
+      success: false,
+      patient: null,
+      orders: [],
+      prescriptions: [],
+      enquiries: [],
+      payments: [],
       events: [],
-      walletCoins: 100
+      walletCoins: 0
     };
   }
 
   try {
-    // 1. Ensure any guest prescriptions/orders are linked to this authenticated user prior to fetching
+    // 1. Link guest records to this authenticated user via atomic SECURITY DEFINER RPC prior to fetching
     await supabase.rpc('link_guest_records_on_otp_login').catch((err) => {
       console.warn('[LINK] Auto account linking notice in getMemberOverview:', err?.message || err);
     });
-
-    // Fallback: Link guest enquiries saved in localStorage directly to this user ID
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const storedGuest = JSON.parse(localStorage.getItem('hex_guest_enquiries') || '[]');
-        const patientIds = Array.from(new Set(storedGuest.map(g => g.patientId).filter(Boolean)));
-        const enquiryCodes = Array.from(new Set(storedGuest.map(g => g.enquiryCode).filter(Boolean)));
-
-        if (patientIds.length > 0) {
-          await supabase
-            .from('patients')
-            .update({ user_id: userId, is_verified: true })
-            .in('id', patientIds);
-
-          await supabase
-            .from('prescriptions')
-            .update({ user_id: userId })
-            .in('patient_id', patientIds);
-        }
-      }
-    } catch (lsLinkErr) {
-      console.warn('[LINK] LocalStorage guest linking notice:', lsLinkErr);
-    }
 
     const patient = await getMemberPatientProfile(userId);
     const patientId = patient?.id || null;
@@ -207,44 +126,7 @@ export async function getMemberOverview(userId) {
     ]);
 
     // Batch generate short-lived (300s) private signed URLs for prescriptions
-    let rawPrescriptions = presRes.data || [];
-
-    // Fallback: If scoped query returned 0 prescriptions, query recent prescriptions from database directly
-    if (rawPrescriptions.length === 0) {
-      try {
-        const { data: globalPres } = await supabase
-          .from('prescriptions')
-          .select('*, enquiries(*)')
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (globalPres && globalPres.length > 0) {
-          rawPrescriptions = globalPres;
-        }
-      } catch (gErr) {
-        console.warn('[LINK] Global prescription query fallback notice:', gErr);
-      }
-    }
-
-    // Fallback merge from localStorage hex_guest_prescriptions for single-device guest upload continuity
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const localGuestRx = JSON.parse(localStorage.getItem('hex_guest_prescriptions') || '[]');
-        if (localGuestRx.length > 0) {
-          const existingIds = new Set(rawPrescriptions.map(r => r.id).filter(Boolean));
-          const existingPaths = new Set(rawPrescriptions.map(r => r.file_path).filter(Boolean));
-          
-          for (const gRx of localGuestRx) {
-            if (!existingIds.has(gRx.id) && !existingPaths.has(gRx.file_path)) {
-              rawPrescriptions.push(gRx);
-            }
-          }
-        }
-      }
-    } catch (lsRxErr) {
-      console.warn('[LINK] LocalStorage prescription merge notice:', lsRxErr);
-    }
-
+    const rawPrescriptions = presRes.data || [];
     const prescriptionsWithSignedUrls = await Promise.all(
       rawPrescriptions.map(async (rx) => {
         if (!rx.file_path) return rx;
