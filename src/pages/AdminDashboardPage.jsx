@@ -2783,8 +2783,8 @@ function AdminDashboardPage() {
                     ) : (
                       walletAccounts.map((w) => (
                         <tr key={w.id} className="hover:bg-slate-700/40 transition-colors">
-                          <td className="p-4 font-bold text-white">{w.patients?.name || 'Customer'}</td>
-                          <td className="p-4 text-slate-300">{w.patients?.phone || 'N/A'}</td>
+                          <td className="p-4 font-bold text-white">{w.patients?.full_name || w.patients?.name || 'Customer'}</td>
+                          <td className="p-4 text-slate-300">{w.patients?.phone_e164 || w.patients?.phone || 'N/A'}</td>
                           <td className="p-4 font-black text-amber-400 text-sm">🪙 {Number(w.coin_balance || 0).toLocaleString()}</td>
                           <td className="p-4 font-bold text-emerald-400">₹{Math.floor(Number(w.coin_balance || 0) / (walletSettingsForm.coins_per_rupee || 10))}</td>
                           <td className="p-4 text-right">
