@@ -582,7 +582,7 @@ export default function CartDrawer() {
                     {appliedPromo && promoDiscount > 0 && (
                       <div className="flex justify-between text-purple-900 font-extrabold">
                         <span>Promo Code ({appliedPromo.code})</span>
-                        <span>-₹{promoDiscount}</span>
+                        <span>-₹{typeof promoDiscount === 'number' ? promoDiscount : (promoDiscount?.discountAmount || 0)}</span>
                       </div>
                     )}
 
@@ -804,7 +804,7 @@ export default function CartDrawer() {
                               ✓ {appliedPromo.code}
                             </span>
                             <span className="text-[10px] font-extrabold bg-purple-100 text-purple-900 px-2 py-0.5 rounded-full">
-                              -₹{promoDiscount} OFF
+                              -₹{typeof promoDiscount === 'number' ? promoDiscount : (promoDiscount?.discountAmount || 0)} OFF
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-500 font-medium">Promo code successfully applied to basket.</p>
@@ -840,7 +840,7 @@ export default function CartDrawer() {
                     {promoError && (
                       <div className="text-rose-600 text-xs font-semibold flex items-center gap-1.5 pt-0.5 animate-in fade-in">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        <span>{promoError}</span>
+                        <span>{typeof promoError === 'string' ? promoError : (promoError?.message || String(promoError))}</span>
                       </div>
                     )}
 
@@ -890,7 +890,7 @@ export default function CartDrawer() {
                   {appliedPromo && promoDiscount > 0 && (
                     <div className="flex justify-between text-purple-900 font-black">
                       <span>Promo Discount ({appliedPromo.code})</span>
-                      <span>-₹{promoDiscount}</span>
+                      <span>-₹{typeof promoDiscount === 'number' ? promoDiscount : (promoDiscount?.discountAmount || 0)}</span>
                     </div>
                   )}
                   {isCoinsApplied && coinDiscount > 0 && (
