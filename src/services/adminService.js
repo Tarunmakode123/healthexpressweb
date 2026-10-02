@@ -678,3 +678,278 @@ export async function adjustCustomerCoins({ patientId, coins, type, description 
     return { success: false, error: err.message };
   }
 }
+
+// ============================================================
+// SERVICE CATALOG — ADMIN MANAGEMENT SERVICES
+// ============================================================
+
+/**
+ * Fetch catalog services for Admin Panel with server-side pagination, search, & filtering
+ */
+export async function fetchAdminServices({
+  search = '',
+  category = 'all',
+  activeStatus = 'all',
+  provider = 'all',
+  serviceType = 'all',
+  page = 1,
+  pageSize = 25
+} = {}) {
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: false, error: 'Supabase connection is not configured.' };
+  }
+
+  const validPage = Math.max(1, parseInt(page, 10) || 1);
+  const offset = (validPage - 1) * pageSize;
+
+  try {
+    let query = supabase
+      .from('services')
+      .select('*', { count: 'exact' });
+
+    // Active status filter
+    if (activeStatus === 'active') {
+      query = query.eq('active', true);
+    } else if (activeStatus === 'inactive') {
+      query = query.eq('active', false);
+    }
+
+    // Category filter
+    if (category && category !== 'all') {
+      query = query.eq('category_id', category);
+    }
+
+    // Provider filter
+    if (provider && provider !== 'all') {
+      query = query.eq('provider', provider);
+    }
+
+    // Service type filter
+    if (serviceType && serviceType !== 'all') {
+      query = query.eq('service_type', serviceType);
+    }
+
+    // Search query across service_name, service_code, slug, provider
+    const q = (search || '').trim();
+    if (q) {
+      query = query.or(`service_name.ilike.%${q}%,service_code.ilike.%${q}%,slug.ilike.%${q}%,provider.ilike.%${q}%`);
+    }
+
+    // Sort by updated_at / created_at desc
+    query = query.order('updated_at', { ascending: false }).range(offset, offset + pageSize - 1);
+
+    const { data, count, error } = await query;
+
+    if (error) {
+      console.error('Fetch admin services DB error:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      services: data || [],
+      totalMatches: count || 0,
+      totalPages: Math.ceil((count || 0) / pageSize) || 1,
+      page: validPage,
+      pageSize
+    };
+  } catch (err) {
+    console.error('fetchAdminServices exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Add a new Service to the public.services database catalog
+ */
+export async function createAdminService(serviceData) {
+  if (!isSupabaseConfigured || !supabase) {
+    return { success: false, error: 'Supabase connection is not configured.' };
+  }
+
+  const slug = (serviceData.slug || '').trim().toLowerCase();
+  const serviceName = (serviceData.service_name || serviceData.name || '').trim();
+  const categoryId = (serviceData.category_id || '').trim();
+  const categoryName = (serviceData.category_name || '').trim();
+  const sellingPrice = Number(serviceData.selling_price);
+
+  if (!slug || !serviceName || !categoryId || !categoryName || isNaN(sellingPrice) || sellingPrice < 0) {
+    return {
+      success: false,
+      error: 'Service Name, Slug, Category ID, Category Name, and a valid Selling Price (>= 0) are required.'
+    };
+  }
+
+  const mrp = serviceData.mrp !== undefined && serviceData.mrp !== null && serviceData.mrp !== '' ? Number(serviceData.mrp) : sellingPrice;
+  if (isNaN(mrp) || mrp < 0) {
+    return { success: false, error: 'MRP must be a valid non-negative number.' };
+  }
+
+  const b2bPrice = serviceData.b2b_price !== undefined && serviceData.b2b_price !== null && serviceData.b2b_price !== '' ? Number(serviceData.b2b_price) : null;
+  if (b2bPrice !== null && (isNaN(b2bPrice) || b2bPrice < 0)) {
+    return { success: false, error: 'B2B Price must be a valid non-negative number.' };
+  }
+
+  let parsedParams = [];
+  if (Array.isArray(serviceData.parameters)) {
+    parsedParams = serviceData.parameters;
+  } else if (typeof serviceData.parameters === 'string' && serviceData.parameters.trim()) {
+    try {
+      parsedParams = JSON.parse(serviceData.parameters);
+    } catch (e) {
+      return { success: false, error: 'Invalid JSON format for parameters field.' };
+    }
+  }
+
+  const payload = {
+    slug,
+    service_code: serviceData.service_code ? serviceData.service_code.trim() : null,
+    service_name: serviceName,
+    category_id: categoryId,
+    category_name: categoryName,
+    subcategory: serviceData.subcategory ? serviceData.subcategory.trim() : null,
+    provider: serviceData.provider ? serviceData.provider.trim() : 'Health Express Care Team',
+    description: serviceData.description ? serviceData.description.trim() : null,
+    overview: serviceData.overview ? serviceData.overview.trim() : null,
+    mrp: mrp,
+    selling_price: sellingPrice,
+    b2b_price: b2bPrice,
+    discount_percentage: serviceData.discount_percentage ? serviceData.discount_percentage.trim() : null,
+    turnaround_time: serviceData.turnaround_time ? serviceData.turnaround_time.trim() : 'Contact for TAT',
+    patient_preparation: serviceData.patient_preparation ? serviceData.patient_preparation.trim() : null,
+    specimen_type: serviceData.specimen_type ? serviceData.specimen_type.trim() : null,
+    home_collection_available: Boolean(serviceData.home_collection_available),
+    centre_visit_required: Boolean(serviceData.centre_visit_required),
+    parameters: parsedParams,
+    parameters_count: parsedParams.length,
+    service_type: serviceData.service_type || 'lab',
+    source: serviceData.source || 'admin',
+    active: serviceData.active !== undefined ? Boolean(serviceData.active) : true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        return { success: false, error: `A service with the slug "${slug}" already exists. Please enter a unique slug.` };
+      }
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('createAdminService exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Update an existing Service record in public.services database catalog
+ */
+export async function updateAdminService(id, serviceData) {
+  if (!id) return { success: false, error: 'Missing service ID.' };
+  if (!isSupabaseConfigured || !supabase) return { success: false, error: 'Supabase connection is not configured.' };
+
+  const sellingPrice = Number(serviceData.selling_price);
+  if (isNaN(sellingPrice) || sellingPrice < 0) {
+    return { success: false, error: 'Selling price must be a valid non-negative number.' };
+  }
+
+  const mrp = serviceData.mrp !== undefined && serviceData.mrp !== null && serviceData.mrp !== '' ? Number(serviceData.mrp) : sellingPrice;
+  if (isNaN(mrp) || mrp < 0) {
+    return { success: false, error: 'MRP must be a valid non-negative number.' };
+  }
+
+  const b2bPrice = serviceData.b2b_price !== undefined && serviceData.b2b_price !== null && serviceData.b2b_price !== '' ? Number(serviceData.b2b_price) : null;
+  if (b2bPrice !== null && (isNaN(b2bPrice) || b2bPrice < 0)) {
+    return { success: false, error: 'B2B Price must be a valid non-negative number.' };
+  }
+
+  let parsedParams = [];
+  if (Array.isArray(serviceData.parameters)) {
+    parsedParams = serviceData.parameters;
+  } else if (typeof serviceData.parameters === 'string' && serviceData.parameters.trim()) {
+    try {
+      parsedParams = JSON.parse(serviceData.parameters);
+    } catch (e) {
+      return { success: false, error: 'Invalid JSON format for parameters field.' };
+    }
+  }
+
+  const payload = {
+    service_name: (serviceData.service_name || serviceData.name || '').trim(),
+    service_code: serviceData.service_code ? serviceData.service_code.trim() : null,
+    category_id: (serviceData.category_id || '').trim(),
+    category_name: (serviceData.category_name || '').trim(),
+    subcategory: serviceData.subcategory ? serviceData.subcategory.trim() : null,
+    provider: serviceData.provider ? serviceData.provider.trim() : 'Health Express Care Team',
+    description: serviceData.description ? serviceData.description.trim() : null,
+    overview: serviceData.overview ? serviceData.overview.trim() : null,
+    mrp: mrp,
+    selling_price: sellingPrice,
+    b2b_price: b2bPrice,
+    discount_percentage: serviceData.discount_percentage ? serviceData.discount_percentage.trim() : null,
+    turnaround_time: serviceData.turnaround_time ? serviceData.turnaround_time.trim() : 'Contact for TAT',
+    patient_preparation: serviceData.patient_preparation ? serviceData.patient_preparation.trim() : null,
+    specimen_type: serviceData.specimen_type ? serviceData.specimen_type.trim() : null,
+    home_collection_available: Boolean(serviceData.home_collection_available),
+    centre_visit_required: Boolean(serviceData.centre_visit_required),
+    parameters: parsedParams,
+    parameters_count: parsedParams.length,
+    service_type: serviceData.service_type || 'lab',
+    active: serviceData.active !== undefined ? Boolean(serviceData.active) : true,
+    updated_at: new Date().toISOString()
+  };
+
+  if (serviceData.slug && serviceData.slug.trim()) {
+    payload.slug = serviceData.slug.trim().toLowerCase();
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        return { success: false, error: `A service with the slug "${payload.slug}" already exists.` };
+      }
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('updateAdminService exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Toggle Active / Inactive status of a Service
+ */
+export async function toggleAdminServiceStatus(id, activeStatus) {
+  if (!id) return { success: false, error: 'Missing service ID.' };
+  if (!isSupabaseConfigured || !supabase) return { success: false, error: 'Supabase connection is not configured.' };
+
+  try {
+    const { error } = await supabase
+      .from('services')
+      .update({ active: Boolean(activeStatus), updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}

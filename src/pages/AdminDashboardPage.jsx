@@ -29,7 +29,11 @@ import {
   updateAdminWalletSettings,
   fetchAdminWalletAccounts,
   fetchAdminWalletTransactions,
-  adjustCustomerCoins
+  adjustCustomerCoins,
+  fetchAdminServices,
+  createAdminService,
+  updateAdminService,
+  toggleAdminServiceStatus
 } from '../services/adminService';
 import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
@@ -692,6 +696,200 @@ function AdminDashboardPage() {
     type: 'admin_credit',
     description: ''
   });
+
+  // SERVICE CATALOG MANAGER STATES
+  const [catalogServices, setCatalogServices] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState(null);
+  const [catalogSearch, setCatalogSearch] = useState('');
+  const [catalogCategory, setCatalogCategory] = useState('all');
+  const [catalogStatus, setCatalogStatus] = useState('all');
+  const [catalogProvider, setCatalogProvider] = useState('all');
+  const [catalogType, setCatalogType] = useState('all');
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
+  const [catalogTotalMatches, setCatalogTotalMatches] = useState(0);
+
+  // Modals for Service Catalog
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [deactivateConfirmService, setDeactivateConfirmService] = useState(null);
+  const [isDeactivatingService, setIsDeactivatingService] = useState(false);
+
+  // Service Form State
+  const [serviceFormData, setServiceFormData] = useState({
+    service_name: '',
+    slug: '',
+    service_code: '',
+    category_id: 'full-body-checkups',
+    category_name: 'Full Body Checkups',
+    subcategory: '',
+    provider: 'Health Express Care Team',
+    selling_price: '',
+    mrp: '',
+    b2b_price: '',
+    discount_percentage: '',
+    turnaround_time: '24-48 Hours',
+    patient_preparation: '',
+    specimen_type: '',
+    home_collection_available: true,
+    centre_visit_required: false,
+    service_type: 'lab',
+    active: true,
+    description: '',
+    overview: '',
+    parameters: ''
+  });
+
+  const loadCatalogServices = async () => {
+    setCatalogLoading(true);
+    setCatalogError(null);
+    try {
+      const res = await fetchAdminServices({
+        search: catalogSearch,
+        category: catalogCategory,
+        activeStatus: catalogStatus,
+        provider: catalogProvider,
+        serviceType: catalogType,
+        page: catalogPage,
+        pageSize: 20
+      });
+      if (res.success) {
+        setCatalogServices(res.services || []);
+        setCatalogTotalMatches(res.totalMatches || 0);
+        setCatalogTotalPages(res.totalPages || 1);
+      } else {
+        setCatalogError(res.error || 'Unable to fetch service catalog.');
+      }
+    } catch (err) {
+      console.error('Failed to load catalog services:', err);
+      setCatalogError(err.message || 'Catalog loading exception.');
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && activeNav === 'catalog') {
+      loadCatalogServices();
+    }
+  }, [isAuthenticated, activeNav, catalogSearch, catalogCategory, catalogStatus, catalogProvider, catalogType, catalogPage]);
+
+  const handleOpenAddServiceModal = () => {
+    setEditingService(null);
+    setServiceFormData({
+      service_name: '',
+      slug: '',
+      service_code: '',
+      category_id: 'full-body-checkups',
+      category_name: 'Full Body Checkups',
+      subcategory: '',
+      provider: 'Health Express Care Team',
+      selling_price: '',
+      mrp: '',
+      b2b_price: '',
+      discount_percentage: '',
+      turnaround_time: '24-48 Hours',
+      patient_preparation: '',
+      specimen_type: '',
+      home_collection_available: true,
+      centre_visit_required: false,
+      service_type: 'lab',
+      active: true,
+      description: '',
+      overview: '',
+      parameters: ''
+    });
+    setIsServiceModalOpen(true);
+  };
+
+  const handleOpenEditServiceModal = (service) => {
+    setEditingService(service);
+    const paramsStr = Array.isArray(service.parameters) 
+      ? JSON.stringify(service.parameters, null, 2) 
+      : (typeof service.parameters === 'string' ? service.parameters : '[]');
+
+    setServiceFormData({
+      service_name: service.service_name || '',
+      slug: service.slug || '',
+      service_code: service.service_code || '',
+      category_id: service.category_id || 'full-body-checkups',
+      category_name: service.category_name || 'Full Body Checkups',
+      subcategory: service.subcategory || '',
+      provider: service.provider || 'Health Express Care Team',
+      selling_price: service.selling_price !== undefined && service.selling_price !== null ? String(service.selling_price) : '',
+      mrp: service.mrp !== undefined && service.mrp !== null ? String(service.mrp) : '',
+      b2b_price: service.b2b_price !== undefined && service.b2b_price !== null ? String(service.b2b_price) : '',
+      discount_percentage: service.discount_percentage || '',
+      turnaround_time: service.turnaround_time || '24-48 Hours',
+      patient_preparation: service.patient_preparation || '',
+      specimen_type: service.specimen_type || '',
+      home_collection_available: service.home_collection_available !== undefined ? Boolean(service.home_collection_available) : true,
+      centre_visit_required: service.centre_visit_required !== undefined ? Boolean(service.centre_visit_required) : false,
+      service_type: service.service_type || 'lab',
+      active: service.active !== undefined ? Boolean(service.active) : true,
+      description: service.description || '',
+      overview: service.overview || '',
+      parameters: paramsStr
+    });
+    setIsServiceModalOpen(true);
+  };
+
+  const handleSaveService = async (e) => {
+    if (e) e.preventDefault();
+    if (!serviceFormData.service_name.trim()) {
+      showToast('Please enter a Service Name.', 'error');
+      return;
+    }
+    if (!serviceFormData.slug.trim()) {
+      showToast('Please enter a unique Service Slug.', 'error');
+      return;
+    }
+    if (!serviceFormData.selling_price || isNaN(Number(serviceFormData.selling_price)) || Number(serviceFormData.selling_price) < 0) {
+      showToast('Please enter a valid Selling Price.', 'error');
+      return;
+    }
+
+    if (editingService) {
+      const res = await updateAdminService(editingService.id, serviceFormData);
+      if (res.success) {
+        showToast(`Service "${serviceFormData.service_name}" updated successfully.`);
+        setIsServiceModalOpen(false);
+        loadCatalogServices();
+      } else {
+        showToast(res.error || 'Failed to update service.', 'error');
+      }
+    } else {
+      const res = await createAdminService(serviceFormData);
+      if (res.success) {
+        showToast(`New service "${serviceFormData.service_name}" created and added to catalog.`);
+        setIsServiceModalOpen(false);
+        loadCatalogServices();
+      } else {
+        showToast(res.error || 'Failed to create service.', 'error');
+      }
+    }
+  };
+
+  const handleConfirmToggleServiceStatus = async () => {
+    if (!deactivateConfirmService) return;
+    setIsDeactivatingService(true);
+    try {
+      const newStatus = !deactivateConfirmService.active;
+      const res = await toggleAdminServiceStatus(deactivateConfirmService.id, newStatus);
+      if (res.success) {
+        showToast(`Service "${deactivateConfirmService.service_name}" ${newStatus ? 'ACTIVATED' : 'DEACTIVATED'}.`);
+        setDeactivateConfirmService(null);
+        await loadCatalogServices();
+      } else {
+        showToast(res.error || 'Failed to update service status.', 'error');
+      }
+    } catch (err) {
+      showToast(`Error toggling service status: ${err.message}`, 'error');
+    } finally {
+      setIsDeactivatingService(false);
+    }
+  };
 
   // ADMIN AI AGENT PROVIDERS & API KEYS
   const [selectedAiProvider, setSelectedAiProvider] = useState(() => localStorage.getItem('hex_admin_active_provider') || 'gemini');
@@ -1659,6 +1857,7 @@ function AdminDashboardPage() {
         <nav className="p-4 space-y-1 flex-1">
           {[
             { id: 'overview', label: 'Overview', icon: Activity },
+            { id: 'catalog', label: 'Service Catalog', icon: Layers3, badge: catalogTotalMatches > 0 ? catalogTotalMatches.toLocaleString('en-IN') : '2,207' },
             { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: (orders || []).length },
             { id: 'customers', label: 'Customers', icon: Users, badge: (patients || []).length },
             { id: 'prescriptions', label: 'Prescriptions', icon: FileText, badge: pendingReviewsCount > 0 ? pendingReviewsCount : null },
@@ -1726,6 +1925,7 @@ function AdminDashboardPage() {
             <div>
               <h1 className="text-xl font-black text-white tracking-tight uppercase">
                 {activeNav === 'overview' && 'Operational Overview'}
+                {activeNav === 'catalog' && 'Service Catalog Manager'}
                 {activeNav === 'orders' && 'Orders & Transactions'}
                 {activeNav === 'customers' && 'Customer Directory (360°)'}
                 {activeNav === 'prescriptions' && 'Guest Prescriptions'}
@@ -2101,7 +2301,294 @@ function AdminDashboardPage() {
           </div>
         )}
 
+        {/* NAV SECTION: SERVICE CATALOG MANAGER */}
+        {activeNav === 'catalog' && (
+          <div className="space-y-6">
+            
+            {/* CATALOG HEADER & ACTION BAR */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <Layers3 className="w-5 h-5 text-purple-400" />
+                  <span>Production Service Catalog Manager</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Single source of truth: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-purple-300 font-mono">public.services</code> ({catalogTotalMatches.toLocaleString('en-IN')} total records)
+                </p>
+              </div>
 
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={loadCatalogServices}
+                  disabled={catalogLoading}
+                  className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-purple-200 border border-slate-700 font-bold text-xs flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${catalogLoading ? 'animate-spin text-purple-400' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+
+                <button
+                  onClick={handleOpenAddServiceModal}
+                  className="px-5 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Service</span>
+                </button>
+              </div>
+            </div>
+
+            {/* FILTERS & SEARCH TOOLBAR */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-4 space-y-3 shadow-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs font-bold">
+                
+                {/* Search */}
+                <div className="relative lg:col-span-2">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={catalogSearch}
+                    onChange={(e) => { setCatalogSearch(e.target.value); setCatalogPage(1); }}
+                    placeholder="Search service name, code, slug, provider..."
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 font-medium"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <div>
+                  <select
+                    value={catalogCategory}
+                    onChange={(e) => { setCatalogCategory(e.target.value); setCatalogPage(1); }}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+                  >
+                    <option value="all">All Categories</option>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.id || cat.slug || cat.name} value={cat.id || cat.slug || cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Provider Filter */}
+                <div>
+                  <select
+                    value={catalogProvider}
+                    onChange={(e) => { setCatalogProvider(e.target.value); setCatalogPage(1); }}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+                  >
+                    <option value="all">All Providers</option>
+                    <option value="Health Express Care Team">Health Express Care Team</option>
+                    <option value="Redcliffe Labs">Redcliffe Labs</option>
+                    <option value="Thyrocare">Thyrocare</option>
+                    <option value="Dr Lal PathLabs">Dr Lal PathLabs</option>
+                    <option value="Apollo 24x7">Apollo 24x7</option>
+                  </select>
+                </div>
+
+                {/* Service Type Filter */}
+                <div>
+                  <select
+                    value={catalogType}
+                    onChange={(e) => { setCatalogType(e.target.value); setCatalogPage(1); }}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+                  >
+                    <option value="all">All Service Types</option>
+                    <option value="lab">Lab Tests</option>
+                    <option value="package">Health Packages</option>
+                    <option value="scan">Scans & Radiology</option>
+                    <option value="doctor">Consultation</option>
+                  </select>
+                </div>
+
+              </div>
+
+              {/* ACTIVE / INACTIVE STATUS TABS */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-700/60 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-[11px] font-bold mr-1">Status:</span>
+                  {[
+                    { id: 'all', label: 'All Services' },
+                    { id: 'active', label: 'Active Only' },
+                    { id: 'inactive', label: 'Inactive Only' }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setCatalogStatus(tab.id); setCatalogPage(1); }}
+                      className={`px-3 py-1 rounded-lg font-extrabold text-[11px] cursor-pointer transition-all ${
+                        catalogStatus === tab.id
+                          ? 'bg-purple-600 border border-purple-500 text-white shadow-xs'
+                          : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="text-[11px] text-slate-400 font-medium">
+                  Showing page <strong className="text-purple-300">{catalogPage}</strong> of <strong className="text-purple-300">{catalogTotalPages}</strong> ({catalogTotalMatches.toLocaleString('en-IN')} total matches)
+                </div>
+              </div>
+            </div>
+
+            {/* ERROR ALERT */}
+            {catalogError && (
+              <div className="p-4 bg-rose-950/80 border border-rose-800/80 rounded-2xl text-xs text-rose-200 font-bold flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                <span>{catalogError}</span>
+              </div>
+            )}
+
+            {/* SERVICES DATA TABLE */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Service Name & Code</th>
+                      <th className="p-4">Category</th>
+                      <th className="p-4">Provider</th>
+                      <th className="p-4">Selling Price / MRP</th>
+                      <th className="p-4">Type & Collection</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 text-slate-200">
+                    {catalogLoading ? (
+                      <tr>
+                        <td colSpan={7} className="p-12 text-center text-purple-300 font-bold">
+                          <div className="flex flex-col items-center gap-2">
+                            <RefreshCw className="w-6 h-6 animate-spin text-purple-400" />
+                            <span>Loading production services from Supabase...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : catalogServices.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-12 text-center text-slate-400 font-medium">
+                          No services found matching filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      catalogServices.map((svc) => (
+                        <tr key={svc.id} className="hover:bg-slate-700/30 transition-colors">
+                          <td className="p-4">
+                            <div className="font-extrabold text-white text-sm">{svc.service_name}</div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {svc.service_code && (
+                                <span className="font-mono text-[10px] text-purple-300 font-bold bg-purple-950/80 px-1.5 py-0.5 rounded border border-purple-800/60">
+                                  {svc.service_code}
+                                </span>
+                              )}
+                              <span className="font-mono text-[10px] text-slate-400 truncate max-w-[180px]">
+                                {svc.slug}
+                              </span>
+                            </div>
+                          </td>
+
+                          <td className="p-4">
+                            <div className="font-bold text-slate-200">{svc.category_name}</div>
+                            {svc.subcategory && (
+                              <div className="text-[10px] text-slate-400">{svc.subcategory}</div>
+                            )}
+                          </td>
+
+                          <td className="p-4">
+                            <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px] font-semibold text-slate-300">
+                              {svc.provider || 'Care Team'}
+                            </span>
+                          </td>
+
+                          <td className="p-4 whitespace-nowrap">
+                            <div className="flex items-baseline gap-2">
+                              <span className="font-black text-emerald-400 text-sm">₹{Number(svc.selling_price).toLocaleString('en-IN')}</span>
+                              {svc.mrp && Number(svc.mrp) > Number(svc.selling_price) && (
+                                <span className="text-[11px] text-slate-400 line-through">₹{Number(svc.mrp).toLocaleString('en-IN')}</span>
+                              )}
+                            </div>
+                            {svc.discount_percentage && (
+                              <span className="text-[9px] font-black text-purple-300 uppercase bg-purple-950 px-1.5 py-0.5 rounded border border-purple-800 mt-1 inline-block">
+                                {svc.discount_percentage} OFF
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-4 whitespace-nowrap">
+                            <div className="space-y-1">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-purple-900/50 text-purple-200 border border-purple-700/50">
+                                {svc.service_type || 'lab'}
+                              </span>
+                              <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-0.5">
+                                {svc.home_collection_available && <span className="text-emerald-400 font-bold">✓ Home Sample</span>}
+                                {svc.centre_visit_required && <span className="text-amber-400 font-bold">✓ Centre Visit</span>}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4 whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                              svc.active ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            }`}>
+                              {svc.active ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
+                          </td>
+
+                          <td className="p-4 text-right whitespace-nowrap space-x-2">
+                            <button
+                              onClick={() => handleOpenEditServiceModal(svc)}
+                              className="px-3 py-1.5 rounded-xl bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-700 font-bold text-[11px] cursor-pointer transition-colors"
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              onClick={() => setDeactivateConfirmService(svc)}
+                              className={`px-3 py-1.5 rounded-xl font-bold text-[11px] cursor-pointer transition-colors ${
+                                svc.active
+                                  ? 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800'
+                                  : 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800'
+                              }`}
+                            >
+                              {svc.active ? 'Deactivate' : 'Activate'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* PAGINATION FOOTER */}
+              {catalogTotalPages > 1 && (
+                <div className="p-4 bg-slate-900 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-medium">
+                  <div>
+                    Showing <strong>{(catalogPage - 1) * 20 + 1}</strong> to <strong>{Math.min(catalogPage * 20, catalogTotalMatches)}</strong> of <strong>{catalogTotalMatches.toLocaleString('en-IN')}</strong> services
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      disabled={catalogPage === 1 || catalogLoading}
+                      onClick={() => setCatalogPage((prev) => Math.max(prev - 1, 1))}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold cursor-pointer transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <span className="px-2 font-bold text-white">Page {catalogPage} of {catalogTotalPages}</span>
+                    <button
+                      disabled={catalogPage >= catalogTotalPages || catalogLoading}
+                      onClick={() => setCatalogPage((prev) => Math.min(prev + 1, catalogTotalPages))}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold cursor-pointer transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
 
 {/* NAV SECTION 2: ORDERS PAGE */}
         {activeNav === 'orders' && (
@@ -3566,6 +4053,323 @@ function AdminDashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADD / EDIT SERVICE CATALOG MODAL */}
+      {isServiceModalOpen && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="w-full max-w-3xl bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0 my-8">
+            
+            {/* Modal Header */}
+            <div className="p-5 bg-gradient-to-r from-purple-950 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                <Layers3 className="w-6 h-6 text-purple-400" />
+                <div>
+                  <h3 className="text-lg font-black text-white">{editingService ? `Edit Service: ${editingService.service_name}` : 'Add New Service'}</h3>
+                  <p className="text-xs text-purple-300 font-medium">Persisted directly to production <code className="font-mono">public.services</code></p>
+                </div>
+              </div>
+              <button onClick={() => setIsServiceModalOpen(false)} className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveService} className="p-6 space-y-4 text-xs max-h-[75vh] overflow-y-auto">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Service Name */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Service Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={serviceFormData.service_name}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setServiceFormData((prev) => ({
+                        ...prev,
+                        service_name: val,
+                        slug: editingService ? prev.slug : val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+                      }));
+                    }}
+                    placeholder="e.g. Lipid Profile Advance"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Slug */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">URL Slug (Unique) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={serviceFormData.slug}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, slug: e.target.value.toLowerCase().trim() })}
+                    placeholder="lipid-profile-advance"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-purple-300 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Service Code */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Service Code</label>
+                  <input
+                    type="text"
+                    value={serviceFormData.service_code}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, service_code: e.target.value })}
+                    placeholder="e.g. LAB-20001"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs"
+                  />
+                </div>
+
+                {/* Category Selection */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Category *</label>
+                  <select
+                    value={serviceFormData.category_id}
+                    onChange={(e) => {
+                      const selectedCat = CATEGORIES.find((c) => (c.id || c.slug) === e.target.value);
+                      setServiceFormData({
+                        ...serviceFormData,
+                        category_id: e.target.value,
+                        category_name: selectedCat ? selectedCat.name : e.target.value
+                      });
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-xs focus:outline-none cursor-pointer"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.id || cat.slug || cat.name} value={cat.id || cat.slug || cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Subcategory</label>
+                  <input
+                    type="text"
+                    value={serviceFormData.subcategory}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, subcategory: e.target.value })}
+                    placeholder="e.g. Heart Health"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Selling Price */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Selling Price (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={serviceFormData.selling_price}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, selling_price: e.target.value })}
+                    placeholder="950"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-emerald-400 font-black text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* MRP */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">MRP (₹)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={serviceFormData.mrp}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, mrp: e.target.value })}
+                    placeholder="1200"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-xs"
+                  />
+                </div>
+
+                {/* B2B Price */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">B2B Price (₹)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={serviceFormData.b2b_price}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, b2b_price: e.target.value })}
+                    placeholder="500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Provider */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Provider Lab</label>
+                  <input
+                    type="text"
+                    value={serviceFormData.provider}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, provider: e.target.value })}
+                    placeholder="Health Express Care Team"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs"
+                  />
+                </div>
+
+                {/* Turnaround Time */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Turnaround Time (TAT)</label>
+                  <input
+                    type="text"
+                    value={serviceFormData.turnaround_time}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, turnaround_time: e.target.value })}
+                    placeholder="24-48 Hours"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs"
+                  />
+                </div>
+
+                {/* Specimen Type */}
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Specimen Type</label>
+                  <input
+                    type="text"
+                    value={serviceFormData.specimen_type}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, specimen_type: e.target.value })}
+                    placeholder="Blood (3 ml), EDTA"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Patient Preparation */}
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Patient Preparation Instructions</label>
+                <input
+                  type="text"
+                  value={serviceFormData.patient_preparation}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, patient_preparation: e.target.value })}
+                  placeholder="e.g. 10-12 hours overnight fasting required"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs"
+                />
+              </div>
+
+              {/* Checkboxes: Home Collection, Centre Visit, Active Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-950 rounded-2xl border border-slate-800">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={serviceFormData.home_collection_available}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, home_collection_available: e.target.checked })}
+                    className="rounded text-purple-600 focus:ring-purple-500 w-4 h-4"
+                  />
+                  <span className="text-xs font-bold text-slate-200">Home Collection Available</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={serviceFormData.centre_visit_required}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, centre_visit_required: e.target.checked })}
+                    className="rounded text-purple-600 focus:ring-purple-500 w-4 h-4"
+                  />
+                  <span className="text-xs font-bold text-slate-200">Centre Visit Required</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={serviceFormData.active}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, active: e.target.checked })}
+                    className="rounded text-emerald-500 focus:ring-emerald-500 w-4 h-4"
+                  />
+                  <span className="text-xs font-extrabold text-emerald-400">Service Active</span>
+                </label>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Description</label>
+                <textarea
+                  rows="3"
+                  value={serviceFormData.description}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, description: e.target.value })}
+                  placeholder="Detailed description of the lab test or health package..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs focus:outline-none"
+                />
+              </div>
+
+              {/* Form Footer Actions */}
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsServiceModalOpen(false)}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-colors cursor-pointer"
+                >
+                  {editingService ? 'Save Service Changes' : 'Create Service Record'}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DEACTIVATE SERVICE CONFIRMATION MODAL */}
+      {deactivateConfirmService && (
+        <div className="fixed inset-0 z-[250000] bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-rose-800/60 rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl text-left">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-rose-400" />
+                <span>{deactivateConfirmService.active ? 'Deactivate Service' : 'Activate Service'}</span>
+              </h3>
+              <button onClick={() => setDeactivateConfirmService(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
+              <p>Service: <strong className="text-white font-bold">{deactivateConfirmService.service_name}</strong></p>
+              <p>Code: <span className="text-purple-300 font-mono">{deactivateConfirmService.service_code || deactivateConfirmService.slug}</span></p>
+              <p>Current Status: <span className={deactivateConfirmService.active ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>{deactivateConfirmService.active ? 'ACTIVE' : 'INACTIVE'}</span></p>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              {deactivateConfirmService.active
+                ? 'Deactivating this service will hide it from the public catalog while preserving all historical checkout and order records.'
+                : 'Reactivating this service will make it visible to public website visitors and checkout immediately.'}
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setDeactivateConfirmService(null)}
+                className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeactivatingService}
+                onClick={handleConfirmToggleServiceStatus}
+                className={`px-5 py-2 font-black text-xs rounded-xl cursor-pointer shadow-md transition-colors ${
+                  deactivateConfirmService.active ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                }`}
+              >
+                {isDeactivatingService ? 'Updating...' : deactivateConfirmService.active ? 'Confirm Deactivation' : 'Confirm Activation'}
+              </button>
+            </div>
           </div>
         </div>
       )}
