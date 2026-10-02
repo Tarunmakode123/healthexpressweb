@@ -108,14 +108,28 @@ export async function getMemberOverview(userId) {
     };
   }
 
+  // 1. ISOLATED OPTIONAL GUEST LINKING RPC (Failure must NEVER block prescription loading)
   try {
-    // 1. Link guest records to this authenticated user via atomic SECURITY DEFINER RPC prior to fetching
-    await supabase.rpc('link_guest_records_on_otp_login').catch((err) => {
-      console.warn('[HEALTH FORENSIC] Auto account linking notice:', err?.message || err);
-    });
+    const { data: linkData, error: linkErr } = await supabase.rpc('link_guest_records_on_otp_login');
+    if (linkErr) {
+      console.warn('[HEALTH FORENSIC] LINK RPC ERROR:', {
+        message: linkErr.message,
+        code: linkErr.code,
+        details: linkErr.details,
+        hint: linkErr.hint
+      });
+    } else {
+      console.info('[HEALTH FORENSIC] LINK RPC SUCCESS:', linkData);
+    }
+  } catch (linkEx) {
+    console.warn('[HEALTH FORENSIC] LINK RPC EXCEPTION:', linkEx);
+  }
 
-    // 2. Resolve primary patient profile & collect all linked patient IDs for activeUserId
-    const patient = await getMemberPatientProfile(activeUserId);
+  // 2. PATIENT PROFILE RESOLUTION
+  let patient = null;
+  let patientIds = [];
+  try {
+    patient = await getMemberPatientProfile(activeUserId);
 
     const { data: allUserPatients, error: userPatErr } = await supabase
       .from('patients')
@@ -136,157 +150,144 @@ export async function getMemberOverview(userId) {
     if (allUserPatients && Array.isArray(allUserPatients)) {
       allUserPatients.forEach(p => { if (p.id) patientIdSet.add(p.id); });
     }
-    const patientIds = Array.from(patientIdSet);
-    const primaryPatientId = patient?.id || (patientIds.length > 0 ? patientIds[0] : null);
-
-    console.info('[HEALTH FORENSIC] PATIENT_IDS:', patientIds);
-
-    // Build PostgREST clauses
-    let rxOrClause = `user_id.eq.${activeUserId}`;
-    if (patientIds.length > 0) {
-      rxOrClause += `,patient_id.in.(${patientIds.join(',')})`;
-    }
-
-    let ordOrClause = `user_id.eq.${activeUserId}`;
-    if (patientIds.length > 0) {
-      ordOrClause += `,patient_id.in.(${patientIds.join(',')})`;
-    }
-
-    let enqClause = patientIds.length > 0 ? `patient_id.in.(${patientIds.join(',')})` : null;
-
-    // 3. EXECUTE INDEPENDENT DATA QUERIES VIA Promise.allSettled
-    const queryResults = await Promise.allSettled([
-      // 0: Prescriptions
-      supabase.from('prescriptions').select('*').or(rxOrClause).order('created_at', { ascending: false }),
-      // 1: Orders
-      supabase.from('orders').select('*').or(ordOrClause).order('created_at', { ascending: false }),
-      // 2: Enquiries
-      enqClause ? supabase.from('enquiries').select('*').or(enqClause).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
-      // 3: Payments
-      patientIds.length > 0 ? supabase.from('payments').select('*').in('patient_id', patientIds).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
-      // 4: Analytics Events
-      supabase.from('analytics_events').select('*').eq('user_id', activeUserId).order('created_at', { ascending: false }).limit(100),
-      // 5: Wallet Balance
-      primaryPatientId ? supabase.from('wallet_accounts').select('coin_balance').eq('patient_id', primaryPatientId).maybeSingle() : Promise.resolve({ data: null })
-    ]);
-
-    // Unpack results safely
-    const presSettled = queryResults[0].status === 'fulfilled' ? queryResults[0].value : { data: [], error: queryResults[0].reason };
-    const ordSettled = queryResults[1].status === 'fulfilled' ? queryResults[1].value : { data: [], error: queryResults[1].reason };
-    const enqSettled = queryResults[2].status === 'fulfilled' ? queryResults[2].value : { data: [], error: queryResults[2].reason };
-    const paySettled = queryResults[3].status === 'fulfilled' ? queryResults[3].value : { data: [], error: queryResults[3].reason };
-    const evtSettled = queryResults[4].status === 'fulfilled' ? queryResults[4].value : { data: [], error: queryResults[4].reason };
-    const walSettled = queryResults[5].status === 'fulfilled' ? queryResults[5].value : { data: null, error: queryResults[5].reason };
-
-    // Forensic logging for each data source
-    console.info('[HEALTH FORENSIC] DATA-SOURCE: PRESCRIPTIONS', {
-      count: presSettled.data ? presSettled.data.length : 0,
-      error: presSettled.error || null,
-      code: presSettled.error?.code,
-      message: presSettled.error?.message,
-      details: presSettled.error?.details,
-      hint: presSettled.error?.hint
-    });
-
-    console.info('[HEALTH FORENSIC] DATA-SOURCE: ORDERS', {
-      count: ordSettled.data ? ordSettled.data.length : 0,
-      error: ordSettled.error || null
-    });
-
-    console.info('[HEALTH FORENSIC] DATA-SOURCE: ENQUIRIES', {
-      count: enqSettled.data ? enqSettled.data.length : 0,
-      error: enqSettled.error || null
-    });
-
-    console.info('[HEALTH FORENSIC] DATA-SOURCE: PAYMENTS', {
-      count: paySettled.data ? paySettled.data.length : 0,
-      error: paySettled.error || null
-    });
-
-    console.info('[HEALTH FORENSIC] DATA-SOURCE: EVENTS', {
-      count: evtSettled.data ? evtSettled.data.length : 0,
-      error: evtSettled.error || null
-    });
-
-    console.info('[HEALTH FORENSIC] DATA-SOURCE: WALLET', {
-      value: walSettled.data?.coin_balance || 0,
-      error: walSettled.error || null
-    });
-
-    // STEP A: Raw Prescriptions Count
-    const rawPrescriptions = presSettled.data || [];
-    console.info('[HEALTH FORENSIC] PRESCRIPTIONS STEP A (raw count):', rawPrescriptions.length);
-
-    // STEP B: Mapped Prescriptions Count
-    const mappedPrescriptions = rawPrescriptions.map(rx => ({ ...rx }));
-    console.info('[HEALTH FORENSIC] PRESCRIPTIONS STEP B (mapped count):', mappedPrescriptions.length);
-
-    // STEP C: Signed URL Processing (Failure does NOT drop records)
-    const prescriptionsWithSignedUrls = await Promise.all(
-      mappedPrescriptions.map(async (rx) => {
-        if (!rx.file_path) return rx;
-        try {
-          const { data: signedData, error: signErr } = await supabase.storage
-            .from('prescriptions')
-            .createSignedUrl(rx.file_path, 300);
-
-          if (signErr) {
-            console.warn(`[HEALTH FORENSIC] SIGNED URL NOTICE for rx ${rx.id}:`, {
-              message: signErr.message,
-              name: signErr.name
-            });
-          }
-
-          return {
-            ...rx,
-            public_url: signedData?.signedUrl || rx.public_url || null,
-            signed_url: signedData?.signedUrl || rx.signed_url || null
-          };
-        } catch (e) {
-          console.warn(`[HEALTH FORENSIC] SIGNED URL EXCEPTION for rx ${rx.id}:`, e);
-          return rx;
-        }
-      })
-    );
-
-    console.info('[HEALTH FORENSIC] PRESCRIPTIONS STEP C (final count):', prescriptionsWithSignedUrls.length);
-
-    console.info('[HEALTH FORENSIC] OVERVIEW RETURN', {
-      prescriptions: prescriptionsWithSignedUrls.length,
-      orders: (ordSettled.data || []).length,
-      enquiries: (enqSettled.data || []).length,
-      walletCoins: typeof walSettled.data?.coin_balance === 'number' ? Number(walSettled.data.coin_balance) : 0,
-      events: (evtSettled.data || []).length
-    });
-
-    return {
-      success: true,
-      patient,
-      orders: ordSettled.data || [],
-      prescriptions: prescriptionsWithSignedUrls,
-      enquiries: enqSettled.data || [],
-      payments: paySettled.data || [],
-      events: evtSettled.data || [],
-      walletCoins: typeof walSettled.data?.coin_balance === 'number'
-        ? Number(walSettled.data.coin_balance)
-        : 0
-    };
-  } catch (err) {
-    console.error('[HEALTH FORENSIC] getMemberOverview TOP-LEVEL EXCEPTION:', {
-      message: err.message,
-      stack: err.stack
-    });
-    return {
-      success: false,
-      error: err.message,
-      orders: [],
-      prescriptions: [],
-      enquiries: [],
-      payments: [],
-      events: [],
-      walletCoins: 0
-    };
+    patientIds = Array.from(patientIdSet);
+  } catch (patEx) {
+    console.error('[HEALTH FORENSIC] PATIENT RESOLUTION EXCEPTION:', patEx);
   }
+
+  const primaryPatientId = patient?.id || (patientIds.length > 0 ? patientIds[0] : null);
+  console.info('[HEALTH FORENSIC] PATIENT_IDS:', patientIds);
+
+  // Build PostgREST clauses
+  let rxOrClause = `user_id.eq.${activeUserId}`;
+  if (patientIds.length > 0) {
+    rxOrClause += `,patient_id.in.(${patientIds.join(',')})`;
+  }
+
+  let ordOrClause = `user_id.eq.${activeUserId}`;
+  if (patientIds.length > 0) {
+    ordOrClause += `,patient_id.in.(${patientIds.join(',')})`;
+  }
+
+  let enqClause = patientIds.length > 0 ? `patient_id.in.(${patientIds.join(',')})` : null;
+
+  // 3. EXECUTE INDEPENDENT DATA QUERIES VIA Promise.allSettled
+  const queryResults = await Promise.allSettled([
+    // 0: Prescriptions
+    supabase.from('prescriptions').select('*').or(rxOrClause).order('created_at', { ascending: false }),
+    // 1: Orders
+    supabase.from('orders').select('*').or(ordOrClause).order('created_at', { ascending: false }),
+    // 2: Enquiries
+    enqClause ? supabase.from('enquiries').select('*').or(enqClause).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+    // 3: Payments
+    patientIds.length > 0 ? supabase.from('payments').select('*').in('patient_id', patientIds).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+    // 4: Analytics Events
+    supabase.from('analytics_events').select('*').eq('user_id', activeUserId).order('created_at', { ascending: false }).limit(100),
+    // 5: Wallet Balance
+    primaryPatientId ? supabase.from('wallet_accounts').select('coin_balance').eq('patient_id', primaryPatientId).maybeSingle() : Promise.resolve({ data: null })
+  ]);
+
+  // Unpack results safely
+  const presSettled = queryResults[0].status === 'fulfilled' ? queryResults[0].value : { data: [], error: queryResults[0].reason };
+  const ordSettled = queryResults[1].status === 'fulfilled' ? queryResults[1].value : { data: [], error: queryResults[1].reason };
+  const enqSettled = queryResults[2].status === 'fulfilled' ? queryResults[2].value : { data: [], error: queryResults[2].reason };
+  const paySettled = queryResults[3].status === 'fulfilled' ? queryResults[3].value : { data: [], error: queryResults[3].reason };
+  const evtSettled = queryResults[4].status === 'fulfilled' ? queryResults[4].value : { data: [], error: queryResults[4].reason };
+  const walSettled = queryResults[5].status === 'fulfilled' ? queryResults[5].value : { data: null, error: queryResults[5].reason };
+
+  // Forensic logging for each data source
+  console.info('[HEALTH FORENSIC] DATA-SOURCE: PRESCRIPTIONS', {
+    count: presSettled.data ? presSettled.data.length : 0,
+    error: presSettled.error || null,
+    code: presSettled.error?.code,
+    message: presSettled.error?.message,
+    details: presSettled.error?.details,
+    hint: presSettled.error?.hint
+  });
+
+  console.info('[HEALTH FORENSIC] DATA-SOURCE: ORDERS', {
+    count: ordSettled.data ? ordSettled.data.length : 0,
+    error: ordSettled.error || null
+  });
+
+  console.info('[HEALTH FORENSIC] DATA-SOURCE: ENQUIRIES', {
+    count: enqSettled.data ? enqSettled.data.length : 0,
+    error: enqSettled.error || null
+  });
+
+  console.info('[HEALTH FORENSIC] DATA-SOURCE: PAYMENTS', {
+    count: paySettled.data ? paySettled.data.length : 0,
+    error: paySettled.error || null
+  });
+
+  console.info('[HEALTH FORENSIC] DATA-SOURCE: EVENTS', {
+    count: evtSettled.data ? evtSettled.data.length : 0,
+    error: evtSettled.error || null
+  });
+
+  console.info('[HEALTH FORENSIC] DATA-SOURCE: WALLET', {
+    value: walSettled.data?.coin_balance || 0,
+    error: walSettled.error || null
+  });
+
+  // STEP A: Raw Prescriptions Count
+  const rawPrescriptions = presSettled.data || [];
+  console.info('[HEALTH FORENSIC] PRESCRIPTIONS STEP A (raw count):', rawPrescriptions.length);
+
+  // STEP B: Mapped Prescriptions Count
+  const mappedPrescriptions = rawPrescriptions.map(rx => ({ ...rx }));
+  console.info('[HEALTH FORENSIC] PRESCRIPTIONS STEP B (mapped count):', mappedPrescriptions.length);
+
+  // STEP C: Signed URL Processing (Failure does NOT drop records)
+  const prescriptionsWithSignedUrls = await Promise.all(
+    mappedPrescriptions.map(async (rx) => {
+      if (!rx.file_path) return rx;
+      try {
+        const { data: signedData, error: signErr } = await supabase.storage
+          .from('prescriptions')
+          .createSignedUrl(rx.file_path, 300);
+
+        if (signErr) {
+          console.warn(`[HEALTH FORENSIC] SIGNED URL NOTICE for rx ${rx.id}:`, {
+            message: signErr.message,
+            name: signErr.name
+          });
+        }
+
+        return {
+          ...rx,
+          public_url: signedData?.signedUrl || rx.public_url || null,
+          signed_url: signedData?.signedUrl || rx.signed_url || null
+        };
+      } catch (e) {
+        console.warn(`[HEALTH FORENSIC] SIGNED URL EXCEPTION for rx ${rx.id}:`, e);
+        return rx;
+      }
+    })
+  );
+
+  console.info('[HEALTH FORENSIC] PRESCRIPTIONS STEP C (final count):', prescriptionsWithSignedUrls.length);
+
+  console.info('[HEALTH FORENSIC] OVERVIEW RETURN', {
+    prescriptions: prescriptionsWithSignedUrls.length,
+    orders: (ordSettled.data || []).length,
+    enquiries: (enqSettled.data || []).length,
+    walletCoins: typeof walSettled.data?.coin_balance === 'number' ? Number(walSettled.data.coin_balance) : 0,
+    events: (evtSettled.data || []).length
+  });
+
+  return {
+    success: true,
+    patient,
+    orders: ordSettled.data || [],
+    prescriptions: prescriptionsWithSignedUrls,
+    enquiries: enqSettled.data || [],
+    payments: paySettled.data || [],
+    events: evtSettled.data || [],
+    walletCoins: typeof walSettled.data?.coin_balance === 'number'
+      ? Number(walSettled.data.coin_balance)
+      : 0
+  };
 }
 
 /**
