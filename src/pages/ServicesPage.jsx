@@ -325,7 +325,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              All Categories ({totalMatches.toLocaleString()})
+              All Categories ({(catalogData.totalActiveServices || 2207).toLocaleString()})
             </button>
 
             {categories.map((cat) => {

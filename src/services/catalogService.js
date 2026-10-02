@@ -83,9 +83,10 @@ export async function fetchServices({
       // Pagination range
       query = query.range(offset, offset + pageSize - 1);
 
-      const [{ data, count, error }, categoriesRes] = await Promise.all([
+      const [{ data, count, error }, categoriesRes, totalActiveRes] = await Promise.all([
         query,
-        fetchCategories()
+        fetchCategories(),
+        supabase.from('services').select('id', { count: 'exact', head: true }).eq('active', true)
       ]);
 
       const activeCategories = categoriesRes.categories || CATEGORIES;
@@ -129,6 +130,7 @@ export async function fetchServices({
             sample_type: item.specimen_type || item.sample_type || 'Standard Specimen'
           })),
           totalMatches: count || 0,
+          totalActiveServices: totalActiveRes?.count ?? 2207,
           totalPages: Math.ceil((count || 0) / pageSize) || 1,
           page: validPage,
           pageSize,
@@ -216,6 +218,8 @@ export async function fetchServices({
   const pageStart = (validPage - 1) * pageSize;
   const paginatedServices = result.slice(pageStart, pageStart + pageSize);
 
+  const totalActiveServices = ALL_SERVICES.filter(s => s.active !== false).length;
+
   const fallbackCountMap = {};
   ALL_SERVICES.filter(s => s.active !== false).forEach(s => {
     if (s.category_id) {
@@ -234,6 +238,7 @@ export async function fetchServices({
   return {
     services: paginatedServices,
     totalMatches,
+    totalActiveServices,
     totalPages,
     page: validPage,
     pageSize,
