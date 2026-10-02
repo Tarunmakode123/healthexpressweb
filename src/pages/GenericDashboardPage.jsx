@@ -542,10 +542,10 @@ export default function GenericDashboardPage() {
         </div>
 
         {/* 3. FULL-WIDTH SPACIOUS PATIENT WORKSPACE */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start min-w-0">
           
           {/* MAIN PATIENT WORKSPACE COLUMN (lg:col-span-8 - 66% width) */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-6 min-w-0">
             
             {/* WORKSPACE NAVIGATION TABS */}
             <div className="bg-white rounded-2xl p-1.5 border border-slate-200 shadow-xs flex items-center gap-1 overflow-x-auto no-scrollbar">
@@ -621,7 +621,7 @@ export default function GenericDashboardPage() {
 
             {/* TAB VIEW 1: HEALTH RECORDS & MEDICAL VAULT */}
             {activeWorkspaceTab === 'vault' && (
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6 min-w-0">
                 
                 {/* Vault Header Bar */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -699,26 +699,26 @@ export default function GenericDashboardPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-1 xl:grid-cols-2 gap-4 min-w-0">
                     {filteredVaultRecords.map(record => (
-                      <div key={record.id} className="p-4 rounded-2xl bg-slate-50/90 hover:bg-slate-50 border border-slate-200/90 hover:border-purple-200 transition-all space-y-3 flex flex-col justify-between group">
+                      <div key={record.id} className="p-4 rounded-2xl bg-slate-50/90 hover:bg-slate-50 border border-slate-200/90 hover:border-purple-200 transition-all space-y-3 flex flex-col justify-between group min-w-0 w-full box-border">
                         
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black shrink-0">
-                              {record.category === 'prescription' ? <FileText className="w-5 h-5" /> : <FileCheck className="w-5 h-5" />}
+                        <div className="flex items-start justify-between gap-2.5 min-w-0">
+                          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                            <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black shrink-0 mt-0.5">
+                              {record.category === 'prescription' ? <FileText className="w-4.5 h-4.5" /> : <FileCheck className="w-4.5 h-4.5" />}
                             </div>
-                            <div className="space-y-0.5 overflow-hidden">
-                              <h4 className="text-xs font-black text-slate-900 truncate group-hover:text-purple-900 transition-colors">
+                            <div className="space-y-0.5 min-w-0 flex-1">
+                              <h4 className="text-xs font-black text-slate-900 group-hover:text-purple-900 transition-colors break-words [overflow-wrap:anywhere] min-w-0 leading-snug">
                                 {record.title}
                               </h4>
-                              <p className="text-[10px] text-slate-500 font-mono">
+                              <p className="text-[10px] text-slate-500 font-mono truncate min-w-0">
                                 {new Date(record.uploadedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {record.fileSize}
                               </p>
                             </div>
                           </div>
 
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border shrink-0 ${
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border shrink-0 whitespace-nowrap ${
                             record.category === 'prescription' 
                               ? 'bg-purple-100 text-purple-800 border-purple-200'
                               : 'bg-emerald-100 text-emerald-800 border-emerald-200'
@@ -727,18 +727,18 @@ export default function GenericDashboardPage() {
                           </span>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-                          <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> {record.status}
+                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs gap-2 min-w-0">
+                          <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1 min-w-0 shrink truncate">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> <span className="truncate">{record.status}</span>
                           </span>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             {record.publicUrl ? (
                               <a
                                 href={record.publicUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-900 text-xs font-bold flex items-center gap-1 transition-colors"
+                                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-900 text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs shrink-0"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                                 <span>View</span>
@@ -746,7 +746,7 @@ export default function GenericDashboardPage() {
                             ) : (
                               <button
                                 onClick={() => handleCTAAction('open_whatsapp')}
-                                className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-900 text-xs font-bold flex items-center gap-1 transition-colors"
+                                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-purple-50 hover:text-purple-900 text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs shrink-0"
                               >
                                 <Share2 className="w-3.5 h-3.5" />
                                 <span>Share</span>
@@ -870,32 +870,32 @@ export default function GenericDashboardPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 min-w-0">
                     {allPrescriptionRecords.map((rx, idx) => (
-                      <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0">
+                      <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0 w-full box-border">
+                        <div className="flex items-start md:items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0 mt-0.5 md:mt-0">
                             <FileText className="w-5 h-5" />
                           </div>
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-xs font-black text-slate-900">
+                          <div className="space-y-0.5 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap min-w-0">
+                              <h4 className="text-xs font-black text-slate-900 break-words [overflow-wrap:anywhere] min-w-0">
                                 {rx.file_name || `Prescription #${rx.id ? String(rx.id).slice(0, 6) : idx + 1}`}
                               </h4>
                               {rx.enquiries?.enquiry_code && (
-                                <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-mono text-[10px] font-black">
+                                <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-mono text-[10px] font-black shrink-0">
                                   {rx.enquiries.enquiry_code}
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-500 font-medium">
+                            <p className="text-[11px] text-slate-500 font-medium truncate min-w-0">
                               Uploaded on {new Date(rx.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-3 shrink-0">
-                          <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-extrabold uppercase tracking-wide">
+                          <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-[11px] font-extrabold uppercase tracking-wide shrink-0">
                             {rx.enquiries?.status ? rx.enquiries.status.replace(/_/g, ' ') : 'Under Care Review'}
                           </span>
 
