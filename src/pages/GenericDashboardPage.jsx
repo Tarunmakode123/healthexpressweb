@@ -98,12 +98,12 @@ export default function GenericDashboardPage() {
 
     async function loadDashboard() {
       if (isAuthLoading) {
-        console.info('[HEALTH DEBUG] Auth is loading, waiting for session resolution...');
+        console.info('[HEALTH FORENSIC] Auth is loading, waiting for session resolution...');
         return;
       }
 
       setIsLoadingStats(true);
-      console.info('[HEALTH DEBUG] dashboard loading: true');
+      console.info('[HEALTH FORENSIC] DASHBOARD LOADING: START');
       try {
         let activeUserId = session?.user?.id || user?.id;
         if (!activeUserId && isSupabaseConfigured && supabase) {
@@ -111,10 +111,10 @@ export default function GenericDashboardPage() {
           activeUserId = activeSession?.user?.id || activeUserId;
         }
 
-        console.info('[HEALTH DEBUG] activeUserId passed to getMemberOverview:', activeUserId || 'none');
+        console.info('[HEALTH FORENSIC] ACTIVE_USER_ID PASSED TO getMemberOverview:', activeUserId || 'none');
 
         if (!activeUserId) {
-          console.warn('[HEALTH DEBUG] No activeUserId found after session check, waiting for auth...');
+          console.warn('[HEALTH FORENSIC] No activeUserId found after session check, waiting for auth...');
           return;
         }
 
@@ -124,27 +124,38 @@ export default function GenericDashboardPage() {
           fetchWalletSettings().catch(() => null)
         ]);
 
+        console.info('[HEALTH FORENSIC] GET MEMBER OVERVIEW RETURNED', {
+          prescriptionsCount: data?.prescriptions?.length,
+          ordersCount: data?.orders?.length,
+          enquiriesCount: data?.enquiries?.length,
+          eventsCount: data?.events?.length,
+          walletCoins: data?.walletCoins
+        });
+
         if (isMounted && data) {
           if (walletConfig?.settings) {
             setWalletSettings(walletConfig.settings);
           }
 
-          console.info('[HEALTH DEBUG] final overview.prescriptions:', data.prescriptions?.length || 0);
-          console.info('[HEALTH DEBUG] final overview.records:', (data.prescriptions?.length || 0) + (data.enquiries?.length || 0));
+          console.info('[HEALTH FORENSIC] SETTING MEMBER DATA', {
+            prescriptions: data?.prescriptions?.length,
+            orders: data?.orders?.length,
+            enquiries: data?.enquiries?.length,
+            events: data?.events?.length,
+            walletCoins: data?.walletCoins
+          });
 
           setMemberData({
             ...data,
             walletCoins: typeof data?.walletCoins === 'number' ? data.walletCoins : 0
           });
-
-          console.info('[HEALTH DEBUG] dashboard state updated with records:', data.prescriptions?.length || 0);
         }
       } catch (err) {
-        console.error('[HEALTH DEBUG] Dashboard loading error:', err);
+        console.error('[HEALTH FORENSIC] Dashboard loading error:', err);
       } finally {
         if (isMounted) {
           setIsLoadingStats(false);
-          console.info('[HEALTH DEBUG] dashboard loading: false');
+          console.info('[HEALTH FORENSIC] DASHBOARD LOADING: COMPLETE');
         }
       }
     }
@@ -155,6 +166,17 @@ export default function GenericDashboardPage() {
       isMounted = false;
     };
   }, [session, user, isAuthLoading]);
+
+  // React State Observer
+  useEffect(() => {
+    console.info('[HEALTH FORENSIC] MEMBER DATA STATE', {
+      prescriptions: memberData?.prescriptions?.length,
+      orders: memberData?.orders?.length,
+      enquiries: memberData?.enquiries?.length,
+      events: memberData?.events?.length,
+      walletCoins: memberData?.walletCoins
+    });
+  }, [memberData]);
 
   const handleLogout = async () => {
     try {
@@ -211,6 +233,18 @@ export default function GenericDashboardPage() {
       record.title.toLowerCase().includes(vaultSearchQuery.toLowerCase()) ||
       record.categoryLabel.toLowerCase().includes(vaultSearchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
+  });
+
+  console.info('[HEALTH FORENSIC] HEALTH VAULT DERIVATION', {
+    'memberData.prescriptions': memberData?.prescriptions?.length,
+    allPrescriptionRecords: allPrescriptionRecords.length,
+    healthVaultRecords: healthVaultRecords.length,
+    filteredVaultRecords: filteredVaultRecords.length
+  });
+
+  console.info('[HEALTH FORENSIC] PRESCRIPTION UI', {
+    'memberData.prescriptions.length': memberData?.prescriptions?.length,
+    'displayedPrescriptionRecords.length': allPrescriptionRecords.length
   });
 
   // Build Unified Timeline Stream
