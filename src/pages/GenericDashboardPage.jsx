@@ -139,17 +139,36 @@ export default function GenericDashboardPage() {
     }
   };
 
-  // Build Unified Health Records list (Combines Prescriptions + Custom Uploaded Health Vault Documents)
+  // Build Unified Prescriptions list (Combines Prescriptions + Care Review Enquiries)
+  const allPrescriptionRecords = [
+    ...memberData.prescriptions,
+    // Include any enquiries that don't already have an explicit matching prescription object
+    ...memberData.enquiries
+      .filter(enq => !memberData.prescriptions.some(p => p.enquiry_id === enq.id || p.enquiries?.enquiry_code === enq.enquiry_code))
+      .map(enq => ({
+        id: enq.id || `enq-${enq.enquiry_code}`,
+        file_name: `Prescription & Care Review (${enq.enquiry_code || 'HE-2026'})`,
+        file_path: null,
+        file_size: 0,
+        created_at: enq.created_at || new Date().toISOString(),
+        enquiries: {
+          enquiry_code: enq.enquiry_code || 'HE-2026-REVIEW',
+          status: enq.status || 'pending_review'
+        },
+        isEnquiryFallback: true
+      }))
+  ];
+
+  // Build Unified Health Records list (Combines Prescriptions + Enquiries + Custom Uploaded Vault Documents)
   const healthVaultRecords = [
-    // Include all uploaded prescriptions formatted as health vault records
-    ...memberData.prescriptions.map((rx, idx) => ({
+    ...allPrescriptionRecords.map((rx, idx) => ({
       id: rx.id || `rx-${idx}`,
       title: rx.file_name || `Prescription Record #${idx + 1}`,
       category: 'prescription',
       categoryLabel: rx.enquiries?.enquiry_code ? `Care Review (${rx.enquiries.enquiry_code})` : 'Prescription',
       uploadedAt: rx.created_at || new Date().toISOString(),
-      fileSize: rx.file_size ? `${Math.round(rx.file_size / 1024)} KB` : 'PDF / Image',
-      status: rx.enquiries?.status ? rx.enquiries.status.replace(/_/g, ' ').toUpperCase() : 'Under Care Manager Review',
+      fileSize: rx.file_size ? `${Math.round(rx.file_size / 1024)} KB` : 'PDF / Document',
+      status: rx.enquiries?.status ? rx.enquiries.status.replace(/_/g, ' ').toUpperCase() : 'UNDER CARE MANAGER REVIEW',
       publicUrl: rx.public_url || rx.signed_url || null,
       isPrescription: true,
       enquiryCode: rx.enquiries?.enquiry_code || null,
@@ -517,11 +536,11 @@ export default function GenericDashboardPage() {
               >
                 <FileText className="w-4 h-4" />
                 <span>Prescriptions</span>
-                {memberData.prescriptions.length > 0 && (
+                {allPrescriptionRecords.length > 0 && (
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                     activeWorkspaceTab === 'prescriptions' ? 'bg-purple-800 text-purple-200' : 'bg-purple-100 text-purple-800'
                   }`}>
-                    {memberData.prescriptions.length}
+                    {allPrescriptionRecords.length}
                   </span>
                 )}
               </button>
@@ -775,7 +794,7 @@ export default function GenericDashboardPage() {
                   </button>
                 </div>
 
-                {memberData.prescriptions.length === 0 ? (
+                {allPrescriptionRecords.length === 0 ? (
                   <div className="p-10 text-center bg-purple-50/50 rounded-3xl border border-purple-100 space-y-3">
                     <FileText className="w-10 h-10 text-purple-400 mx-auto" />
                     <h4 className="text-sm font-extrabold text-purple-950">No Prescriptions Uploaded</h4>
@@ -792,7 +811,7 @@ export default function GenericDashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {memberData.prescriptions.map((rx, idx) => (
+                    {allPrescriptionRecords.map((rx, idx) => (
                       <div key={rx.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0">
