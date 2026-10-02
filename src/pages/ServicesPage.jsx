@@ -221,6 +221,25 @@ export default function ServicesPage({ onOpenUploadModal }) {
     setSearchParams({}, { replace: true });
   };
 
+  const handleClearSpecificFilter = (filterKey) => {
+    if (!filterKey) return;
+    if (filterKey === 'all') {
+      handleResetFilters();
+    } else if (filterKey === 'category') {
+      handleCategoryChange('all');
+    } else if (filterKey === 'location') {
+      handleLocationChange('all');
+    } else if (filterKey === 'speciality') {
+      handleSpecialityChange('all');
+    } else if (filterKey === 'fulfillment') {
+      handleFulfillmentChange('all');
+    } else if (filterKey === 'price') {
+      handlePriceChange('all');
+    } else if (filterKey === 'search') {
+      handleSearchChange('');
+    }
+  };
+
   const hasActiveFilters = selectedCategory !== 'all' || searchQuery || selectedPriceRange !== 'all' || selectedFulfillment !== 'all' || selectedLocation !== 'all' || selectedSpeciality !== 'all';
 
   const { services, totalMatches, totalPages, categories } = catalogData;
@@ -373,12 +392,25 @@ export default function ServicesPage({ onOpenUploadModal }) {
             </div>
 
             {hasActiveFilters && (
-              <button
-                onClick={handleResetFilters}
-                className="text-purple-700 hover:text-purple-900 font-bold underline cursor-pointer shrink-0"
-              >
-                Clear Filters
-              </button>
+              <div className="relative shrink-0">
+                <select
+                  value=""
+                  onChange={(e) => {
+                    handleClearSpecificFilter(e.target.value);
+                    e.target.value = "";
+                  }}
+                  className="bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold py-1.5 px-2.5 rounded-xl outline-none cursor-pointer focus:ring-2 focus:ring-purple-600 transition-colors"
+                >
+                  <option value="" disabled hidden>Clear Filter ▾</option>
+                  <option value="all" className="font-extrabold text-purple-900">All Filters</option>
+                  {selectedCategory !== 'all' && <option value="category">Category</option>}
+                  {selectedLocation !== 'all' && <option value="location">Location</option>}
+                  {selectedSpeciality !== 'all' && <option value="speciality">Speciality</option>}
+                  {selectedFulfillment !== 'all' && <option value="fulfillment">Fulfillment</option>}
+                  {selectedPriceRange !== 'all' && <option value="price">Price Range</option>}
+                  {searchQuery && <option value="search">Search</option>}
+                </select>
+              </div>
             )}
           </div>
         </div>
@@ -391,18 +423,35 @@ export default function ServicesPage({ onOpenUploadModal }) {
             <div className="sticky bottom-6 space-y-4">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-5 text-xs">
                 
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <span className="font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5 text-xs">
+                {/* Catalog Filters Header with Inline Clear Filter Dropdown */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 gap-1.5">
+                  <span className="font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5 text-xs shrink-0">
                     <Filter className="w-3.5 h-3.5 text-purple-700" /> Catalog Filters
                   </span>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={handleResetFilters}
-                      className="text-[11px] text-purple-700 font-bold hover:underline cursor-pointer"
+
+                  <div className="relative shrink-0">
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        handleClearSpecificFilter(e.target.value);
+                        e.target.value = "";
+                      }}
+                      className="bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-extrabold py-1 px-2 rounded-lg outline-none cursor-pointer focus:ring-1 focus:ring-purple-600 transition-colors shadow-2xs"
                     >
-                      Reset All
-                    </button>
-                  )}
+                      <option value="" disabled hidden>
+                        Clear Filter ▾
+                      </option>
+                      <option value="all" className="font-black text-purple-900">
+                        All Filters
+                      </option>
+                      <option value="category">Category</option>
+                      <option value="location">Location (City)</option>
+                      <option value="speciality">Speciality</option>
+                      <option value="fulfillment">Service Fulfillment</option>
+                      <option value="price">Price Range</option>
+                      {searchQuery && <option value="search">Search Text</option>}
+                    </select>
+                  </div>
                 </div>
 
                 {/* Filter Group 1: Category */}
