@@ -110,6 +110,7 @@ export async function fetchWalletData(userOrPatientId) {
   }
 
   try {
+    // STAGE 1: Resolve authentic patients.id (primary key UUID)
     const patientId = await getCurrentPatientId(userOrPatientId);
 
     if (!patientId) {
@@ -121,14 +122,12 @@ export async function fetchWalletData(userOrPatientId) {
       };
     }
 
-    // 1. Fetch wallet account using resolved patients.id
-    const { data: account, error: accErr } = await supabase
+    // STAGE 2: Ensure wallet account exists
+    let { data: account, error: accErr } = await supabase
       .from('wallet_accounts')
       .select('*')
       .eq('patient_id', patientId)
       .maybeSingle();
-
-    let coinBalance = 0;
 
     if (!account) {
       // Create wallet if missing using resolved patients.id
@@ -136,12 +135,25 @@ export async function fetchWalletData(userOrPatientId) {
       if (rpcErr) {
         console.error('[Wallet] get_or_create_wallet RPC error:', rpcErr.message);
       }
-      coinBalance = newAcc?.coin_balance || 0;
-    } else {
-      coinBalance = account.coin_balance || 0;
+      account = newAcc;
     }
 
-    // 2. Fetch transaction history using resolved patients.id
+    // STAGE 3: Atomically claim signup reward for patient (idempotent at DB level)
+    const rewardResult = await claimSignupReward(patientId);
+    if (!rewardResult?.success) {
+      console.error('[Wallet] Signup reward claim notice:', rewardResult?.error || 'Claim failed');
+    }
+
+    // STAGE 4: Re-fetch updated wallet account to capture post-claim coin balance
+    const { data: refreshedAccount } = await supabase
+      .from('wallet_accounts')
+      .select('coin_balance')
+      .eq('patient_id', patientId)
+      .maybeSingle();
+
+    const coinBalance = refreshedAccount?.coin_balance ?? account?.coin_balance ?? 0;
+
+    // STAGE 5: Fetch transaction history using resolved patients.id
     const { data: transactions } = await supabase
       .from('wallet_transactions')
       .select('*')
