@@ -203,23 +203,20 @@ export default function ServicesPage({ onOpenUploadModal }) {
       
       {/* 1. SLEEK COMPACT MARKETPLACE HEADER */}
       <div className="bg-white border-b border-slate-200/80 pt-6 pb-6 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-200">
-                  Real Service Catalog Marketplace
-                </span>
-                <span className="text-[10px] font-bold text-slate-400">
-                  • {totalMatches.toLocaleString()} Services Available
+                  Diagnostic Services
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
-                Diagnostic Tests, Radiology Scans & Health Packages
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1.5">
+                Book Diagnostic Tests, Scans & Health Checks
               </h1>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                NABL accredited diagnostic labs (LabSpring), Cadabams radiology scans, and preventive wellness checkups.
+              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
+                Compare trusted labs and scan centers, then book at a time that works for you.
               </p>
             </div>
 
@@ -233,28 +230,43 @@ export default function ServicesPage({ onOpenUploadModal }) {
             </button>
           </div>
 
-          {/* Compact Search Bar */}
-          <div className="relative max-w-3xl">
-            <Search className="w-4 h-4 text-purple-700 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search across 2,200+ healthcare services (e.g. Lipid, CBC, MRI, Thyroid, Cadabams)..."
-              className="w-full pl-10 pr-24 py-2.5 bg-slate-50 border border-slate-300/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all shadow-xs"
-            />
-            {searchQuery ? (
-              <button
-                onClick={() => handleSearchChange('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                Clear
-              </button>
-            ) : (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                Search
-              </span>
-            )}
+          {/* Focal Search Bar Section */}
+          <div className="space-y-2 pt-1 max-w-3xl">
+            <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+              <Search className="w-3.5 h-3.5 text-purple-700" />
+              <span>Search services or find a test or scan</span>
+            </label>
+            <div className="relative">
+              <Search className="w-4 h-4 text-purple-700 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search Lipid Profile, CBC, MRI, Thyroid"
+                className="w-full pl-10 pr-24 py-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 focus:bg-white transition-all shadow-xs"
+              />
+              {searchQuery ? (
+                <button
+                  onClick={() => handleSearchChange('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  Clear
+                </button>
+              ) : (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">
+                  Search
+                </span>
+              )}
+            </div>
+
+            {/* Trust Strip below Search */}
+            <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700 pt-1 flex-wrap">
+              <span>Fast booking</span>
+              <span className="text-slate-300 font-normal">•</span>
+              <span>Accredited providers</span>
+              <span className="text-slate-300 font-normal">•</span>
+              <span>Reports in as little as 4 hours</span>
+            </div>
           </div>
 
           {/* Dynamic Horizontal Category Tabs */}
