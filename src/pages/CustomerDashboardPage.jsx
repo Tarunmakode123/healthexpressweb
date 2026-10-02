@@ -13,6 +13,7 @@ import {
 } from '../services/customerAccountService';
 import { fetchWalletData, DEFAULT_WALLET_SETTINGS } from '../services/walletService';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import { subscribeUserDashboard, unsubscribeChannel } from '../services/realtimeService';
 
 export default function CustomerDashboardPage() {
   const navigate = useNavigate();
@@ -45,6 +46,40 @@ export default function CustomerDashboardPage() {
       loadCustomerData();
     }
   }, [isLoggedIn, authLoading, navigate]);
+
+  // REALTIME SYNCHRONIZATION: Subscribe user to live updates on their orders & prescriptions
+  useEffect(() => {
+    const userId = user?.id;
+    if (!isLoggedIn || !userId) return;
+
+    const channel = subscribeUserDashboard({
+      userId,
+      onOrderChange: ({ eventType, record }) => {
+        if (!record || !record.id) return;
+        setOrders((prev) => {
+          const exists = prev.some((o) => o.id === record.id);
+          return exists
+            ? prev.map((o) => (o.id === record.id ? { ...o, ...record } : o))
+            : [record, ...prev];
+        });
+      },
+      onPrescriptionChange: ({ eventType, record }) => {
+        if (!record || !record.id) return;
+        setRecords((prev) => {
+          const exists = prev.some((r) => r.id === record.id);
+          return exists
+            ? prev.map((r) => (r.id === record.id ? { ...r, ...record } : r))
+            : [record, ...prev];
+        });
+      }
+    });
+
+    return () => {
+      if (channel) {
+        unsubscribeChannel(channel);
+      }
+    };
+  }, [isLoggedIn, user?.id]);
 
   const loadCustomerData = async () => {
     setIsLoading(true);

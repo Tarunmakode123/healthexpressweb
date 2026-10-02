@@ -11,6 +11,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
   verifyAdminAuth,
   fetchAdminOrders, 
+  fetchAdminSingleOrder,
   fetchAdminPayments,
   updateAdminOrderStatus, 
   markCodPaymentCollected,
@@ -41,6 +42,7 @@ import {
   updateAdminCategory,
   toggleAdminCategoryStatus
 } from '../services/adminCategoryService';
+import { subscribeAdminOps, unsubscribeChannel } from '../services/realtimeService';
 import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
 import { getGeminiEngineStatus, testAiConnection, getEffectiveApiKey } from '../services/geminiService';
@@ -1318,6 +1320,60 @@ function AdminDashboardPage() {
     if (isAuthenticated) {
       loadAdminData();
     }
+  }, [isAuthenticated]);
+
+  // REALTIME SYNCHRONIZATION: Subscribe Admin to live updates on Orders, Prescriptions, and Enquiries
+  useEffect(() => {
+    if (!isAuthenticated || !isSupabaseConfigured) return;
+
+    const channel = subscribeAdminOps({
+      onOrderChange: async ({ eventType, record }) => {
+        if (!record || !record.id) return;
+        
+        if (eventType === 'INSERT') {
+          const singleRes = await fetchAdminSingleOrder(record.id);
+          const orderToInsert = singleRes.success && singleRes.data ? singleRes.data : record;
+
+          setOrders((prev) => {
+            const exists = prev.some((o) => o.id === orderToInsert.id);
+            if (exists) {
+              return prev.map((o) => (o.id === orderToInsert.id ? { ...o, ...orderToInsert } : o));
+            }
+            return [orderToInsert, ...prev];
+          });
+          showToast(`⚡ Realtime: New Order #${orderToInsert.order_code || orderToInsert.id.slice(0, 8)} received!`);
+        } else if (eventType === 'UPDATE') {
+          const singleRes = await fetchAdminSingleOrder(record.id);
+          const updatedRecord = singleRes.success && singleRes.data ? singleRes.data : record;
+
+          setOrders((prev) =>
+            prev.map((o) => (o.id === updatedRecord.id ? { ...o, ...updatedRecord } : o))
+          );
+
+          setSelectedOrder((prev) => (prev && prev.id === updatedRecord.id ? { ...prev, ...updatedRecord } : prev));
+        }
+      },
+
+      onPrescriptionChange: async () => {
+        const res = await fetchAdminPrescriptions();
+        if (res.success) {
+          setPrescriptions(res.data || []);
+        }
+      },
+
+      onEnquiryChange: async () => {
+        const res = await fetchAdminPrescriptions();
+        if (res.success) {
+          setPrescriptions(res.data || []);
+        }
+      }
+    });
+
+    return () => {
+      if (channel) {
+        unsubscribeChannel(channel);
+      }
+    };
   }, [isAuthenticated]);
 
   // PROMO MANAGEMENT HANDLERS

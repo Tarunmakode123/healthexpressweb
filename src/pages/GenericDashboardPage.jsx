@@ -14,6 +14,7 @@ import { getMemberOverview, buildUnifiedTimelineStream, formatTimelineDateGroup,
 import { classifyMemberActivity } from '../services/memberActivityClassifier';
 import { validatePrescriptionFile } from '../services/prescriptionService';
 import { fetchWalletSettings, DEFAULT_WALLET_SETTINGS } from '../services/walletService';
+import { subscribeUserDashboard, unsubscribeChannel } from '../services/realtimeService';
 
 export default function GenericDashboardPage() {
   const navigate = useNavigate();
@@ -166,6 +167,44 @@ export default function GenericDashboardPage() {
       isMounted = false;
     };
   }, [session, user, isAuthLoading]);
+
+  // REALTIME SYNCHRONIZATION: Subscribe user to live updates on their orders & prescriptions
+  useEffect(() => {
+    const userId = session?.user?.id || user?.id;
+    if (!userId) return;
+
+    const channel = subscribeUserDashboard({
+      userId,
+      onOrderChange: ({ eventType, record }) => {
+        if (!record || !record.id) return;
+        setMemberData((prev) => {
+          const existingOrders = prev.orders || [];
+          const exists = existingOrders.some((o) => o.id === record.id);
+          const updatedOrders = exists
+            ? existingOrders.map((o) => (o.id === record.id ? { ...o, ...record } : o))
+            : [record, ...existingOrders];
+          return { ...prev, orders: updatedOrders };
+        });
+      },
+      onPrescriptionChange: ({ eventType, record }) => {
+        if (!record || !record.id) return;
+        setMemberData((prev) => {
+          const existingPrescriptions = prev.prescriptions || [];
+          const exists = existingPrescriptions.some((p) => p.id === record.id);
+          const updatedPrescriptions = exists
+            ? existingPrescriptions.map((p) => (p.id === record.id ? { ...p, ...record } : p))
+            : [record, ...existingPrescriptions];
+          return { ...prev, prescriptions: updatedPrescriptions };
+        });
+      }
+    });
+
+    return () => {
+      if (channel) {
+        unsubscribeChannel(channel);
+      }
+    };
+  }, [session?.user?.id, user?.id]);
 
   // React State Observer
   useEffect(() => {

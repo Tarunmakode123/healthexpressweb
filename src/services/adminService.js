@@ -95,6 +95,36 @@ export async function fetchAdminOrders() {
 }
 
 /**
+ * Fetch a single order with joined payments by ID
+ */
+export async function fetchAdminSingleOrder(orderId) {
+  if (!orderId || !isSupabaseConfigured || !supabase) {
+    return { success: false, error: 'Supabase configuration missing or invalid Order ID.' };
+  }
+
+  try {
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        payments (*)
+      `)
+      .eq('id', orderId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Fetch admin single order error:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: order };
+  } catch (err) {
+    console.error('Fetch admin single order exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
  * Fetch all payment records for dedicated Admin Payments module
  */
 export async function fetchAdminPayments() {
