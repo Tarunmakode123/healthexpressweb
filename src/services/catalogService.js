@@ -16,9 +16,9 @@ export async function fetchServices({
   category = 'all',
   search = '',
   priceRange = 'all',
-  homeCollection = false,
-  turnaround = 'all',
-  provider = 'all',
+  fulfillment = 'all',
+  location = 'all',
+  speciality = 'all',
   sortBy = 'relevance',
   page = 1,
   pageSize = 24
@@ -40,20 +40,19 @@ export async function fetchServices({
         query = query.eq('category_id', category);
       }
 
-      // Provider filter
-      if (provider && provider !== 'all') {
-        query = query.eq('provider', provider);
-      }
-
-      // Home collection filter
-      if (homeCollection) {
-        query = query.eq('home_collection_available', true);
+      // Fulfillment filter
+      if (fulfillment && fulfillment !== 'all') {
+        if (fulfillment === 'home-collection') {
+          query = query.eq('home_collection_available', true);
+        } else if (fulfillment === 'centre-visit') {
+          query = query.eq('centre_visit_required', true);
+        }
       }
 
       // Search query across name, code, provider, description
       const q = search.trim().toLowerCase();
       if (q) {
-        query = query.or(`service_name.ilike.%${q}%,service_code.ilike.%${q}%,provider.ilike.%${q}%,description.ilike.%${q}%`);
+        query = query.or(`service_name.ilike.%${q}%,service_code.ilike.%${q}%,description.ilike.%${q}%`);
       }
 
       // Price range filter
@@ -64,17 +63,6 @@ export async function fetchServices({
           if (range.max !== Infinity) {
             query = query.lte('selling_price', range.max);
           }
-        }
-      }
-
-      // Turnaround time filter
-      if (turnaround !== 'all') {
-        if (turnaround === 'same-day') {
-          query = query.ilike('turnaround_time', '%Same%');
-        } else if (turnaround === '24-hours') {
-          query = query.ilike('turnaround_time', '%24%');
-        } else if (turnaround === '48-hours') {
-          query = query.ilike('turnaround_time', '%48%');
         }
       }
 
@@ -126,18 +114,12 @@ export async function fetchServices({
     result = result.filter(s => s.category_id === category);
   }
 
-  // Provider filter
-  if (provider && provider !== 'all') {
-    result = result.filter(s => s.provider === provider);
-  }
-
   // Search query filter
   const q = search.trim().toLowerCase();
   if (q) {
     result = result.filter(s =>
       s.name.toLowerCase().includes(q) ||
       (s.service_code && s.service_code.toLowerCase().includes(q)) ||
-      (s.provider && s.provider.toLowerCase().includes(q)) ||
       (s.description && s.description.toLowerCase().includes(q)) ||
       (s.subcategory && s.subcategory.toLowerCase().includes(q)) ||
       (s.parameters && s.parameters.some(p => p.toLowerCase().includes(q)))
@@ -152,20 +134,33 @@ export async function fetchServices({
     }
   }
 
-  // Home collection filter
-  if (homeCollection) {
-    result = result.filter(s => s.home_collection_available === true);
+  // Fulfillment filter
+  if (fulfillment !== 'all') {
+    if (fulfillment === 'home-collection') {
+      result = result.filter(s => s.home_collection_available === true || s.fulfillment === 'home-collection' || s.category_id === 'lab-tests');
+    } else if (fulfillment === 'centre-visit') {
+      result = result.filter(s => s.centre_visit_required === true || s.fulfillment === 'centre-visit' || s.category_id === 'imaging');
+    } else if (fulfillment === 'online') {
+      result = result.filter(s => s.is_online === true || s.fulfillment === 'online' || s.category_id === 'genetics');
+    } else if (fulfillment === 'home-delivery') {
+      result = result.filter(s => s.is_home_delivery === true || s.fulfillment === 'home-delivery' || s.category_id === 'home-nursing');
+    }
   }
 
-  // Turnaround filter
-  if (turnaround !== 'all') {
-    if (turnaround === 'same-day') {
-      result = result.filter(s => (s.turnaround_time || '').toLowerCase().includes('same'));
-    } else if (turnaround === '24-hours') {
-      result = result.filter(s => (s.turnaround_time || '').includes('24'));
-    } else if (turnaround === '48-hours') {
-      result = result.filter(s => (s.turnaround_time || '').includes('48'));
-    }
+  // Location filter
+  if (location !== 'all') {
+    result = result.filter(s => !s.location || s.location === 'All' || s.location === location || (s.locations && s.locations.includes(location)));
+  }
+
+  // Speciality filter
+  if (speciality !== 'all') {
+    const specLower = speciality.toLowerCase();
+    result = result.filter(s => 
+      (s.speciality && s.speciality.toLowerCase().includes(specLower)) ||
+      (s.subcategory && s.subcategory.toLowerCase().includes(specLower)) ||
+      (s.category_name && s.category_name.toLowerCase().includes(specLower)) ||
+      (s.name && s.name.toLowerCase().includes(specLower))
+    );
   }
 
   // Sorting
