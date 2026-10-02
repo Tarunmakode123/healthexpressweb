@@ -185,7 +185,7 @@ export default function Navbar({ onOpenUploadModal }) {
     { label: 'Lab Tests', href: '/services?category=lab-tests' },
     { label: 'Radiology', href: '/services?category=imaging' },
     { label: 'Health Packages', href: '/services?category=health-packages' },
-    { label: 'Home Nursing', href: '/services?category=home-nursing' },
+    { label: 'Home Nursing', href: '/home-nursing-care' },
     { label: 'Genomics', href: '/services?category=genetics' },
     { label: 'Surgeries', href: '/surgeries' },
     { label: 'Telemedicine', href: '/contact' },

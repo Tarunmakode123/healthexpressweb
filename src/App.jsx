@@ -13,6 +13,7 @@ import HealthExpressIntro from './components/common/HealthExpressIntro';
 
 import HomePage from './pages/HomePage';
 import ServicesPage from './pages/ServicesPage';
+import HomeNursingCarePage from './pages/HomeNursingCarePage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import HealthLibraryPage from './pages/HealthLibraryPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
@@ -109,6 +110,7 @@ function MainLayout() {
           <Routes>
             <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />} />
             <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/home-nursing-care" element={<HomeNursingCarePage onOpenUploadModal={handleOpenUploadModal} />} />
             <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
             <Route path="/surgeries" element={<SurgeriesPage onOpenUploadModal={handleOpenUploadModal} />} />
             <Route path="/surgeries/:slug" element={<SurgeryDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
