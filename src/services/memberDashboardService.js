@@ -63,6 +63,7 @@ export async function getMemberPatientProfile(userId) {
  */
 export async function getMemberOverview(userId) {
   if (!isSupabaseConfigured || !supabase) {
+    console.warn('[HEALTH DEBUG] Supabase is not configured!');
     return {
       success: false,
       patient: null,
@@ -75,22 +76,26 @@ export async function getMemberOverview(userId) {
     };
   }
 
-  // Failsafe: Validate userId is a valid UUID, otherwise obtain session user ID from active auth session
+  // Active Session Resolution
   let activeUserId = userId;
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId || '');
-  if (!activeUserId || !isUuid) {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    console.info('[HEALTH DEBUG] session user:', session?.user?.id || 'none');
+    
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId || '');
+    if (!activeUserId || !isUuid) {
       if (session?.user?.id) {
         activeUserId = session.user.id;
       }
-    } catch (e) {
-      console.warn('[AUTH] Error resolving active auth session in getMemberOverview:', e);
     }
+  } catch (e) {
+    console.warn('[HEALTH DEBUG] Error resolving active auth session in getMemberOverview:', e);
   }
 
+  console.info('[HEALTH DEBUG] activeUserId:', activeUserId || 'none');
+
   if (!activeUserId) {
-    console.warn('[AUTH] No authenticated user ID available for getMemberOverview');
+    console.warn('[HEALTH DEBUG] No authenticated user ID available for getMemberOverview');
     return {
       success: false,
       patient: null,
@@ -106,16 +111,20 @@ export async function getMemberOverview(userId) {
   try {
     // 1. Link guest records to this authenticated user via atomic SECURITY DEFINER RPC prior to fetching
     await supabase.rpc('link_guest_records_on_otp_login').catch((err) => {
-      console.warn('[LINK] Auto account linking notice in getMemberOverview:', err?.message || err);
+      console.warn('[HEALTH DEBUG] Auto account linking notice in getMemberOverview:', err?.message || err);
     });
 
     // 2. Resolve primary patient profile & collect all linked patient IDs for activeUserId
     const patient = await getMemberPatientProfile(activeUserId);
 
-    const { data: allUserPatients } = await supabase
+    const { data: allUserPatients, error: userPatErr } = await supabase
       .from('patients')
       .select('id')
       .eq('user_id', activeUserId);
+
+    if (userPatErr) {
+      console.error('[HEALTH DEBUG] Patient lookup error:', userPatErr);
+    }
 
     const patientIdSet = new Set();
     if (patient?.id) patientIdSet.add(patient.id);
@@ -125,8 +134,7 @@ export async function getMemberOverview(userId) {
     const patientIds = Array.from(patientIdSet);
     const primaryPatientId = patient?.id || (patientIds.length > 0 ? patientIds[0] : null);
 
-    console.info(`[AUTH] Authenticated user: ${activeUserId}`);
-    console.info(`[PATIENT] Resolved primary patient: ${primaryPatientId || 'none'}, total patient IDs: ${patientIds.length}`);
+    console.info('[HEALTH DEBUG] patientIds:', patientIds);
 
     // 3. Resilient queries for Prescriptions, Orders, Enquiries, Payments, Analytics, Wallet
     let rxOrClause = `user_id.eq.${activeUserId}`;
@@ -134,40 +142,28 @@ export async function getMemberOverview(userId) {
       rxOrClause += `,patient_id.in.(${patientIds.join(',')})`;
     }
 
-    // A. Prescriptions query with fallback if enquiries(*) join fails or errors
-    let presRes = await supabase
+    // A. PRIMARY PRESCRIPTION QUERY: Direct select('*') FIRST (No joins)
+    const presRes = await supabase
       .from('prescriptions')
-      .select('*, enquiries(*)')
+      .select('*')
       .or(rxOrClause)
       .order('created_at', { ascending: false });
 
-    if (presRes.error || !presRes.data) {
-      console.warn('[PRESCRIPTIONS] Select with enquiries(*) failed or returned error:', presRes.error?.message || presRes.error);
-      presRes = await supabase
-        .from('prescriptions')
-        .select('*')
-        .or(rxOrClause)
-        .order('created_at', { ascending: false });
-    }
+    console.info('[HEALTH DEBUG] prescription query count:', presRes.data ? presRes.data.length : 0);
+    console.info('[HEALTH DEBUG] prescription query error:', presRes.error || null);
 
-    // B. Orders query with fallback
+    // B. Orders query
     let ordOrClause = `user_id.eq.${activeUserId}`;
     if (patientIds.length > 0) {
       ordOrClause += `,patient_id.in.(${patientIds.join(',')})`;
     }
-    let ordRes = await supabase
+    const ordRes = await supabase
       .from('orders')
-      .select('*, payments(*)')
+      .select('*')
       .or(ordOrClause)
       .order('created_at', { ascending: false });
 
-    if (ordRes.error || !ordRes.data) {
-      ordRes = await supabase
-        .from('orders')
-        .select('*')
-        .or(ordOrClause)
-        .order('created_at', { ascending: false });
-    }
+    console.info('[HEALTH DEBUG] orders query count:', ordRes.data ? ordRes.data.length : 0);
 
     // C. Enquiries query
     let enqRes = { data: [] };
@@ -175,18 +171,12 @@ export async function getMemberOverview(userId) {
       const enqClause = `patient_id.in.(${patientIds.join(',')})`;
       enqRes = await supabase
         .from('enquiries')
-        .select('*, prescriptions(*)')
+        .select('*')
         .or(enqClause)
         .order('created_at', { ascending: false });
-
-      if (enqRes.error || !enqRes.data) {
-        enqRes = await supabase
-          .from('enquiries')
-          .select('*')
-          .or(enqClause)
-          .order('created_at', { ascending: false });
-      }
     }
+
+    console.info('[HEALTH DEBUG] enquiry query count:', enqRes.data ? enqRes.data.length : 0);
 
     // D. Payments query
     let payRes = { data: [] };
@@ -227,7 +217,7 @@ export async function getMemberOverview(userId) {
             .createSignedUrl(rx.file_path, 300);
 
           if (signErr) {
-            console.warn(`[STORAGE] Signed URL notice for rx ${rx.id}:`, signErr.message);
+            console.warn(`[HEALTH DEBUG] Signed URL notice for rx ${rx.id}:`, signErr.message);
           }
 
           return {
@@ -236,13 +226,13 @@ export async function getMemberOverview(userId) {
             signed_url: signedData?.signedUrl || rx.signed_url || null
           };
         } catch (e) {
-          console.warn(`[STORAGE] Signed URL exception for rx ${rx.id}:`, e);
+          console.warn(`[HEALTH DEBUG] Signed URL exception for rx ${rx.id}:`, e);
           return rx;
         }
       })
     );
 
-    console.info(`[DASHBOARD] Loaded ${prescriptionsWithSignedUrls.length} prescriptions, ${ordRes.data?.length || 0} orders, ${enqRes.data?.length || 0} enquiries for member ${activeUserId}`);
+    console.info('[HEALTH DEBUG] final overview.prescriptions:', prescriptionsWithSignedUrls.length);
 
     return {
       success: true,
@@ -257,7 +247,7 @@ export async function getMemberOverview(userId) {
         : 0
     };
   } catch (err) {
-    console.error('getMemberOverview exception:', err);
+    console.error('[HEALTH DEBUG] getMemberOverview exception:', err);
     return {
       success: false,
       error: err.message,

@@ -97,31 +97,40 @@ export default function GenericDashboardPage() {
     let isMounted = true;
 
     async function loadDashboard() {
+      console.info('[HEALTH DEBUG] dashboard loading: true');
       try {
         const userId = session?.user?.id || user?.id;
-        
+
+        console.info('[HEALTH DEBUG] activeUserId passed to getMemberOverview:', userId || 'none');
+
         // Fetch patient dashboard data and wallet settings in parallel
         const [data, walletConfig] = await Promise.all([
           getMemberOverview(userId),
           fetchWalletSettings().catch(() => null)
         ]);
-        
+
         if (isMounted && data) {
           if (walletConfig?.settings) {
             setWalletSettings(walletConfig.settings);
           }
 
-          console.info(`[DASHBOARD PAGE] Received ${data.prescriptions?.length || 0} prescriptions, ${data.orders?.length || 0} orders`);
+          console.info('[HEALTH DEBUG] final overview.prescriptions:', data.prescriptions?.length || 0);
+          console.info('[HEALTH DEBUG] final overview.records:', (data.prescriptions?.length || 0) + (data.enquiries?.length || 0));
 
           setMemberData({
             ...data,
             walletCoins: typeof data?.walletCoins === 'number' ? data.walletCoins : 0
           });
+
+          console.info('[HEALTH DEBUG] dashboard state updated with records:', data.prescriptions?.length || 0);
         }
       } catch (err) {
-        console.warn('Dashboard data fetch warning:', err);
+        console.error('[HEALTH DEBUG] Dashboard loading error:', err);
       } finally {
-        if (isMounted) setIsLoadingStats(false);
+        if (isMounted) {
+          setIsLoadingStats(false);
+          console.info('[HEALTH DEBUG] dashboard loading: false');
+        }
       }
     }
 
