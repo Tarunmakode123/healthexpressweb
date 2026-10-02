@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, 
-  ShoppingBag, ShieldAlert, Search, MapPin, Globe, ChevronDown, Package, FileText 
+  ShoppingBag, ShieldAlert, Search, MapPin, Globe, ChevronDown, 
+  Package, FileText, Navigation, Loader2, AlertCircle 
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
@@ -36,6 +37,10 @@ export default function Navbar({ onOpenUploadModal }) {
   const [selectedLang, setSelectedLang] = useState(() => {
     return localStorage.getItem('he_user_lang') || 'EN';
   });
+
+  // Geolocation states
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -82,6 +87,7 @@ export default function Navbar({ onOpenUploadModal }) {
     setShowProfileMenu(false);
     setShowLocationMenu(false);
     setShowLangMenu(false);
+    setLocationError(null);
   }, [location]);
 
   // Lock body scroll when mobile drawer is open
@@ -109,6 +115,7 @@ export default function Navbar({ onOpenUploadModal }) {
   const handleSelectLocation = (loc) => {
     setSelectedLocation(loc);
     localStorage.setItem('he_user_city', loc);
+    setLocationError(null);
     setShowLocationMenu(false);
   };
 
@@ -116,6 +123,76 @@ export default function Navbar({ onOpenUploadModal }) {
     setSelectedLang(langCode);
     localStorage.setItem('he_user_lang', langCode);
     setShowLangMenu(false);
+  };
+
+  // Reverse Geocoding helper to resolve city from GPS coordinates
+  const detectCityFromCoords = async (lat, lon) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        const addr = data.address || {};
+        const rawCity = addr.city || addr.town || addr.village || addr.county || addr.state_district || addr.state;
+
+        if (rawCity) {
+          const lowerRaw = rawCity.toLowerCase();
+          const matched = LOCATIONS.find(loc => {
+            const lowerLoc = loc.toLowerCase();
+            return lowerRaw.includes(lowerLoc) || lowerLoc.includes(lowerRaw) ||
+                   (loc === 'Bengaluru' && (lowerRaw.includes('bangalore') || lowerRaw.includes('bengaluru'))) ||
+                   (loc === 'Delhi NCR' && (lowerRaw.includes('delhi') || lowerRaw.includes('gurgaon') || lowerRaw.includes('noida')));
+          });
+          return matched || rawCity;
+        }
+      }
+    } catch (err) {
+      console.warn('Reverse geocoding fallback:', err);
+    }
+    return null;
+  };
+
+  // Handler for "Use Current Location"
+  const handleUseCurrentLocation = () => {
+    if (isDetectingLocation) return;
+    setLocationError(null);
+
+    if (!navigator || !navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser. Please select your city manually.");
+      return;
+    }
+
+    setIsDetectingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const resolvedCity = await detectCityFromCoords(latitude, longitude);
+        setIsDetectingLocation(false);
+
+        if (resolvedCity) {
+          handleSelectLocation(resolvedCity);
+        } else {
+          setLocationError("Unable to detect your city name. Please select manually.");
+        }
+      },
+      (error) => {
+        setIsDetectingLocation(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError("Location access was denied. Please select your city manually.");
+        } else {
+          setLocationError("Unable to detect your location. Please select your city manually.");
+        }
+      },
+      { timeout: 10000, maximumAge: 60000 }
+    );
   };
 
   // Menu bar service category navigation links
@@ -170,24 +247,59 @@ export default function Navbar({ onOpenUploadModal }) {
                 </button>
 
                 {showLocationMenu && (
-                  <div className="absolute left-0 mt-2 w-44 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 animate-in fade-in duration-100 text-left">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2.5 py-1 block border-b border-slate-100 mb-1">
-                      Select City
-                    </span>
-                    {LOCATIONS.map((loc) => (
-                      <button
-                        key={loc}
-                        onClick={() => handleSelectLocation(loc)}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between cursor-pointer ${
-                          selectedLocation === loc
-                            ? 'bg-purple-50 text-purple-900 font-black'
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span>{loc}</span>
-                        {selectedLocation === loc && <span className="text-purple-700 font-extrabold">✓</span>}
-                      </button>
-                    ))}
+                  <div className="absolute left-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in duration-100 text-left">
+                    
+                    {/* Prominent "Use Current Location" Action */}
+                    <button
+                      onClick={handleUseCurrentLocation}
+                      disabled={isDetectingLocation}
+                      className="w-full text-left p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 transition-colors flex items-center justify-between group cursor-pointer disabled:opacity-60 mb-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Navigation className={`w-4 h-4 text-purple-700 shrink-0 ${isDetectingLocation ? 'animate-spin' : 'group-hover:scale-110 transition-transform'}`} />
+                        <div>
+                          <span className="text-xs font-extrabold block leading-tight">
+                            {isDetectingLocation ? 'Detecting your location...' : 'Use Current Location'}
+                          </span>
+                          <span className="text-[10px] text-purple-700 font-semibold block mt-0.5">
+                            {isDetectingLocation ? 'Finding your GPS coordinates' : 'Detect my current city'}
+                          </span>
+                        </div>
+                      </div>
+                      {isDetectingLocation && <Loader2 className="w-3.5 h-3.5 text-purple-700 animate-spin shrink-0" />}
+                    </button>
+
+                    {/* Location Error / Feedback */}
+                    {locationError && (
+                      <div className="mb-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-semibold flex items-start gap-1.5 leading-snug">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <span>{locationError}</span>
+                      </div>
+                    )}
+
+                    {/* Manual City Selection List */}
+                    <div className="border-t border-slate-100 pt-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2.5 py-1 block">
+                        SELECT CITY
+                      </span>
+                      <div className="max-h-52 overflow-y-auto space-y-0.5">
+                        {LOCATIONS.map((loc) => (
+                          <button
+                            key={loc}
+                            onClick={() => handleSelectLocation(loc)}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between cursor-pointer ${
+                              selectedLocation === loc
+                                ? 'bg-purple-50 text-purple-900 font-black'
+                                : 'text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            <span>{loc}</span>
+                            {selectedLocation === loc && <span className="text-purple-700 font-extrabold">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                   </div>
                 )}
               </div>
@@ -298,7 +410,7 @@ export default function Navbar({ onOpenUploadModal }) {
                   </button>
 
                   {showProfileMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 animate-in fade-in duration-100 text-left">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in duration-100 text-left">
                       <Link
                         to="/dashboard"
                         onClick={() => setShowProfileMenu(false)}
@@ -423,27 +535,52 @@ export default function Navbar({ onOpenUploadModal }) {
             </form>
 
             {/* Mobile Location & Language Selectors */}
-            <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
-              <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 flex-1">
-                <MapPin className="w-3.5 h-3.5 text-purple-700" />
-                <span className="font-bold text-slate-700">Location:</span>
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => handleSelectLocation(e.target.value)}
-                  className="bg-transparent font-extrabold text-purple-900 outline-none cursor-pointer"
+            <div className="space-y-2 pt-1 border-t border-slate-100 text-xs">
+              
+              {/* Location Box with "Use Current Location" */}
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-purple-700" />
+                    <span className="font-bold text-slate-700">Selected City:</span>
+                  </div>
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => handleSelectLocation(e.target.value)}
+                    className="bg-transparent font-extrabold text-purple-900 outline-none cursor-pointer text-xs"
+                  >
+                    {LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                  </select>
+                </div>
+
+                <button
+                  onClick={handleUseCurrentLocation}
+                  disabled={isDetectingLocation}
+                  className="w-full py-2 px-3 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
                 >
-                  {LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                </select>
+                  <Navigation className={`w-3.5 h-3.5 text-purple-700 ${isDetectingLocation ? 'animate-spin' : ''}`} />
+                  <span>{isDetectingLocation ? 'Detecting your location...' : 'Use Current Location'}</span>
+                </button>
+
+                {locationError && (
+                  <p className="text-[10px] text-amber-800 font-semibold text-center pt-0.5">
+                    {locationError}
+                  </p>
+                )}
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
-                <Globe className="w-3.5 h-3.5 text-slate-500" />
+              {/* Language Selector */}
+              <div className="flex items-center justify-between gap-1.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="font-bold text-slate-700">Language:</span>
+                </div>
                 <select
                   value={selectedLang}
                   onChange={(e) => handleSelectLang(e.target.value)}
                   className="bg-transparent font-extrabold text-slate-800 outline-none cursor-pointer"
                 >
-                  {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.code}</option>)}
+                  {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
                 </select>
               </div>
             </div>
