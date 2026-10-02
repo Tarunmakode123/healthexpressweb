@@ -329,13 +329,14 @@ export default function ServicesPage({ onOpenUploadModal }) {
             </button>
 
             {categories.map((cat) => {
-              const IconComp = categoryIconMap[cat.id] || FlaskConical;
-              const isSelected = selectedCategory === cat.id;
+              const catKey = cat.slug || cat.id;
+              const IconComp = categoryIconMap[catKey] || categoryIconMap[cat.id] || FlaskConical;
+              const isSelected = selectedCategory === catKey || selectedCategory === cat.id;
 
               return (
                 <button
-                  key={cat.id}
-                  onClick={() => handleCategoryChange(cat.id)}
+                  key={cat.id || catKey}
+                  onClick={() => handleCategoryChange(catKey)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                     isSelected
                       ? 'bg-purple-800 text-white shadow-2xs'
@@ -343,7 +344,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   }`}
                 >
                   <IconComp className="w-3.5 h-3.5" />
-                  <span>{cat.name} ({cat.count})</span>
+                  <span>{cat.name} ({(cat.count || 0).toLocaleString()})</span>
                 </button>
               );
             })}
@@ -477,23 +478,26 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         <span>All Categories</span>
                       </label>
 
-                      {categories.map((cat) => (
-                        <label key={cat.id} className="flex items-center justify-between font-medium text-slate-700 cursor-pointer hover:text-purple-900">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              name="sidebarCategory"
-                              checked={selectedCategory === cat.id}
-                              onChange={() => handleCategoryChange(cat.id)}
-                              className="text-purple-700 focus:ring-purple-600"
-                            />
-                            <span>{cat.name}</span>
-                          </div>
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            {cat.count}
-                          </span>
-                        </label>
-                      ))}
+                      {categories.map((cat) => {
+                        const catKey = cat.slug || cat.id;
+                        return (
+                          <label key={cat.id || catKey} className="flex items-center justify-between font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="sidebarCategory"
+                                checked={selectedCategory === catKey || selectedCategory === cat.id}
+                                onChange={() => handleCategoryChange(catKey)}
+                                className="text-purple-700 focus:ring-purple-600"
+                              />
+                              <span>{cat.name}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {(cat.count || 0).toLocaleString()}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -872,19 +876,22 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   />
                   <span>All Categories</span>
                 </label>
-                {categories.map((cat) => (
-                  <label key={cat.id} className="flex items-center justify-between font-medium text-slate-700">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="mobileCategory"
-                        checked={selectedCategory === cat.id}
-                        onChange={() => handleCategoryChange(cat.id)}
-                      />
-                      <span>{cat.name}</span>
-                    </div>
-                  </label>
-                ))}
+                {categories.map((cat) => {
+                  const catKey = cat.slug || cat.id;
+                  return (
+                    <label key={cat.id || catKey} className="flex items-center justify-between font-medium text-slate-700">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="mobileCategory"
+                          checked={selectedCategory === catKey || selectedCategory === cat.id}
+                          onChange={() => handleCategoryChange(catKey)}
+                        />
+                        <span>{cat.name}</span>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 

@@ -83,12 +83,27 @@ export async function fetchServices({
       // Pagination range
       query = query.range(offset, offset + pageSize - 1);
 
-      const [{ data, count, error }, categoriesRes] = await Promise.all([
+      const [{ data, count, error }, categoriesRes, categoryCountsRes] = await Promise.all([
         query,
-        fetchCategories()
+        fetchCategories(),
+        supabase.from('services').select('category_id').eq('active', true)
       ]);
 
       const activeCategories = categoriesRes.categories || CATEGORIES;
+      const countMap = {};
+      (categoryCountsRes?.data || []).forEach(item => {
+        if (item.category_id) {
+          countMap[item.category_id] = (countMap[item.category_id] || 0) + 1;
+        }
+      });
+
+      const enrichedCategories = activeCategories.map(cat => {
+        const catKey = cat.slug || cat.id;
+        return {
+          ...cat,
+          count: countMap[catKey] !== undefined ? countMap[catKey] : (countMap[cat.id] || 0)
+        };
+      });
 
       if (!error && data) {
         return {
@@ -103,7 +118,7 @@ export async function fetchServices({
           totalPages: Math.ceil((count || 0) / pageSize) || 1,
           page: validPage,
           pageSize,
-          categories: activeCategories,
+          categories: enrichedCategories,
           providers: PROVIDERS
         };
       }
@@ -187,13 +202,28 @@ export async function fetchServices({
   const pageStart = (validPage - 1) * pageSize;
   const paginatedServices = result.slice(pageStart, pageStart + pageSize);
 
+  const fallbackCountMap = {};
+  ALL_SERVICES.filter(s => s.active !== false).forEach(s => {
+    if (s.category_id) {
+      fallbackCountMap[s.category_id] = (fallbackCountMap[s.category_id] || 0) + 1;
+    }
+  });
+
+  const enrichedFallbackCategories = CATEGORIES.map(cat => {
+    const catKey = cat.slug || cat.id;
+    return {
+      ...cat,
+      count: fallbackCountMap[catKey] !== undefined ? fallbackCountMap[catKey] : (fallbackCountMap[cat.id] || cat.count || 0)
+    };
+  });
+
   return {
     services: paginatedServices,
     totalMatches,
     totalPages,
     page: validPage,
     pageSize,
-    categories: CATEGORIES,
+    categories: enrichedFallbackCategories,
     providers: PROVIDERS
   };
 }
