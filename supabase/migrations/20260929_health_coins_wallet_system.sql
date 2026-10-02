@@ -514,10 +514,9 @@ begin
   where phone_e164 = p_customer_phone;
 
   if v_existing_patient_id is null then
-    insert into public.patients (name, phone, phone_e164, email, city, user_id)
+    insert into public.patients (full_name, phone_e164, email, city, user_id)
     values (
       trim(p_customer_name),
-      p_customer_phone,
       p_customer_phone,
       case when p_customer_email is not null and trim(p_customer_email) <> '' then lower(trim(p_customer_email)) else null end,
       coalesce(p_city, 'Bengaluru'),
@@ -534,7 +533,7 @@ begin
 
     v_patient_id := v_existing_patient_id;
     update public.patients
-    set name = trim(p_customer_name),
+    set full_name = trim(p_customer_name),
         email = coalesce(case when p_customer_email is not null and trim(p_customer_email) <> '' then lower(trim(p_customer_email)) else null end, email),
         city = coalesce(p_city, city),
         user_id = case
