@@ -58,10 +58,50 @@ export async function fetchWalletSettings() {
 }
 
 /**
- * Fetch patient's wallet balance and transaction ledger
+ * Resolve authentic patient.id (primary key UUID in public.patients) from either auth user.id or patient.id
  */
-export async function fetchWalletData(patientId) {
-  if (!isSupabaseConfigured || !supabase || !patientId) {
+export async function getCurrentPatientId(userOrPatientId) {
+  if (!userOrPatientId || !isSupabaseConfigured || !supabase) return null;
+
+  // 1. Direct check: Check if userOrPatientId is already a valid primary key in public.patients
+  try {
+    const { data: directPatient } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('id', userOrPatientId)
+      .maybeSingle();
+
+    if (directPatient?.id) return directPatient.id;
+  } catch (e) {
+    // Non-blocking fallback
+  }
+
+  // 2. User ID resolution: Lookup public.patients where user_id = auth.uid()
+  try {
+    const { data: patient, error } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('user_id', userOrPatientId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!error && patient?.id) {
+      return patient.id;
+    }
+  } catch (err) {
+    console.error('[Wallet] Failed to resolve patient by user_id:', err);
+  }
+
+  return null;
+}
+
+/**
+ * Fetch patient's wallet balance and transaction ledger.
+ * Accepts auth user ID (user.id) or patient.id and resolves the authentic patients.id.
+ */
+export async function fetchWalletData(userOrPatientId) {
+  if (!isSupabaseConfigured || !supabase || !userOrPatientId) {
     return {
       success: true,
       balance: 0,
@@ -70,7 +110,18 @@ export async function fetchWalletData(patientId) {
   }
 
   try {
-    // 1. Fetch wallet account
+    const patientId = await getCurrentPatientId(userOrPatientId);
+
+    if (!patientId) {
+      return {
+        success: false,
+        error: 'Patient profile not found',
+        balance: 0,
+        transactions: []
+      };
+    }
+
+    // 1. Fetch wallet account using resolved patients.id
     const { data: account, error: accErr } = await supabase
       .from('wallet_accounts')
       .select('*')
@@ -80,14 +131,17 @@ export async function fetchWalletData(patientId) {
     let coinBalance = 0;
 
     if (!account) {
-      // Create wallet if missing
-      const { data: newAcc } = await supabase.rpc('get_or_create_wallet', { p_patient_id: patientId });
+      // Create wallet if missing using resolved patients.id
+      const { data: newAcc, error: rpcErr } = await supabase.rpc('get_or_create_wallet', { p_patient_id: patientId });
+      if (rpcErr) {
+        console.error('[Wallet] get_or_create_wallet RPC error:', rpcErr.message);
+      }
       coinBalance = newAcc?.coin_balance || 0;
     } else {
       coinBalance = account.coin_balance || 0;
     }
 
-    // 2. Fetch transaction history
+    // 2. Fetch transaction history using resolved patients.id
     const { data: transactions } = await supabase
       .from('wallet_transactions')
       .select('*')
@@ -107,14 +161,21 @@ export async function fetchWalletData(patientId) {
 }
 
 /**
- * Trigger idempotent signup reward RPC
+ * Trigger idempotent signup reward RPC.
+ * Accepts auth user ID (user.id) or patient.id and resolves the authentic patients.id.
  */
-export async function claimSignupReward(patientId) {
-  if (!isSupabaseConfigured || !supabase || !patientId) {
+export async function claimSignupReward(userOrPatientId) {
+  if (!isSupabaseConfigured || !supabase || !userOrPatientId) {
     return { success: true, already_claimed: true, balance: 0 };
   }
 
   try {
+    const patientId = await getCurrentPatientId(userOrPatientId);
+
+    if (!patientId) {
+      return { success: false, error: 'Patient profile not found' };
+    }
+
     const { data, error } = await supabase.rpc('claim_signup_reward_atomic', { p_patient_id: patientId });
 
     if (error) {
