@@ -83,27 +83,41 @@ export async function fetchServices({
       // Pagination range
       query = query.range(offset, offset + pageSize - 1);
 
-      const [{ data, count, error }, categoriesRes, categoryCountsRes] = await Promise.all([
+      const [{ data, count, error }, categoriesRes] = await Promise.all([
         query,
-        fetchCategories(),
-        supabase.from('services').select('category_id').eq('active', true)
+        fetchCategories()
       ]);
 
       const activeCategories = categoriesRes.categories || CATEGORIES;
-      const countMap = {};
-      (categoryCountsRes?.data || []).forEach(item => {
-        if (item.category_id) {
-          countMap[item.category_id] = (countMap[item.category_id] || 0) + 1;
-        }
-      });
 
-      const enrichedCategories = activeCategories.map(cat => {
-        const catKey = cat.slug || cat.id;
-        return {
-          ...cat,
-          count: countMap[catKey] !== undefined ? countMap[catKey] : (countMap[cat.id] || 0)
-        };
-      });
+      const enrichedCategories = await Promise.all(
+        activeCategories.map(async (cat) => {
+          const categoryKey = cat.slug || cat.id;
+
+          const { count: catCount, error: catCountErr } = await supabase
+            .from('services')
+            .select('id', { count: 'exact', head: true })
+            .eq('active', true)
+            .eq('category_id', categoryKey);
+
+          if (catCountErr) {
+            console.warn('[catalogService] Failed to fetch category count', {
+              category: categoryKey,
+              error: catCountErr
+            });
+
+            return {
+              ...cat,
+              count: 0
+            };
+          }
+
+          return {
+            ...cat,
+            count: catCount ?? 0
+          };
+        })
+      );
 
       if (!error && data) {
         return {
