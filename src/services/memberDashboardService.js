@@ -17,10 +17,10 @@ export async function getMemberPatientProfile(userId) {
       .from('patients')
       .select('*')
       .eq('user_id', userId)
-      .maybeSingle();
+      .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      return data;
+    if (!error && data && data.length > 0) {
+      return data[0];
     }
 
     // Fallback tier 2: Lookup by session user phone canonical 10-digit suffix if direct user_id link is still null
@@ -33,6 +33,7 @@ export async function getMemberPatientProfile(userId) {
         const { data: fbPatients } = await supabase
           .from('patients')
           .select('*')
+          .is('user_id', null)
           .ilike('phone_e164', `%${last10}%`)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -47,28 +48,7 @@ export async function getMemberPatientProfile(userId) {
         }
       }
     } catch (e) {
-      // Ignore fallback tier 2 error
-    }
-
-    // Fallback tier 3: Claim most recent unlinked guest patient profile
-    try {
-      const { data: anyUnlinked } = await supabase
-        .from('patients')
-        .select('*')
-        .is('user_id', null)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (anyUnlinked && anyUnlinked.length > 0) {
-        const unlinkedPatient = anyUnlinked[0];
-        await supabase
-          .from('patients')
-          .update({ user_id: userId, is_verified: true })
-          .eq('id', unlinkedPatient.id);
-        return { ...unlinkedPatient, user_id: userId };
-      }
-    } catch (e) {
-      // Ignore fallback tier 3 error
+      console.warn('getMemberPatientProfile fallback tier 2 notice:', e);
     }
 
     return null;
@@ -82,7 +62,35 @@ export async function getMemberPatientProfile(userId) {
  * Fetch complete overview statistics for member from Supabase database
  */
 export async function getMemberOverview(userId) {
-  if (!userId || !isSupabaseConfigured || !supabase) {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      success: false,
+      patient: null,
+      orders: [],
+      prescriptions: [],
+      enquiries: [],
+      payments: [],
+      events: [],
+      walletCoins: 0
+    };
+  }
+
+  // Failsafe: Validate userId is a valid UUID, otherwise obtain session user ID from active auth session
+  let activeUserId = userId;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId || '');
+  if (!activeUserId || !isUuid) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        activeUserId = session.user.id;
+      }
+    } catch (e) {
+      console.warn('[AUTH] Error resolving active auth session in getMemberOverview:', e);
+    }
+  }
+
+  if (!activeUserId) {
+    console.warn('[AUTH] No authenticated user ID available for getMemberOverview');
     return {
       success: false,
       patient: null,
@@ -101,29 +109,112 @@ export async function getMemberOverview(userId) {
       console.warn('[LINK] Auto account linking notice in getMemberOverview:', err?.message || err);
     });
 
-    const patient = await getMemberPatientProfile(userId);
-    const patientId = patient?.id || null;
+    // 2. Resolve primary patient profile & collect all linked patient IDs for activeUserId
+    const patient = await getMemberPatientProfile(activeUserId);
 
-    console.info(`[AUTH] Authenticated user: ${userId}`);
-    console.info(`[PATIENT] Resolved patient: ${patientId || 'none'}`);
+    const { data: allUserPatients } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('user_id', activeUserId);
 
-    // 2. Parallel fetch scoped strictly to auth.uid() / patientId
-    const [ordRes, presRes, enqRes, payRes, evtRes, walRes] = await Promise.all([
-      supabase.from('orders').select('*, payments(*)').eq('user_id', userId).order('created_at', { ascending: false }),
-      patientId
-        ? supabase.from('prescriptions').select('*, enquiries(*)').or(`user_id.eq.${userId},patient_id.eq.${patientId}`).order('created_at', { ascending: false })
-        : supabase.from('prescriptions').select('*, enquiries(*)').eq('user_id', userId).order('created_at', { ascending: false }),
-      patientId 
-        ? supabase.from('enquiries').select('*, prescriptions(*)').eq('patient_id', patientId).order('created_at', { ascending: false })
-        : Promise.resolve({ data: [] }),
-      patientId 
-        ? supabase.from('payments').select('*').eq('patient_id', patientId).order('created_at', { ascending: false })
-        : Promise.resolve({ data: [] }),
-      supabase.from('analytics_events').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(100),
-      patientId 
-        ? supabase.from('wallet_accounts').select('coin_balance').eq('patient_id', patientId).maybeSingle()
-        : Promise.resolve({ data: null })
-    ]);
+    const patientIdSet = new Set();
+    if (patient?.id) patientIdSet.add(patient.id);
+    if (allUserPatients && Array.isArray(allUserPatients)) {
+      allUserPatients.forEach(p => { if (p.id) patientIdSet.add(p.id); });
+    }
+    const patientIds = Array.from(patientIdSet);
+    const primaryPatientId = patient?.id || (patientIds.length > 0 ? patientIds[0] : null);
+
+    console.info(`[AUTH] Authenticated user: ${activeUserId}`);
+    console.info(`[PATIENT] Resolved primary patient: ${primaryPatientId || 'none'}, total patient IDs: ${patientIds.length}`);
+
+    // 3. Resilient queries for Prescriptions, Orders, Enquiries, Payments, Analytics, Wallet
+    let rxOrClause = `user_id.eq.${activeUserId}`;
+    if (patientIds.length > 0) {
+      rxOrClause += `,patient_id.in.(${patientIds.join(',')})`;
+    }
+
+    // A. Prescriptions query with fallback if enquiries(*) join fails or errors
+    let presRes = await supabase
+      .from('prescriptions')
+      .select('*, enquiries(*)')
+      .or(rxOrClause)
+      .order('created_at', { ascending: false });
+
+    if (presRes.error || !presRes.data) {
+      console.warn('[PRESCRIPTIONS] Select with enquiries(*) failed or returned error:', presRes.error?.message || presRes.error);
+      presRes = await supabase
+        .from('prescriptions')
+        .select('*')
+        .or(rxOrClause)
+        .order('created_at', { ascending: false });
+    }
+
+    // B. Orders query with fallback
+    let ordOrClause = `user_id.eq.${activeUserId}`;
+    if (patientIds.length > 0) {
+      ordOrClause += `,patient_id.in.(${patientIds.join(',')})`;
+    }
+    let ordRes = await supabase
+      .from('orders')
+      .select('*, payments(*)')
+      .or(ordOrClause)
+      .order('created_at', { ascending: false });
+
+    if (ordRes.error || !ordRes.data) {
+      ordRes = await supabase
+        .from('orders')
+        .select('*')
+        .or(ordOrClause)
+        .order('created_at', { ascending: false });
+    }
+
+    // C. Enquiries query
+    let enqRes = { data: [] };
+    if (patientIds.length > 0) {
+      const enqClause = `patient_id.in.(${patientIds.join(',')})`;
+      enqRes = await supabase
+        .from('enquiries')
+        .select('*, prescriptions(*)')
+        .or(enqClause)
+        .order('created_at', { ascending: false });
+
+      if (enqRes.error || !enqRes.data) {
+        enqRes = await supabase
+          .from('enquiries')
+          .select('*')
+          .or(enqClause)
+          .order('created_at', { ascending: false });
+      }
+    }
+
+    // D. Payments query
+    let payRes = { data: [] };
+    if (patientIds.length > 0) {
+      payRes = await supabase
+        .from('payments')
+        .select('*')
+        .in('patient_id', patientIds)
+        .order('created_at', { ascending: false });
+    }
+
+    // E. Analytics events query
+    const evtRes = await supabase
+      .from('analytics_events')
+      .select('*')
+      .eq('user_id', activeUserId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    // F. Wallet balance query
+    let walRes = { data: null };
+    if (primaryPatientId) {
+      walRes = await supabase
+        .from('wallet_accounts')
+        .select('coin_balance')
+        .eq('patient_id', primaryPatientId)
+        .maybeSingle();
+    }
 
     // Batch generate short-lived (300s) private signed URLs for prescriptions
     const rawPrescriptions = presRes.data || [];
@@ -131,21 +222,27 @@ export async function getMemberOverview(userId) {
       rawPrescriptions.map(async (rx) => {
         if (!rx.file_path) return rx;
         try {
-          const { data: signedData } = await supabase.storage
+          const { data: signedData, error: signErr } = await supabase.storage
             .from('prescriptions')
             .createSignedUrl(rx.file_path, 300);
+
+          if (signErr) {
+            console.warn(`[STORAGE] Signed URL notice for rx ${rx.id}:`, signErr.message);
+          }
+
           return {
             ...rx,
             public_url: signedData?.signedUrl || rx.public_url || null,
             signed_url: signedData?.signedUrl || rx.signed_url || null
           };
         } catch (e) {
+          console.warn(`[STORAGE] Signed URL exception for rx ${rx.id}:`, e);
           return rx;
         }
       })
     );
 
-    console.info(`[DASHBOARD] Loaded ${prescriptionsWithSignedUrls.length} prescriptions for member`);
+    console.info(`[DASHBOARD] Loaded ${prescriptionsWithSignedUrls.length} prescriptions, ${ordRes.data?.length || 0} orders, ${enqRes.data?.length || 0} enquiries for member ${activeUserId}`);
 
     return {
       success: true,

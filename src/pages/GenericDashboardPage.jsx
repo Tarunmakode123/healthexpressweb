@@ -98,7 +98,7 @@ export default function GenericDashboardPage() {
 
     async function loadDashboard() {
       try {
-        const userId = session?.user?.id || user?.id || 'authenticated-patient';
+        const userId = session?.user?.id || user?.id;
         
         // Fetch patient dashboard data and wallet settings in parallel
         const [data, walletConfig] = await Promise.all([
@@ -110,6 +110,8 @@ export default function GenericDashboardPage() {
           if (walletConfig?.settings) {
             setWalletSettings(walletConfig.settings);
           }
+
+          console.info(`[DASHBOARD PAGE] Received ${data.prescriptions?.length || 0} prescriptions, ${data.orders?.length || 0} orders`);
 
           setMemberData({
             ...data,
@@ -128,7 +130,7 @@ export default function GenericDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [session]);
+  }, [session, user]);
 
   const handleLogout = async () => {
     try {

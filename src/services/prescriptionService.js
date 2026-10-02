@@ -162,7 +162,7 @@ export async function submitGuestPrescription({ file, files, fullName, phone, co
       p_enquiry_code: enquiryCode,
       p_file_path: primaryFile.filePath,
       p_file_name: primaryFile.name,
-      p_file_type: primaryFile.type || 'application/octet-stream',
+      p_file_type: primaryFile.type || 'application/pdf',
       p_file_size: primaryFile.size || 0,
       p_notes: notes.trim() || null
     });
