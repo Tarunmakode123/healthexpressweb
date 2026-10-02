@@ -97,15 +97,30 @@ export default function GenericDashboardPage() {
     let isMounted = true;
 
     async function loadDashboard() {
+      if (isAuthLoading) {
+        console.info('[HEALTH DEBUG] Auth is loading, waiting for session resolution...');
+        return;
+      }
+
+      setIsLoadingStats(true);
       console.info('[HEALTH DEBUG] dashboard loading: true');
       try {
-        const userId = session?.user?.id || user?.id;
+        let activeUserId = session?.user?.id || user?.id;
+        if (!activeUserId && isSupabaseConfigured && supabase) {
+          const { data: { session: activeSession } } = await supabase.auth.getSession();
+          activeUserId = activeSession?.user?.id || activeUserId;
+        }
 
-        console.info('[HEALTH DEBUG] activeUserId passed to getMemberOverview:', userId || 'none');
+        console.info('[HEALTH DEBUG] activeUserId passed to getMemberOverview:', activeUserId || 'none');
+
+        if (!activeUserId) {
+          console.warn('[HEALTH DEBUG] No activeUserId found after session check, waiting for auth...');
+          return;
+        }
 
         // Fetch patient dashboard data and wallet settings in parallel
         const [data, walletConfig] = await Promise.all([
-          getMemberOverview(userId),
+          getMemberOverview(activeUserId),
           fetchWalletSettings().catch(() => null)
         ]);
 
@@ -139,7 +154,7 @@ export default function GenericDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [session, user]);
+  }, [session, user, isAuthLoading]);
 
   const handleLogout = async () => {
     try {
