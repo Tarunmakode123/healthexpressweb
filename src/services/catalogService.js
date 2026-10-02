@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { ALL_SERVICES, CATEGORIES, PROVIDERS } from '../data/services';
+import { fetchCategories } from './categoryService';
 
 const PRICE_RANGES = [
   { id: 'all', label: 'All Prices' },
@@ -82,7 +83,12 @@ export async function fetchServices({
       // Pagination range
       query = query.range(offset, offset + pageSize - 1);
 
-      const { data, count, error } = await query;
+      const [{ data, count, error }, categoriesRes] = await Promise.all([
+        query,
+        fetchCategories()
+      ]);
+
+      const activeCategories = categoriesRes.categories || CATEGORIES;
 
       if (!error && data) {
         return {
@@ -97,7 +103,7 @@ export async function fetchServices({
           totalPages: Math.ceil((count || 0) / pageSize) || 1,
           page: validPage,
           pageSize,
-          categories: CATEGORIES,
+          categories: activeCategories,
           providers: PROVIDERS
         };
       }

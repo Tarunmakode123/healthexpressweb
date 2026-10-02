@@ -5,7 +5,7 @@ import {
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X,
   BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck, Menu, Settings,
   CreditCard as PaymentIcon, Bell, Tag, Percent, Plus, Layers3, Coins, Gift, History, Award,
-  Cpu, Sparkles, Key, EyeOff, Play, Server, Globe, TrendingUp, ArrowUp, ArrowDown
+  Cpu, Sparkles, Key, EyeOff, Play, Server, Globe, TrendingUp, ArrowUp, ArrowDown, FolderTree
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
@@ -35,6 +35,12 @@ import {
   updateAdminService,
   toggleAdminServiceStatus
 } from '../services/adminService';
+import { 
+  fetchAdminCategories,
+  createAdminCategory,
+  updateAdminCategory,
+  toggleAdminCategoryStatus
+} from '../services/adminCategoryService';
 import { CATEGORIES, ALL_SERVICES } from '../data/services';
 import { openWhatsApp } from '../utils/whatsapp';
 import { getGeminiEngineStatus, testAiConnection, getEffectiveApiKey } from '../services/geminiService';
@@ -888,6 +894,144 @@ function AdminDashboardPage() {
       showToast(`Error toggling service status: ${err.message}`, 'error');
     } finally {
       setIsDeactivatingService(false);
+    }
+  };
+
+  // CATEGORY MANAGER STATES
+  const [adminCategories, setAdminCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState(null);
+  const [categoriesSearch, setCategoriesSearch] = useState('');
+  const [categoriesStatus, setCategoriesStatus] = useState('all');
+  const [categoriesPage, setCategoriesPage] = useState(1);
+  const [categoriesTotalPages, setCategoriesTotalPages] = useState(1);
+  const [categoriesTotalMatches, setCategoriesTotalMatches] = useState(0);
+
+  // Modals for Category Manager
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [deactivateConfirmCategory, setDeactivateConfirmCategory] = useState(null);
+  const [isDeactivatingCategory, setIsDeactivatingCategory] = useState(false);
+
+  // Category Form State
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    icon: 'Layers',
+    image_url: '',
+    display_order: 0,
+    active: true
+  });
+
+  const loadAdminCategories = async () => {
+    setCategoriesLoading(true);
+    setCategoriesError(null);
+    try {
+      const res = await fetchAdminCategories({
+        search: categoriesSearch,
+        activeStatus: categoriesStatus,
+        page: categoriesPage,
+        pageSize: 20
+      });
+      if (res.success) {
+        setAdminCategories(res.categories || []);
+        setCategoriesTotalMatches(res.totalMatches || 0);
+        setCategoriesTotalPages(res.totalPages || 1);
+      } else {
+        setCategoriesError(res.error || 'Unable to fetch categories.');
+      }
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+      setCategoriesError(err.message || 'Category loading exception.');
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && (activeNav === 'categories' || activeNav === 'catalog')) {
+      loadAdminCategories();
+    }
+  }, [isAuthenticated, activeNav, categoriesSearch, categoriesStatus, categoriesPage]);
+
+  const handleOpenAddCategoryModal = () => {
+    setEditingCategory(null);
+    setCategoryFormData({
+      name: '',
+      slug: '',
+      description: '',
+      icon: 'Layers',
+      image_url: '',
+      display_order: adminCategories.length + 1,
+      active: true
+    });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleOpenEditCategoryModal = (cat) => {
+    setEditingCategory(cat);
+    setCategoryFormData({
+      name: cat.name || '',
+      slug: cat.slug || cat.id || '',
+      description: cat.description || '',
+      icon: cat.icon || 'Layers',
+      image_url: cat.image_url || '',
+      display_order: cat.display_order !== undefined ? Number(cat.display_order) : 0,
+      active: cat.active !== undefined ? Boolean(cat.active) : true
+    });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleSaveCategory = async (e) => {
+    if (e) e.preventDefault();
+    if (!categoryFormData.name.trim()) {
+      showToast('Please enter a Category Name.', 'error');
+      return;
+    }
+    if (!categoryFormData.slug.trim()) {
+      showToast('Please enter a Category Slug.', 'error');
+      return;
+    }
+
+    if (editingCategory) {
+      const res = await updateAdminCategory(editingCategory.id, categoryFormData);
+      if (res.success) {
+        showToast(`Category "${categoryFormData.name}" updated successfully.`);
+        setIsCategoryModalOpen(false);
+        loadAdminCategories();
+      } else {
+        showToast(res.error || 'Failed to update category.', 'error');
+      }
+    } else {
+      const res = await createAdminCategory(categoryFormData);
+      if (res.success) {
+        showToast(`New category "${categoryFormData.name}" created.`);
+        setIsCategoryModalOpen(false);
+        loadAdminCategories();
+      } else {
+        showToast(res.error || 'Failed to create category.', 'error');
+      }
+    }
+  };
+
+  const handleConfirmToggleCategoryStatus = async () => {
+    if (!deactivateConfirmCategory) return;
+    setIsDeactivatingCategory(true);
+    try {
+      const newStatus = !deactivateConfirmCategory.active;
+      const res = await toggleAdminCategoryStatus(deactivateConfirmCategory.id, newStatus);
+      if (res.success) {
+        showToast(`Category "${deactivateConfirmCategory.name}" ${newStatus ? 'ACTIVATED' : 'DEACTIVATED'}.`);
+        setDeactivateConfirmCategory(null);
+        await loadAdminCategories();
+      } else {
+        showToast(res.error || 'Failed to update category status.', 'error');
+      }
+    } catch (err) {
+      showToast(`Error toggling category status: ${err.message}`, 'error');
+    } finally {
+      setIsDeactivatingCategory(false);
     }
   };
 
@@ -1858,6 +2002,7 @@ function AdminDashboardPage() {
           {[
             { id: 'overview', label: 'Overview', icon: Activity },
             { id: 'catalog', label: 'Service Catalog', icon: Layers3, badge: catalogTotalMatches > 0 ? catalogTotalMatches.toLocaleString('en-IN') : '2,207' },
+            { id: 'categories', label: 'Category Manager', icon: FolderTree, badge: categoriesTotalMatches > 0 ? categoriesTotalMatches : (adminCategories.length || 5) },
             { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: (orders || []).length },
             { id: 'customers', label: 'Customers', icon: Users, badge: (patients || []).length },
             { id: 'prescriptions', label: 'Prescriptions', icon: FileText, badge: pendingReviewsCount > 0 ? pendingReviewsCount : null },
@@ -1926,6 +2071,7 @@ function AdminDashboardPage() {
               <h1 className="text-xl font-black text-white tracking-tight uppercase">
                 {activeNav === 'overview' && 'Operational Overview'}
                 {activeNav === 'catalog' && 'Service Catalog Manager'}
+                {activeNav === 'categories' && 'Category Manager'}
                 {activeNav === 'orders' && 'Orders & Transactions'}
                 {activeNav === 'customers' && 'Customer Directory (360°)'}
                 {activeNav === 'prescriptions' && 'Guest Prescriptions'}
@@ -2578,6 +2724,209 @@ function AdminDashboardPage() {
                     <button
                       disabled={catalogPage >= catalogTotalPages || catalogLoading}
                       onClick={() => setCatalogPage((prev) => Math.min(prev + 1, catalogTotalPages))}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold cursor-pointer transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* NAV SECTION: CATEGORY MANAGER */}
+        {activeNav === 'categories' && (
+          <div className="space-y-6">
+            
+            {/* CATEGORY HEADER & ACTION BAR */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <FolderTree className="w-5 h-5 text-purple-400" />
+                  <span>Production Category Manager</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Single source of truth: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-purple-300 font-mono">public.categories</code> ({categoriesTotalMatches.toLocaleString('en-IN')} total categories)
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={loadAdminCategories}
+                  disabled={categoriesLoading}
+                  className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-purple-200 border border-slate-700 font-bold text-xs flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${categoriesLoading ? 'animate-spin text-purple-400' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+
+                <button
+                  onClick={handleOpenAddCategoryModal}
+                  className="px-5 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Category</span>
+                </button>
+              </div>
+            </div>
+
+            {/* FILTERS & SEARCH TOOLBAR */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-4 space-y-3 shadow-xl">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold">
+                
+                {/* Search */}
+                <div className="relative w-full sm:w-80">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={categoriesSearch}
+                    onChange={(e) => { setCategoriesSearch(e.target.value); setCategoriesPage(1); }}
+                    placeholder="Search category name or slug..."
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 font-medium"
+                  />
+                </div>
+
+                {/* ACTIVE / INACTIVE STATUS TABS */}
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-[11px] font-bold mr-1">Status:</span>
+                  {[
+                    { id: 'all', label: 'All Categories' },
+                    { id: 'active', label: 'Active Only' },
+                    { id: 'inactive', label: 'Inactive Only' }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setCategoriesStatus(tab.id); setCategoriesPage(1); }}
+                      className={`px-3 py-1 rounded-lg font-extrabold text-[11px] cursor-pointer transition-all ${
+                        categoriesStatus === tab.id
+                          ? 'bg-purple-600 border border-purple-500 text-white shadow-xs'
+                          : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+              </div>
+            </div>
+
+            {/* ERROR ALERT */}
+            {categoriesError && (
+              <div className="p-4 bg-rose-950/80 border border-rose-800/80 rounded-2xl text-xs text-rose-200 font-bold flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                <span>{categoriesError}</span>
+              </div>
+            )}
+
+            {/* CATEGORIES DATA TABLE */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-purple-300 font-extrabold border-b border-slate-700 text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Category Name</th>
+                      <th className="p-4">Slug</th>
+                      <th className="p-4">Description</th>
+                      <th className="p-4">Display Order</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 text-slate-200">
+                    {categoriesLoading ? (
+                      <tr>
+                        <td colSpan={6} className="p-12 text-center text-purple-300 font-bold">
+                          <div className="flex flex-col items-center gap-2">
+                            <RefreshCw className="w-6 h-6 animate-spin text-purple-400" />
+                            <span>Loading categories from Supabase...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : adminCategories.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-12 text-center text-slate-400 font-medium">
+                          No categories found matching search / filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      adminCategories.map((cat) => (
+                        <tr key={cat.id} className="hover:bg-slate-700/30 transition-colors">
+                          <td className="p-4">
+                            <div className="font-extrabold text-white text-sm flex items-center gap-2">
+                              <FolderTree className="w-4 h-4 text-purple-400" />
+                              <span>{cat.name}</span>
+                            </div>
+                          </td>
+
+                          <td className="p-4 font-mono text-purple-300 text-xs font-bold">
+                            {cat.slug || cat.id}
+                          </td>
+
+                          <td className="p-4 max-w-xs text-slate-300">
+                            <p className="truncate text-xs">{cat.description || '—'}</p>
+                          </td>
+
+                          <td className="p-4">
+                            <span className="px-2.5 py-1 rounded bg-slate-900 border border-slate-700 text-xs font-bold text-slate-200">
+                              #{cat.display_order || 0}
+                            </span>
+                          </td>
+
+                          <td className="p-4 whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                              cat.active !== false ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            }`}>
+                              {cat.active !== false ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
+                          </td>
+
+                          <td className="p-4 text-right whitespace-nowrap space-x-2">
+                            <button
+                              onClick={() => handleOpenEditCategoryModal(cat)}
+                              className="px-3 py-1.5 rounded-xl bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-700 font-bold text-[11px] cursor-pointer transition-colors"
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              onClick={() => setDeactivateConfirmCategory(cat)}
+                              className={`px-3 py-1.5 rounded-xl font-bold text-[11px] cursor-pointer transition-colors ${
+                                cat.active !== false
+                                  ? 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800'
+                                  : 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800'
+                              }`}
+                            >
+                              {cat.active !== false ? 'Deactivate' : 'Activate'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* PAGINATION FOOTER */}
+              {categoriesTotalPages > 1 && (
+                <div className="p-4 bg-slate-900 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-medium">
+                  <div>
+                    Showing <strong>{(categoriesPage - 1) * 20 + 1}</strong> to <strong>{Math.min(categoriesPage * 20, categoriesTotalMatches)}</strong> of <strong>{categoriesTotalMatches.toLocaleString('en-IN')}</strong> categories
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      disabled={categoriesPage === 1 || categoriesLoading}
+                      onClick={() => setCategoriesPage((prev) => Math.max(prev - 1, 1))}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold cursor-pointer transition-colors"
+                    >
+                      Previous
+                    </button>
+                    <span className="px-2 font-bold text-white">Page {categoriesPage} of {categoriesTotalPages}</span>
+                    <button
+                      disabled={categoriesPage >= categoriesTotalPages || categoriesLoading}
+                      onClick={() => setCategoriesPage((prev) => Math.min(prev + 1, categoriesTotalPages))}
                       className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-bold cursor-pointer transition-colors"
                     >
                       Next
@@ -4368,6 +4717,182 @@ function AdminDashboardPage() {
                 }`}
               >
                 {isDeactivatingService ? 'Updating...' : deactivateConfirmService.active ? 'Confirm Deactivation' : 'Confirm Activation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD / EDIT CATEGORY MODAL */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="w-full max-w-lg bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0 my-8">
+            
+            {/* Modal Header */}
+            <div className="p-5 bg-gradient-to-r from-purple-950 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                <FolderTree className="w-6 h-6 text-purple-400" />
+                <div>
+                  <h3 className="text-lg font-black text-white">{editingCategory ? `Edit Category: ${editingCategory.name}` : 'Add New Category'}</h3>
+                  <p className="text-xs text-purple-300 font-medium">Persisted directly to production <code className="font-mono">public.categories</code></p>
+                </div>
+              </div>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveCategory} className="p-6 space-y-4 text-xs">
+              
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={categoryFormData.name}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCategoryFormData((prev) => ({
+                      ...prev,
+                      name: val,
+                      slug: editingCategory ? prev.slug : val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+                    }));
+                  }}
+                  placeholder="e.g. Teleconsultation & Nursing"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">URL Slug (Unique Identifier) *</label>
+                <input
+                  type="text"
+                  required
+                  value={categoryFormData.slug}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, slug: e.target.value.toLowerCase().trim() })}
+                  placeholder="teleconsultation-nursing"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-purple-300 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+                {editingCategory && (
+                  <p className="text-[10px] text-amber-400 font-medium mt-1">
+                    ⚠️ Note: Changing an existing category slug may alter URLs and filters referencing this category.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Description</label>
+                <textarea
+                  rows="3"
+                  value={categoryFormData.description}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                  placeholder="Short description of services offered under this category..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Icon Name</label>
+                  <input
+                    type="text"
+                    value={categoryFormData.icon}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, icon: e.target.value })}
+                    placeholder="e.g. FlaskConical, Scan, Home"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Display Order</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={categoryFormData.display_order}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, display_order: e.target.value })}
+                    placeholder="1"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-bold text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="cat_active_toggle"
+                  checked={categoryFormData.active}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, active: e.target.checked })}
+                  className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500"
+                />
+                <label htmlFor="cat_active_toggle" className="text-slate-200 font-extrabold">Category Active for Public Browsing</label>
+              </div>
+
+              {/* Form Footer Actions */}
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-colors cursor-pointer"
+                >
+                  {editingCategory ? 'Save Category Changes' : 'Create Category'}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DEACTIVATE CATEGORY CONFIRMATION MODAL */}
+      {deactivateConfirmCategory && (
+        <div className="fixed inset-0 z-[250000] bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-rose-800/60 rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl text-left">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-rose-400" />
+                <span>{deactivateConfirmCategory.active !== false ? 'Deactivate Category' : 'Activate Category'}</span>
+              </h3>
+              <button onClick={() => setDeactivateConfirmCategory(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
+              <p>Category: <strong className="text-white font-bold">{deactivateConfirmCategory.name}</strong></p>
+              <p>Slug: <span className="text-purple-300 font-mono">{deactivateConfirmCategory.slug || deactivateConfirmCategory.id}</span></p>
+              <p>Current Status: <span className={deactivateConfirmCategory.active !== false ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>{deactivateConfirmCategory.active !== false ? 'ACTIVE' : 'INACTIVE'}</span></p>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              {deactivateConfirmCategory.active !== false
+                ? 'Deactivating this category hides it from public category browsing. Services, historical orders, and pricing remain intact.'
+                : 'Reactivating this category will make it visible to public website visitors immediately.'}
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setDeactivateConfirmCategory(null)}
+                className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeactivatingCategory}
+                onClick={handleConfirmToggleCategoryStatus}
+                className={`px-5 py-2 font-black text-xs rounded-xl cursor-pointer shadow-md transition-colors ${
+                  deactivateConfirmCategory.active !== false ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                }`}
+              >
+                {isDeactivatingCategory ? 'Updating...' : deactivateConfirmCategory.active !== false ? 'Confirm Deactivation' : 'Confirm Activation'}
               </button>
             </div>
           </div>
