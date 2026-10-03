@@ -251,6 +251,10 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
     cleanQuery.includes('our services') || 
     cleanQuery.includes('services list') || 
     cleanQuery.includes('type of services') || 
+    cleanQuery.includes('how many services') ||
+    cleanQuery.includes('total services') ||
+    cleanQuery.includes('count of services') ||
+    cleanQuery.includes('number of services') ||
     cleanQuery === 'services' || 
     cleanQuery === 'service'
   ) {
