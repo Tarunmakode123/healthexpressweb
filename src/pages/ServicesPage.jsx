@@ -702,7 +702,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         {requiresFasting && (
                           <div className="pt-0.5">
                             <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded inline-block shadow-2xs">
-                              ⚠️ Fasting Prep Required
+                              ⚠️ Fasting Required
                             </span>
                           </div>
                         )}

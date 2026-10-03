@@ -154,7 +154,7 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5 text-purple-700" />
-                    <span>Fasting Prep</span>
+                    <span>Fasting</span>
                   </div>
                   <div className="font-extrabold text-slate-900 mt-0.5 truncate">
                     {service.fasting_required ? 'Fasting Required' : 'No Fasting'}
