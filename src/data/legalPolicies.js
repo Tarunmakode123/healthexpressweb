@@ -582,5 +582,225 @@ export const LEGAL_POLICIES = {
         ]
       }
     ]
+  },
+  refund: {
+    id: "refund",
+    title: "HEALTH EXPRESS REFUND, CANCELLATION, SHIPPING, DELIVERY & FEES POLICY",
+    shortTitle: "Refund, Shipping & Fees",
+    effectiveDate: "May 25, 2026",
+    sections: [
+      {
+        heading: "PREAMBLE",
+        content: [
+          `This Refund, Cancellation, Shipping, Delivery & Fees Policy (“Policy”) constitutes a legally binding agreement between you (“User”, “you”, “your”) and Health Express (“Health Express”, “Company”, “we”, “our”, “us”), having its registered office at No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India.`,
+          `This Policy governs cancellations, refunds, returns, rescheduling requests, failed collections, service disruptions, delivery procedures, shipping obligations, fees, payment mechanisms, wallet systems, operational limitations, subscription services, healthcare-product returns, communication systems, fraud-prevention mechanisms, authentication systems, operational monitoring systems, analytics systems, and related matters concerning products and services facilitated through the Health Express website, mobile applications, APIs, software systems, communication systems, operational systems, integrations, healthcare infrastructure, analytics systems, and related digital technologies (collectively, the “Platform”).`,
+          `By booking, purchasing, scheduling, rescheduling, uploading prescriptions, making payments, browsing, accessing, communicating through, or otherwise using the Platform, you acknowledge that you have read, understood, and agreed to this Policy.`,
+          `If you do not agree to this Policy, you must discontinue use of the Platform immediately.`,
+          `This Policy shall be read together with the Terms & Conditions, Privacy Policy, Cookie Policy, Telemedicine Policy, Consent & Communications Policy, Fees & Payments Policy, and other policies published by Health Express from time to time.`,
+          `This document constitutes an electronic record under the Information Technology Act, 2000 and applicable rules thereunder and does not require physical or digital signatures.`
+        ]
+      },
+      {
+        heading: "1. APPLICABILITY",
+        content: [
+          `1.1 This Policy applies to all healthcare-related products and services facilitated through the Platform including diagnostic bookings, home sample collections, preventive-health packages, telemedicine consultations, wellness services, medicine-delivery services, medical-device purchases, healthcare-commerce transactions, subscriptions, memberships, radiology services, nursing services, caregiver services, insurance-linked healthcare services, enterprise healthcare programs, wallet systems, and future healthcare-related products or services introduced on the Platform.`,
+          `1.2 Certain products or services may additionally be governed by service-specific terms, provider-specific policies, healthcare regulations, pharmaceutical regulations, medical-device regulations, insurance requirements, logistics requirements, payment-provider terms, or operational requirements.`,
+          `1.3 By using the Platform and/or placing requests for purchase of products or services, Users agree to be legally bound by this Policy without modification.`,
+          `1.4 Health Express reserves the right to amend, revise, suspend, modify, replace, or update this Policy at any time, and such updated versions shall become effective upon publication on the Platform unless otherwise stated.`,
+          `1.5 Continued use of the Platform following publication of revised versions of this Policy constitutes acceptance of such updated versions.`
+        ]
+      },
+      {
+        heading: "2. NATURE OF HEALTHCARE SERVICES",
+        content: [
+          `2.1 Users acknowledge that healthcare services inherently involve operational dependencies, provider availability, biological limitations, laboratory-processing requirements, transportation dependencies, healthcare regulations, medical-resource allocation, technology-system dependencies, communication-system dependencies, and circumstances beyond Health Express’s direct control.`,
+          `2.2 Refunds, returns, cancellations, and rescheduling requests in healthcare services differ materially from standard e-commerce transactions due to healthcare operational costs, biological sample handling, appointment blocking, provider scheduling, logistics deployment, healthcare-resource allocation, regulatory compliance obligations, cybersecurity requirements, fraud-prevention requirements, and healthcare-operational workflows.`,
+          `2.3 Users expressly acknowledge that certain healthcare services become partially or fully non-refundable once operational processing commences.`,
+          `2.4 Users further acknowledge that healthcare operations may involve independent third-party providers including laboratories, logistics partners, pharmacies, payment providers, practitioners, customer-support vendors, cloud-service providers, analytics providers, operational vendors, and communication-service providers.`
+        ]
+      },
+      {
+        heading: "3. DIAGNOSTIC BOOKINGS, COLLECTIONS & RESCHEDULING",
+        content: [
+          `3.1 Users may cancel eligible diagnostic bookings directly through the Platform up to two (2) hours before the scheduled sample-collection window unless otherwise specified.`,
+          `3.2 Cancellation requests submitted within two (2) hours of the scheduled collection time may require manual review and Users may be required to contact customer support.`,
+          `3.3 Health Express reserves the right to deny cancellation requests where collection personnel have already been dispatched, operational workflows have commenced, laboratory processing has begun, healthcare resources have been allocated, logistics systems have been activated, or third-party provider processes have already started.`,
+          `3.4 Users acknowledge that cancellation requests submitted after dispatch of collection personnel may not qualify for refunds.`,
+          `3.5 Users may request rescheduling of healthcare services subject to provider availability, logistics feasibility, operational limitations, laboratory scheduling, healthcare requirements, payment verification requirements, fraud-prevention checks, and applicable regulations.`,
+          `3.6 Health Express does not guarantee availability of preferred rescheduled slots.`,
+          `3.7 Repeated rescheduling requests may result in cancellation restrictions, operational review, temporary account limitations, denial of future bookings, additional operational scrutiny, fraud-prevention review, or service restrictions.`,
+          `3.8 Health Express reserves the right to impose rescheduling fees in the future where operationally necessary.`
+        ]
+      },
+      {
+        heading: "4. FAILED COLLECTIONS, SAMPLE REJECTIONS & RECOLLECTIONS",
+        content: [
+          `4.1 Collection attempts may fail due to user unavailability, incorrect addresses, unsafe locations, improper fasting compliance, inaccessible premises, operational limitations, provider delays, biological limitations, cybersecurity incidents, technical failures, communication failures, authentication issues, or force majeure events.`,
+          `4.2 Biological samples may be rejected due to contamination, hemolysis, clotting, insufficient quantity, delayed transportation, improper storage, expired samples, labeling mismatches, improper fasting, biological instability, or technical limitations.`,
+          `4.3 Health Express or associated laboratories may request recollection where medically, operationally, diagnostically, or technically necessary.`,
+          `4.4 Failed collections, recollection requests, or sample rejection scenarios shall not automatically entitle Users to refunds.`,
+          `4.5 Additional operational charges, logistics charges, recollection fees, or administrative charges may apply in exceptional circumstances caused by User-related factors.`
+        ]
+      },
+      {
+        heading: "5. RETURNS, REFUNDS & NON-REFUNDABLE SITUATIONS",
+        content: [
+          `5.1 Refunds are ordinarily unavailable once collection personnel have been dispatched, sample collection has occurred, laboratory processing has commenced, reports have been generated, teleconsultations have commenced, prescriptions or clinical advice have been issued, healthcare resources have been allocated, digital healthcare services have been substantially delivered, or operational workflows have materially progressed.`,
+          `5.2 Refunds are generally unavailable for user unavailability, incorrect User information, improper fasting compliance, sample rejection caused by User non-compliance, missed appointments, delayed User responses, refusal to cooperate during collection, inability to contact Users, traffic-related delays, minor scheduling deviations, laboratory turnaround delays, force majeure events, operational disruptions beyond reasonable control, dissatisfaction not attributable to operational failure, or provider-side delays beyond Health Express’s reasonable control.`,
+          `5.3 Users acknowledge that laboratory turnaround times are estimates only and may vary depending upon laboratory capacity, operational constraints, logistics systems, biological variables, infrastructure systems, regulatory requirements, and technical dependencies.`,
+          `5.4 Health Express may, at its sole and absolute discretion, issue refunds in limited circumstances including technician no-show, duplicate payments, failed collection attributable solely to Health Express, confirmed operational failure, confirmed billing error, defective products, expired products, incorrect products, products damaged during transit, verified fraudulent transactions, regulatory obligations, or exceptional cases approved after internal review.`,
+          `5.5 Refund decisions may require operational verification, provider confirmation, communication-log review, fraud review, analytics review, cybersecurity review, customer-support review, technical review, compliance review, authentication review, payment verification review, or internal operational investigation.`,
+          `5.6 Health Express reserves sole and absolute discretion in determining refund eligibility.`,
+          `5.7 Users requesting returns or refunds attributable to User-related reasons may be subject to restocking fees, operational deductions, shipping deductions, handling charges, payment-processing deductions, logistics charges, or administrative fees.`,
+          `5.8 Health Express may accept return requests only for products which remain unused, untampered, undamaged, unopened, unexpired, hygienically suitable for resale, and otherwise compliant with applicable healthcare, pharmaceutical, logistics, and regulatory requirements.`,
+          `5.9 Opened, damaged, altered, expired, tampered, or used healthcare products may not qualify for returns or refunds.`,
+          `5.10 Certain products including injections, health-monitoring equipment, orthopedic-support products, hygiene-sensitive products, regulated pharmaceutical products, customized healthcare products, cold-chain products, and products specifically marked as non-returnable may not qualify for returns, exchanges, or refunds.`,
+          `5.11 Users must notify Health Express regarding incomplete orders, expired products, defective products, damaged products, incorrect products, or related delivery discrepancies within two (2) days of receiving the product.`,
+          `5.12 Failure to notify Health Express within the specified timeline may result in denial of refund or return requests.`,
+          `5.13 In cases involving death of a patient, doctor-prescription modifications, or exceptional medical circumstances, Health Express may review refund or return requests on a case-by-case basis.`
+        ]
+      },
+      {
+        heading: "6. TELEMEDICINE SERVICES",
+        content: [
+          `6.1 Telemedicine consultations may be cancelled or rescheduled subject to practitioner availability, operational feasibility, healthcare regulations, technical limitations, and applicable telemedicine guidelines.`,
+          `6.2 Refunds are generally unavailable once consultation sessions commence, practitioners allocate consultation time, or prescriptions or clinical advice are issued.`,
+          `6.3 Health Express acts solely as a technology and operational facilitator connecting Users with healthcare practitioners and shall not be liable for practitioner unavailability, consultation delays, technical disruptions, treatment dissatisfaction, clinical outcomes, healthcare decisions, or provider-side operational failures.`,
+          `6.4 In limited situations involving practitioner unavailability, confirmed operational failures, or technical failures attributable solely to Health Express, Health Express may, at its sole discretion, permit full or partial refunds.`
+        ]
+      },
+      {
+        heading: "7. SHIPPING, DELIVERY & LOGISTICS",
+        content: [
+          `7.1 Health Express provides shipping and delivery services across serviceable areas in India through third-party logistics partners, reverse-logistics providers, operational partners, communication-service providers, or internal delivery systems.`,
+          `7.2 Health Express reserves the right to determine serviceable and unserviceable locations at its sole discretion.`,
+          `7.3 Estimated dispatch and delivery timelines communicated through the Platform are indicative only and may vary due to operational, logistical, technical, medical, weather-related, regulatory, cybersecurity-related, infrastructure-related, or external circumstances.`,
+          `7.4 Users acknowledge that delivery timelines are estimates only and are not guaranteed.`,
+          `7.5 Health Express may collect and process information including names, addresses, landmarks, billing details, device identifiers, communication records, location information, authentication records, and related delivery information for operational, logistics, analytics, authentication, and shipping purposes.`,
+          `7.6 Users remain solely responsible for ensuring that all delivery-related information submitted through the Platform is accurate, complete, lawful, and sufficient for delivery purposes.`,
+          `7.7 Health Express shall not be liable for delivery failures, delays, losses, operational complications, or failed delivery attempts arising from inaccurate, incomplete, misleading, fraudulent, or insufficient information provided by Users.`,
+          `7.8 Delivery attempts may be made up to three (3) times over a period determined by Health Express or logistics partners.`,
+          `7.9 Where delivery attempts fail due to User unavailability or related reasons, Health Express reserves the right to cancel orders, return products, deny refunds, deduct shipping and operational charges, impose restrictions, or deny future delivery services.`,
+          `7.10 Delivery delays may arise due to logistical disruptions, unsuitable weather conditions, strikes, political disruptions, governmental restrictions, acts of God, transportation failures, provider shortages, cybersecurity incidents, telecommunications failures, infrastructure disruptions, technical outages, or unforeseeable circumstances beyond reasonable control.`,
+          `7.11 Health Express shall not be liable for delays, failed deliveries, tracking inaccuracies, logistical disruptions, package tampering, delivery-agent conduct, reverse-logistics failures, or operational deficiencies attributable to logistics partners or external service providers.`,
+          `7.12 Users acknowledge that tracking systems may involve delays, technical discrepancies, analytics-related delays, synchronization errors, or operational inconsistencies.`,
+          `7.13 Shipping fees, delivery charges, handling fees, logistics charges, operational fees, convenience fees, platform fees, or related charges may vary depending on product category, order value, delivery location, healthcare requirements, operational costs, payment mechanisms, infrastructure costs, or promotional structures.`,
+          `7.14 Shipping and delivery charges may be non-refundable except where otherwise determined by Health Express after verification.`,
+          `7.15 Title and risk relating to purchased products shall pass to the User upon successful delivery.`,
+          `7.16 Reverse logistics and return pickups may be facilitated through third-party logistics providers subject to operational feasibility and Health Express approval.`
+        ]
+      },
+      {
+        heading: "8. FEES, PAYMENTS & BILLING",
+        content: [
+          `8.1 Health Express may charge fees for healthcare services, platform usage, subscriptions, logistics services, operational services, convenience services, healthcare coordination, payment processing, communication systems, analytics systems, operational monitoring systems, infrastructure systems, or future platform features.`,
+          `8.2 All fees, pricing structures, operational charges, service fees, platform charges, logistics charges, convenience fees, and related payment obligations are determined solely at the discretion of Health Express.`,
+          `8.3 Health Express reserves the right to revise pricing, fees, taxes, service charges, convenience fees, shipping charges, subscription pricing, wallet structures, promotional structures, or operational charges without prior notice.`,
+          `8.4 Users agree to pay all applicable charges, taxes, GST, duties, cesses, service charges, logistics charges, convenience fees, platform fees, and related statutory amounts associated with transactions conducted through the Platform.`,
+          `8.5 Health Express may offer multiple payment options including net banking, credit cards, debit cards, UPI systems, prepaid payment instruments, electronic wallets, Health Express Wallet, cash-on-delivery services, international payment systems, and additional payment methods introduced in the future.`,
+          `8.6 Acceptance of payments through any payment mechanism remains subject to Health Express’s sole discretion.`,
+          `8.7 Health Express reserves the right to reject, suspend, delay, cancel, reverse, investigate, restrict, or flag transactions where suspicious activity, fraud concerns, payment irregularities, abnormal transaction patterns, cybersecurity risks, authentication failures, analytics-system alerts, operational risks, or compliance concerns arise.`,
+          `8.8 Users shall provide complete, accurate, lawful, and authorized financial information while using the Platform.`,
+          `8.9 Users shall not use financial instruments, payment credentials, cards, wallets, bank accounts, or payment systems without lawful authorization.`,
+          `8.10 Users remain solely responsible for the confidentiality and security of payment credentials, authentication credentials, OTP systems, linked accounts, communication systems, and financial information.`,
+          `8.11 Health Express disclaims liability arising from unauthorized use of payment instruments, banking credentials, wallets, payment systems, authentication systems, or related financial information.`,
+          `8.12 Health Express may engage third-party payment gateway providers, banking institutions, financial institutions, payment aggregators, analytics providers, fraud-prevention systems, authentication-service providers, operational vendors, and related payment-processing partners.`,
+          `8.13 Health Express shall not be liable for transaction failures, authorization failures, banking delays, technical payment issues, declined transactions, payment gateway failures, authentication failures, analytics failures, fraud-system failures, synchronization delays, or payment-processing disruptions beyond reasonable control.`,
+          `8.14 Health Express reserves the right to impose transaction limits, payment restrictions, verification requirements, identity verification requests, authentication requirements, operational reviews, fraud investigations, or transaction suspensions.`,
+          `8.15 Health Express may request additional documentation including identity proof, PAN information, banking verification, operational verification, or related compliance documentation before processing transactions.`,
+          `8.16 Health Express reserves the right to recover invalidated payments, unpaid dues, chargebacks, reversed payments, fraudulent amounts, wallet reversals, or outstanding operational liabilities.`,
+          `8.17 Health Express may initiate civil, criminal, contractual, recovery, cybersecurity-related, or fraud-related proceedings against Users in cases involving unpaid amounts, fraudulent transactions, misuse of payment systems, chargeback abuse, fake claims, fake identities, or operational misuse.`
+        ]
+      },
+      {
+        heading: "9. REFUND PROCESSING, COMMUNICATIONS & WALLET SYSTEMS",
+        content: [
+          `9.1 Refunds may be processed through the original payment method, Health Express Wallet, bank transfers, wallet balances, UPI systems, or other lawful payment mechanisms.`,
+          `9.2 Refund timelines depend on banking systems, payment providers, fraud-prevention systems, operational verification, authentication systems, payment processors, analytics systems, compliance reviews, communication systems, and related financial infrastructure.`,
+          `9.3 Health Express does not guarantee exact refund timelines.`,
+          `9.4 Refunds through credit cards, debit cards, net banking systems, UPI systems, or banking channels may require additional processing time attributable to banks, payment providers, fraud systems, or financial institutions.`,
+          `9.5 Wallet credits, cashback benefits, coupons, discounts, loyalty benefits, promotional credits, referral credits, and non-monetary benefits may be non-refundable and non-transferable.`,
+          `9.6 Users requesting refunds for cash-on-delivery orders may be required to provide banking details, wallet information, authentication information, KYC information, or related verification information.`,
+          `9.7 Health Express Wallet may be issued, modified, suspended, restricted, forfeited, revoked, investigated, or terminated at the sole discretion of Health Express.`,
+          `9.8 Wallet balances may only be used for eligible purchases or healthcare transactions on the Platform unless otherwise permitted.`,
+          `9.9 In cases involving account deactivation, unused wallet balances may be refunded, forfeited, transferred, reversed, suspended, or adjusted in accordance with operational policies, legal obligations, promotional structures, fraud-prevention requirements, or internal review.`,
+          `9.10 Health Express reserves the right to withhold wallet transfers, refunds, credits, cashback, or payment reversals in cases involving fraud concerns, suspicious activity, abuse, cybersecurity risks, payment reversals, operational misuse, analytics alerts, or compliance investigations.`,
+          `9.11 Users may request refunds by contacting customer support through the contact details specified in this Policy.`,
+          `9.12 Users consent to receiving operational communications including SMS messages, emails, WhatsApp communications, push notifications, OTPs, operational alerts, payment confirmations, cancellation confirmations, refund notifications, dispute communications, customer-support communications, fraud-prevention alerts, security alerts, and related operational communications in connection with transactions conducted through the Platform.`,
+          `9.13 Health Express may maintain records of communications including emails, chats, customer-support interactions, telephone calls, operational logs, authentication logs, booking activity, payment records, transaction logs, analytics logs, communication records, and related operational information for fraud prevention, cybersecurity, dispute resolution, operational verification, compliance, quality assurance, training, analytics, legal proceedings, and lawful business purposes.`
+        ]
+      },
+      {
+        heading: "10. CASH-ON-DELIVERY & PAYMENT FAILURE SCENARIOS",
+        content: [
+          `10.1 Cash-on-delivery (“COD”) services may be restricted, modified, suspended, or discontinued at Health Express’s sole discretion.`,
+          `10.2 Health Express reserves the right to impose COD order-value limits, operational restrictions, geographical restrictions, healthcare restrictions, authentication requirements, fraud-prevention checks, or payment verification requirements.`,
+          `10.3 Users remain liable for payment obligations where healthcare services, logistics services, consultations, operational services, or product deliveries have already been rendered.`,
+          `10.4 Health Express reserves the right to suspend accounts, restrict future bookings, recover dues, initiate collections, deny future COD access, restrict wallet access, or pursue legal remedies in relation to unpaid amounts.`,
+          `10.5 Users shall promptly report unauthorized payment activity, suspicious financial transactions, unauthorized account access, or suspected fraud relating to the Platform.`
+        ]
+      },
+      {
+        heading: "11. SUBSCRIPTIONS & MEMBERSHIPS",
+        content: [
+          `11.1 Subscription or membership services introduced by Health Express may involve recurring billing, automatic renewals, bundled healthcare services, promotional pricing structures, healthcare benefits, operational services, or subscription-linked offerings.`,
+          `11.2 Subscription-specific cancellation, renewal, refund, wallet, communication, and operational terms may apply separately.`,
+          `11.3 Health Express reserves the right to modify subscription pricing, structures, benefits, renewal systems, bundled services, healthcare offerings, operational models, or related systems at any time.`
+        ]
+      },
+      {
+        heading: "12. FRAUD, ABUSE, ANALYTICS & SUSPICIOUS ACTIVITY",
+        content: [
+          `12.1 Health Express reserves the right to deny refunds, cancellations, returns, rescheduling requests, wallet transfers, payment processing, or future services in cases involving fraudulent claims, chargeback abuse, fake payment disputes, fake prescriptions, abusive conduct, misuse of healthcare services, repeated suspicious cancellations, suspicious transaction patterns, abnormal account activity, unauthorized account usage, fake identities, or unlawful conduct.`,
+          `12.2 Health Express may use cookies, device identifiers, authentication systems, operational monitoring systems, analytics systems, fraud-prevention technologies, communication systems, tracking technologies, session-monitoring systems, operational logs, AI systems, and behavioral analytics systems for fraud prevention, cybersecurity monitoring, operational integrity, suspicious-activity detection, transaction verification, dispute investigation, refund validation, and abuse prevention.`,
+          `12.3 Health Express may investigate suspicious activity and cooperate with regulators, payment providers, financial institutions, cybersecurity teams, analytics providers, logistics partners, law-enforcement agencies, governmental authorities, or operational partners.`,
+          `12.4 Users acknowledge and consent that operational systems, communication systems, fraud-prevention systems, analytics systems, and cybersecurity systems may be used to review transaction activity, cancellation activity, refund activity, authentication records, operational records, and related Platform activity.`
+        ]
+      },
+      {
+        heading: "13. FORCE MAJEURE",
+        content: [
+          `13.1 Health Express shall not be liable for delays, disruptions, operational failures, failed deliveries, refund delays, service interruptions, cybersecurity incidents, analytics failures, payment disruptions, infrastructure disruptions, cloud-service failures, communication failures, or inability to provide services arising from natural disasters, pandemics, floods, cyberattacks, power failures, provider shortages, transportation disruptions, strikes, governmental restrictions, telecommunications failures, infrastructure failures, cloud-service disruptions, technical outages, or events beyond reasonable control.`
+        ]
+      },
+      {
+        heading: "14. DISCLAIMERS & LIMITATION OF LIABILITY",
+        content: [
+          `14.1 The Platform, services, payment systems, analytics systems, wallet systems, communication systems, fraud-prevention systems, operational systems, logistics systems, and healthcare-related systems are provided on an “as available” and “as is” basis.`,
+          `14.2 Health Express does not guarantee uninterrupted Platform functionality, uninterrupted payment processing, uninterrupted logistics operations, uninterrupted analytics functionality, uninterrupted communication systems, uninterrupted operational systems, uninterrupted third-party integrations, cybersecurity immunity, fraud-system accuracy, or uninterrupted infrastructure availability.`,
+          `14.3 To the maximum extent permitted by law, Health Express’s aggregate liability arising from products, services, refunds, cancellations, logistics, healthcare operations, payment systems, analytics systems, authentication systems, cookies, tracking systems, communication systems, cybersecurity systems, or related matters shall not exceed the amount paid by the User in the disputed transaction.`,
+          `14.4 Under no circumstances shall Health Express be liable for indirect damages, incidental damages, consequential damages, punitive damages, emotional distress, healthcare complications, business interruption, reputational harm, lost opportunities, data loss, cybersecurity incidents, payment failures, operational disruptions, analytics-system failures, fraud-system failures, or third-party claims.`
+        ]
+      },
+      {
+        heading: "15. GOVERNING LAW & DISPUTE RESOLUTION",
+        content: [
+          `15.1 This Policy shall be governed by and construed in accordance with the laws of India.`,
+          `15.2 The parties shall first attempt amicable resolution of disputes.`,
+          `15.3 Failing amicable settlement, disputes arising out of or relating to this Policy shall be resolved through arbitration under the Arbitration and Conciliation Act, 1996.`,
+          `15.4 The arbitration shall be conducted by a sole arbitrator appointed in accordance with applicable law.`,
+          `15.5 The seat and venue of arbitration shall be Bengaluru, Karnataka.`,
+          `15.6 Courts located in Bengaluru, Karnataka shall have exclusive jurisdiction for matters not subject to arbitration.`,
+          `15.7 Users waive rights to participate in class actions, representative proceedings, consolidated proceedings, or collective claims to the maximum extent permitted by applicable law.`
+        ]
+      },
+      {
+        heading: "16. SEVERABILITY & SURVIVAL",
+        content: [
+          `16.1 If any provision of this Policy is held invalid, unlawful, or unenforceable, the remaining provisions shall continue in full force and effect.`,
+          `16.2 Clauses relating to liability limitations, payment obligations, fraud prevention, operational monitoring, communications, dispute resolution, analytics systems, cybersecurity obligations, refunds, wallet systems, indemnities, and healthcare disclaimers shall survive termination or discontinuation of Platform usage.`
+        ]
+      },
+      {
+        heading: "17. CUSTOMER SUPPORT & CONTACT DETAILS",
+        content: [
+          `Health Express`,
+          `Registered Office: No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India`,
+          `Email: hello@healthexpress.care`,
+          `Contact / WhatsApp Support: +91 76765 58809`,
+          `Users may direct any queries, complaints, concerns, refund requests, cancellation requests, return requests, shipping-related concerns, payment-related concerns, wallet-related concerns, operational grievances, fraud-related concerns, cybersecurity concerns, or related requests to Health Express through the contact details specified above.`
+        ]
+      }
+    ]
   }
 };
