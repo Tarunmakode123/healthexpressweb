@@ -417,7 +417,7 @@ export default function Navbar({ onOpenUploadModal }) {
                   to="/auth"
                   className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-purple-900 bg-purple-50 hover:bg-purple-100 transition-all border border-purple-200 shadow-2xs"
                 >
-                  Sign In
+                  Login
                 </Link>
               )}
 
@@ -605,7 +605,7 @@ export default function Navbar({ onOpenUploadModal }) {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="w-full py-3 px-4 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center justify-between"
                 >
-                  <span>Sign In / Register</span>
+                  <span>Login</span>
                   <ArrowRight className="w-4 h-4 text-white" />
                 </Link>
               )}
