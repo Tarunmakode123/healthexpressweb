@@ -802,5 +802,167 @@ export const LEGAL_POLICIES = {
         ]
       }
     ]
+  },
+  terms: {
+    id: "terms",
+    title: "HEALTH EXPRESS TERMS & CONDITIONS",
+    shortTitle: "Terms & Conditions",
+    effectiveDate: "May 25, 2026",
+    sections: [
+      {
+        heading: "PREAMBLE",
+        content: [
+          `These Terms & Conditions (“Terms”) constitute a legally binding agreement between you (“User”, “you”, “your”) and Health Express (“Health Express”, “Company”, “we”, “our”, or “us”), having its registered office at No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India.`,
+          `These Terms govern your access to and use of the Health Express website, mobile applications, APIs, software systems, dashboards, communication systems, AI-enabled systems, operational healthcare systems, analytics infrastructure, integrations, digital properties, and related services (collectively, the “Platform”).`,
+          `By accessing, browsing, registering on, uploading information to, making payments through, booking services through, communicating through, or otherwise using the Platform, you acknowledge that you have read, understood, and agreed to be legally bound by these Terms, the Privacy Policy, Cookie Policy, Refund & Cancellation Policy, Telemedicine Policy, Consent Policies, and all other policies published on the Platform from time to time (collectively, the “Agreement”).`,
+          `If you do not agree with these Terms, you must immediately discontinue use of the Platform.`,
+          `This electronic record is generated in accordance with the Information Technology Act, 2000, applicable rules thereunder, and related amendments concerning electronic records and does not require any physical or digital signature.`,
+          `Only individuals competent to contract under the Indian Contract Act, 1872 may use the Platform. Minors may use the Platform only through parents, guardians, or legally authorized adults.`
+        ]
+      },
+      {
+        heading: "1. DEFINITIONS",
+        content: [
+          `For purposes of these Terms:`,
+          `“Platform” shall mean the Health Express website, mobile applications, APIs, software systems, AI-enabled systems, communication systems, operational systems, dashboards, integrations, analytics systems, healthcare infrastructure systems, and related digital properties.`,
+          `“Services” shall mean healthcare-related services facilitated, coordinated, aggregated, enabled, operationally managed, supported, or offered through the Platform.`,
+          `“Providers” shall mean independent laboratories, doctors, telemedicine practitioners, pharmacies, logistics partners, imaging centers, nurses, caregivers, wellness providers, insurance partners, operational vendors, and related third parties.`,
+          `“Healthcare Data” shall mean medical, diagnostic, biomarker, wellness, prescription, consultation, genomic, physiological, wearable, insurance, uploaded, operational, or healthcare-related information.`,
+          `“AI Systems” shall mean AI-enabled systems, machine-learning systems, recommendation systems, predictive systems, analytics systems, automation systems, operational intelligence systems, personalization systems, preventive-health systems, and related computational systems.`,
+          `“Tracking Technologies” shall mean cookies, pixels, SDKs, analytics systems, device identifiers, advertising technologies, behavioral analytics systems, session replay systems, telemetry systems, and related digital technologies.`,
+          `“User Content” shall mean prescriptions, reports, medical records, uploaded files, communications, images, messages, healthcare documents, and related content uploaded or transmitted by Users.`
+        ]
+      },
+      {
+        heading: "2. NATURE OF PLATFORM",
+        content: [
+          `Health Express operates as a technology-enabled healthcare coordination, aggregation, preventive-health, operational healthcare infrastructure, analytics, AI-enabled systems, wellness, diagnostics coordination, telemedicine facilitation, and healthcare-support platform.`,
+          `The Platform may facilitate, coordinate, aggregate, operationally manage, support, enable, or provide access to diagnostic services, telemedicine consultations, home sample collections, medicine-delivery systems, preventive-health systems, biomarker analytics, AI-enabled systems, healthcare-provider coordination, wellness services, healthcare automation systems, operational healthcare workflows, communication systems, customer-support systems, healthcare analytics systems, insurance-linked healthcare services, subscription services, corporate wellness programs, and future healthcare-related services.`,
+          `Certain services available through the Platform are provided by independent third-party Providers. Health Express primarily operates as a technology and operational coordination platform unless expressly stated otherwise.`,
+          `Health Express does not independently practice medicine and does not independently operate pathology laboratories unless expressly stated otherwise.`,
+          `Healthcare professionals, laboratories, telemedicine practitioners, and related Providers remain independently responsible for regulated clinical services rendered by them.`
+        ]
+      },
+      {
+        heading: "3. USER ACCOUNTS & AUTHENTICATION",
+        content: [
+          `Users may register on the Platform using OTP authentication, password systems, Google Sign-In systems, Apple Sign-In systems, Firebase authentication systems, third-party authentication systems, or related authentication technologies introduced from time to time.`,
+          `Users remain solely responsible for maintaining confidentiality of account credentials, devices, authentication methods, and related access systems.`,
+          `Users shall immediately notify Health Express regarding unauthorized access, suspicious activity, security incidents, account compromise, or related security concerns.`,
+          `Health Express reserves the right to suspend, restrict, terminate, investigate, or review accounts in cases involving fraud, cybersecurity concerns, fake prescriptions, abusive conduct, suspicious transactions, unlawful activity, misuse of healthcare systems, operational risks, regulatory risks, or related concerns.`
+        ]
+      },
+      {
+        heading: "4. USER RESPONSIBILITIES",
+        content: [
+          `Users agree to provide accurate, complete, lawful, and updated information while using the Platform.`,
+          `Users acknowledge that inaccurate healthcare information, improper fasting compliance, incomplete disclosures, incorrect addresses, or misleading operational information may materially affect healthcare workflows, diagnostic accuracy, appointment scheduling, preventive-health systems, AI-enabled systems, operational continuity, or related healthcare services.`,
+          `Users remain solely responsible for healthcare decisions made by them.`,
+          `Users further agree not to misuse healthcare systems, upload fake prescriptions, abuse healthcare personnel, engage in fraudulent activity, interfere with cybersecurity systems, transmit malware, scrape the Platform, conduct unauthorized automation, or otherwise engage in unlawful or harmful conduct.`
+        ]
+      },
+      {
+        heading: "5. TRACKING TECHNOLOGIES, ANALYTICS, COOKIE CONSENT & DIGITAL SYSTEMS",
+        content: [
+          `Users acknowledge and agree that Health Express may utilize Tracking Technologies including cookies, analytics systems, behavioral analytics systems, session replay technologies, advertising systems, SDKs, device identifiers, telemetry systems, AI-enabled systems, operational monitoring technologies, and related technologies as described in the Privacy Policy and Cookie Policy.`,
+          `Such technologies may support authentication systems, fraud prevention, cybersecurity, healthcare workflows, analytics systems, AI-enabled systems, operational optimization, customer-support systems, personalization systems, recommendation systems, communication systems, preventive-health systems, biomarker systems, advertising systems, remarketing systems, operational monitoring systems, and lawful business purposes.`,
+          `Users expressly consent to operational monitoring, analytics review, behavioral analytics, infrastructure monitoring, session analytics, communication analytics, fraud prevention systems, cybersecurity systems, and operational healthcare systems utilized through the Platform.`,
+          `Users acknowledge that Health Express may engage in cross-device analytics, cross-platform analytics, audience analytics, remarketing systems, advertising systems, personalization systems, behavioral analytics systems, conversion-tracking systems, audience-segmentation systems, and related operational or advertising technologies where legally permissible.`,
+          `The Platform may display cookie consent banners, consent-management interfaces, advertising preference systems, consent-withdrawal mechanisms, and related privacy-management systems. Users acknowledge that certain non-essential cookies, analytics technologies, advertising technologies, behavioral analytics systems, personalization systems, session replay systems, heatmap systems, and remarketing systems may operate subject to User consent where required under applicable law.`,
+          `Users may manage certain cookie preferences and advertising preferences through browser settings, device permissions, consent-management systems, operating-system settings, or third-party advertising controls where technically feasible. Disabling certain Tracking Technologies may impair authentication systems, healthcare workflows, operational continuity, AI-enabled systems, personalization systems, communication systems, cybersecurity systems, preventive-health systems, or related Platform functionality.`,
+          `Certain browsers or devices may transmit “Do Not Track” or related privacy-control signals. Due to the absence of universally accepted technological standards governing such systems, Health Express does not guarantee uniform recognition or response to all such signals across all systems, devices, browsers, or third-party technologies.`
+        ]
+      },
+      {
+        heading: "6. AI SYSTEMS & AUTOMATED PROCESSING",
+        content: [
+          `Health Express may utilize AI-enabled systems for operational support, analytics, workflow optimization, preventive-health systems, personalization systems, recommendation systems, biomarker systems, automation systems, customer-support systems, infrastructure optimization, healthcare analytics, operational reporting, and related assistive functions.`,
+          `Users acknowledge and agree that interaction data, healthcare interaction data, operational data, behavioral analytics, uploaded information, communication data, device activity, and related information may contribute to AI-enabled systems, analytics systems, automation systems, recommendation systems, predictive systems, operational systems, and product improvement.`,
+          `Health Express may process anonymized, aggregated, de-identified, or pseudonymized information for AI systems, analytics systems, operational systems, preventive-health systems, healthcare research, service optimization, infrastructure optimization, and lawful business purposes.`,
+          `Health Express expressly clarifies that sensitive healthcare decisions are not made solely through automated systems and that AI-enabled systems are intended primarily for operational support and assistive functions rather than autonomous clinical decision-making.`,
+          `AI-enabled systems may contain inaccuracies, limitations, incomplete outputs, algorithmic limitations, predictive failures, operational constraints, or technological errors.`,
+          `Users remain solely responsible for verifying healthcare decisions with qualified healthcare professionals.`
+        ]
+      },
+      {
+        heading: "7. PRIVACY & DATA PROCESSING",
+        content: [
+          `Health Express may collect, process, analyze, store, transfer, disclose, retain, operationally utilize, or otherwise handle Healthcare Data, operational data, behavioral analytics, device information, communication data, analytics information, and related information in accordance with applicable law and the Privacy Policy.`,
+          `Users expressly consent to processing of Healthcare Data and operational information for healthcare delivery, operational coordination, diagnostics workflows, telemedicine systems, preventive-health systems, AI-enabled systems, analytics systems, operational optimization, fraud prevention, cybersecurity, product development, customer support, legal compliance, healthcare analytics, advertising systems, communication systems, and lawful business purposes.`,
+          `Users acknowledge that third-party systems integrated with the Platform including analytics systems, advertising systems, cloud-service providers, AI infrastructure systems, customer-support systems, payment systems, and operational vendors may independently process information subject to their own policies.`
+        ]
+      },
+      {
+        heading: "8. MARKETING, ADVERTISING & COMMUNICATIONS",
+        content: [
+          `Users consent to receiving SMS communications, WhatsApp communications, emails, push notifications, wellness communications, preventive-health communications, service notifications, promotional communications, healthcare-awareness campaigns, audience analytics communications, remarketing communications, personalized advertising communications, and related communications where legally permissible.`,
+          `Health Express may utilize audience analytics systems, advertising technologies, conversion-tracking systems, personalization systems, retargeting systems, and remarketing systems.`,
+          `Users may opt out of certain non-essential marketing communications where legally permissible.`
+        ]
+      },
+      {
+        heading: "9. TELEMEDICINE & DIAGNOSTIC SERVICES",
+        content: [
+          `Telemedicine consultations and diagnostic services facilitated through the Platform may involve operational workflows, third-party systems, communication systems, healthcare coordination systems, analytics systems, and related operational technologies.`,
+          `Healthcare professionals remain independently responsible for clinical decisions, prescriptions, diagnoses, treatment plans, medical advice, and regulated healthcare services.`,
+          `Health Express shall not be liable for clinical outcomes, provider negligence, treatment dissatisfaction, healthcare complications, provider unavailability, consultation delays, operational limitations, technological failures, or related healthcare matters.`
+        ]
+      },
+      {
+        heading: "10. PAYMENTS & TRANSACTIONS",
+        content: [
+          `Payments may be processed through third-party payment providers including Razorpay, Stripe, UPI systems, banking systems, wallet systems, international payment systems, and related financial infrastructure.`,
+          `Health Express shall not be liable for banking downtime, payment gateway failures, unauthorized banking activity outside Health Express systems, transaction delays, financial-system failures, OTP failures, or related payment-system disruptions.`,
+          `Health Express reserves the right to investigate suspicious transactions, delay transactions, suspend accounts, recover dues, or pursue legal remedies where operationally necessary.`
+        ]
+      },
+      {
+        heading: "11. INTELLECTUAL PROPERTY",
+        content: [
+          `All intellectual property associated with the Platform including software systems, branding, workflows, AI systems, analytics systems, interfaces, infrastructure systems, databases, trademarks, designs, algorithms, operational systems, recommendation systems, healthcare analytics systems, and related technologies shall remain the exclusive property of Health Express or its licensors.`,
+          `Users shall not reverse engineer, scrape, reproduce, commercially exploit, copy, distribute, interfere with, extract, or create derivative works from the Platform without prior written authorization.`
+        ]
+      },
+      {
+        heading: "12. DISCLAIMERS",
+        content: [
+          `Health Express does not guarantee uninterrupted Platform functionality, uninterrupted healthcare-provider availability, uninterrupted analytics systems, uninterrupted AI-system functionality, uninterrupted advertising systems, uninterrupted operational continuity, uninterrupted telecommunications systems, uninterrupted cloud infrastructure, cybersecurity immunity, report accuracy, healthcare outcomes, predictive accuracy, personalization accuracy, recommendation accuracy, or operational continuity.`,
+          `Digital systems, healthcare systems, AI systems, analytics systems, operational systems, cloud infrastructure, telecommunications systems, cybersecurity systems, and related technologies inherently involve operational, technological, infrastructure, cybersecurity, predictive, and communication risks.`,
+          `All services, systems, technologies, AI-enabled systems, analytics systems, operational systems, advertising systems, healthcare systems, and related infrastructure are provided on an “as available” and “as is” basis.`
+        ]
+      },
+      {
+        heading: "13. LIMITATION OF LIABILITY",
+        content: [
+          `To the maximum extent permitted by law, Health Express’s aggregate liability arising out of or relating to the Platform, healthcare systems, analytics systems, AI systems, Tracking Technologies, advertising systems, operational systems, communication systems, healthcare operations, or related matters shall not exceed the amount paid by the User in the disputed transaction giving rise to such liability.`,
+          `Under no circumstances shall Health Express be liable for indirect damages, incidental damages, consequential damages, punitive damages, emotional distress, healthcare complications, reputational harm, business interruption, loss of profits, data loss, cybersecurity incidents, advertising-system failures, AI-system inaccuracies, operational disruptions, infrastructure failures, or third-party claims.`
+        ]
+      },
+      {
+        heading: "14. FORCE MAJEURE",
+        content: [
+          `Health Express shall not be liable for operational disruptions, data incidents, cybersecurity incidents, infrastructure failures, analytics failures, telecommunications failures, AI-system failures, healthcare disruptions, or related operational failures arising from cyberattacks, governmental restrictions, cloud-service failures, power outages, natural disasters, pandemics, strikes, infrastructure disruptions, telecommunications disruptions, or events beyond reasonable control.`
+        ]
+      },
+      {
+        heading: "15. GOVERNING LAW & DISPUTE RESOLUTION",
+        content: [
+          `These Terms shall be governed by and construed in accordance with the laws of India.`,
+          `Parties shall first attempt amicable resolution of disputes.`,
+          `Failing amicable settlement, disputes shall be resolved through binding arbitration under the Arbitration and Conciliation Act, 1996.`,
+          `Arbitration shall be conducted by a sole arbitrator appointed by Health Express. The seat and venue of arbitration shall be Bengaluru, Karnataka. Proceedings shall be conducted in English.`,
+          `Courts located in Bengaluru, Karnataka shall have exclusive jurisdiction over matters not subject to arbitration.`
+        ]
+      },
+      {
+        heading: "16. CONTACT DETAILS",
+        content: [
+          `Health Express`,
+          `Registered Office: No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India`,
+          `Email: hello@healthexpress.care`,
+          `Contact / WhatsApp Support: +91 76765 58809`
+        ]
+      }
+    ]
   }
 };
