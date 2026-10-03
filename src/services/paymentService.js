@@ -20,6 +20,9 @@ const getEnvVar = (name) => {
   return null;
 };
 
+// Backend API Base URL for Hostinger Static Deployment (defaults to relative URL if omitted)
+const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '';
+
 // Razorpay Public Key ID (Front-end safe)
 export const VITE_RAZORPAY_KEY_ID = getEnvVar('VITE_RAZORPAY_KEY_ID');
 
@@ -56,7 +59,7 @@ export function loadRazorpaySDK() {
  */
 export async function createRazorpayOrderServer({ items, promoCode = null, coinsToUse = 0, walletBalance = 0, walletSettings = null, customerName, customerPhone, customerEmail }) {
   try {
-    const response = await fetch('/api/create-razorpay-order', {
+    const response = await fetch(`${API_BASE_URL}/api/create-razorpay-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items, promoCode, coinsToUse, walletBalance, walletSettings, customerName, customerPhone, customerEmail })
@@ -194,7 +197,7 @@ export async function verifyAndConfirmPayment({ orderId, promoCodeId = null, pat
 
   if (isSupabaseConfigured) {
     try {
-      const response = await fetch('/api/verify-razorpay-payment', {
+      const response = await fetch(`${API_BASE_URL}/api/verify-razorpay-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
