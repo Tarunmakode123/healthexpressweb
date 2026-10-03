@@ -128,6 +128,13 @@ export default function CartDrawer() {
     const coinsToUse = isCoinsApplied ? coinsRequested : 0;
 
     try {
+      // Defensive check: If paymentMethodChoice is 'online', block execution immediately
+      if (paymentMethodChoice === 'online') {
+        setErrorMessage('Online payment is temporarily unavailable. Please select Cash on Delivery.');
+        setIsProcessingPayment(false);
+        return;
+      }
+
       // ----------------------------------------------------
       // COD (CASH ON DELIVERY / PAY ON COLLECTION) FLOW
       // ----------------------------------------------------
@@ -551,23 +558,19 @@ export default function CartDrawer() {
                       </div>
 
                       <div
-                        onClick={() => setPaymentMethodChoice('online')}
-                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
-                          paymentMethodChoice === 'online'
-                            ? 'bg-purple-50/90 border-purple-600 ring-2 ring-purple-600/30 text-purple-950'
-                            : 'bg-white border-slate-200 hover:border-purple-200 text-slate-700'
-                        }`}
+                        className="p-3.5 rounded-2xl border bg-slate-50/80 border-slate-200/80 text-slate-400 opacity-60 cursor-not-allowed select-none transition-all flex flex-col justify-between gap-1.5 relative overflow-hidden"
+                        title="Online payment is temporarily unavailable"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-extrabold flex items-center gap-1.5">
-                            <CreditCard className="w-4 h-4 text-purple-700" />
+                          <span className="text-xs font-extrabold flex items-center gap-1.5 text-slate-500">
+                            <CreditCard className="w-4 h-4 text-slate-400" />
                             <span>Pay Online</span>
                           </span>
-                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethodChoice === 'online' ? 'border-purple-700 bg-purple-700' : 'border-slate-300'}`}>
-                            {paymentMethodChoice === 'online' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+                          <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 text-[9px] font-black uppercase tracking-wider">
+                            Coming Soon
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-medium leading-tight">UPI, GPay, PhonePe, Cards, Net Banking</p>
+                        <p className="text-[10px] text-slate-400 font-medium leading-tight">Online payment will be available soon.</p>
                       </div>
                     </div>
                   </div>
