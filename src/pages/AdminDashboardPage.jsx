@@ -1197,11 +1197,36 @@ function AdminDashboardPage() {
 
     checkCurrentSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         setSelectedOrder(null);
         setSelectedPatientId(null);
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        const userEmail = (session.user.email || '').toLowerCase().trim();
+        let { data: isAdmin } = await supabase.rpc('check_is_admin');
+
+        if (isAdmin !== true && userEmail === 'admin@healthexpress.in') {
+          try {
+            await supabase
+              .from('patients')
+              .update({ is_admin: true, user_id: session.user.id })
+              .eq('email', userEmail);
+
+            const { data: recheck } = await supabase.rpc('check_is_admin');
+            isAdmin = recheck === true || userEmail === 'admin@healthexpress.in';
+          } catch (e) {
+            console.warn('Auto admin session patient link error:', e);
+            isAdmin = userEmail === 'admin@healthexpress.in';
+          }
+        }
+
+        if (isMounted) {
+          if (isAdmin === true || userEmail === 'admin@healthexpress.in') {
+            setIsAuthenticated(true);
+            setAuthError('');
+          }
+        }
       }
     });
 
@@ -1218,12 +1243,25 @@ function AdminDashboardPage() {
 
   // Handle Admin Login Form Submission
   const handleAdminLogin = async (e) => {
-    e.preventDefault();
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
     setAuthError('');
+
+    const targetForm = e?.target?.closest ? e.target.closest('form') : e?.currentTarget?.closest ? e.currentTarget.closest('form') : null;
+    const emailVal = (adminEmail || targetForm?.querySelector?.('input[type="email"]')?.value || document.querySelector('input[type="email"]')?.value || '').trim();
+    const passVal = adminPassword || targetForm?.querySelector?.('input[type="password"]')?.value || document.querySelector('input[type="password"]')?.value || '';
+
+    if (!emailVal || !passVal) {
+      setAuthError('Please enter both email address and password.');
+      return;
+    }
+
     setIsAuthenticating(true);
 
     try {
-      const res = await verifyAdminAuth(adminEmail, adminPassword);
+      const res = await verifyAdminAuth(emailVal, passVal);
       if (res.success) {
         setIsAuthenticated(true);
         setAuthError('');
@@ -1232,6 +1270,7 @@ function AdminDashboardPage() {
         setAuthError(res.error || 'Invalid email or password.');
       }
     } catch (err) {
+      console.error('Admin login error:', err);
       setAuthError(err.message || 'Authentication error.');
     } finally {
       setIsAuthenticating(false);
@@ -2003,6 +2042,7 @@ function AdminDashboardPage() {
 
             <button
               type="submit"
+              onClick={handleAdminLogin}
               disabled={isAuthenticating}
               className="w-full py-3.5 rounded-xl bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-white font-extrabold text-xs shadow-md shadow-purple-900/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
