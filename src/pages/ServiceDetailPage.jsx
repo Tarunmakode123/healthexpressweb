@@ -231,30 +231,22 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
                 </div>
 
                 {/* Price Display */}
-                <div className="space-y-1">
-                  {isHomeNursing ? (
+                {!isHomeNursing && (
+                  <div className="space-y-1">
                     <div className="flex items-baseline gap-2.5">
-                      <span className="text-xl font-extrabold text-purple-200 bg-purple-900/60 px-3 py-1 rounded-xl border border-purple-700/50">
-                        Contact Us
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-baseline gap-2.5">
-                        <span className="text-3xl font-black text-white">₹{service.discount_price}</span>
-                        {service.price && (
-                          <span className="text-sm text-slate-400 line-through">₹{service.price}</span>
-                        )}
-                      </div>
-                      {service.discount_percentage && (
-                        <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" />
-                          <span>You save {service.discount_percentage} with Health Express</span>
-                        </p>
+                      <span className="text-3xl font-black text-white">₹{service.discount_price}</span>
+                      {service.price && (
+                        <span className="text-sm text-slate-400 line-through">₹{service.price}</span>
                       )}
-                    </>
-                  )}
-                </div>
+                    </div>
+                    {service.discount_percentage && (
+                      <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        <span>You save {service.discount_percentage} with Health Express</span>
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Feature Checklist */}
                 <div className="space-y-2 pt-2 border-t border-white/10 text-xs text-slate-300 font-medium">

@@ -738,13 +738,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
 
                       {/* Pricing & Footer Actions */}
                       <div className="pt-3 border-t border-slate-100 space-y-2.5 mt-3">
-                        {isHomeNursing ? (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs sm:text-sm font-extrabold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">
-                              Contact us
-                            </span>
-                          </div>
-                        ) : (
+                        {!isHomeNursing && (
                           <div className="flex items-baseline justify-between">
                             <div className="flex items-baseline gap-1.5">
                               <span className="text-base sm:text-lg font-black text-slate-900">₹{discountPrice}</span>
@@ -764,7 +758,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         {isHomeNursing ? (
                           <button
                             onClick={() => openWhatsApp(`Hi Health Express, I am interested in ${service.name}. Please share more details.`)}
-                            className="w-full py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
+                            className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-emerald-100 shrink-0" />
                             <span className="truncate">Contact Us on WhatsApp →</span>
