@@ -438,10 +438,10 @@ export default function GenericDashboardPage() {
 
             <Link
               to="/services"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs shadow-md shadow-purple-600/30 transition-all cursor-pointer active:scale-95 shrink-0"
+              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs shadow-md shadow-purple-600/30 transition-all cursor-pointer active:scale-95 shrink-0"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-purple-200" />
-              <span>Book Services</span>
+              <span>Book Services →</span>
             </Link>
           </div>
 
