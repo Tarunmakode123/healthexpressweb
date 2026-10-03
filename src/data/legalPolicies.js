@@ -183,5 +183,179 @@ export const LEGAL_POLICIES = {
         ]
       }
     ]
+  },
+  consent: {
+    id: "consent",
+    title: "HEALTH EXPRESS CONSENT & COMMUNICATIONS POLICY",
+    shortTitle: "Consent & Communications",
+    effectiveDate: "May 27, 2026",
+    sections: [
+      {
+        heading: "PREAMBLE",
+        content: [
+          `This Consent & Communications Policy (“Policy”) constitutes a legally binding agreement between you (“User”, “you”, “your”) and Health Express (“Health Express”, “Company”, “we”, “our”, “us”), having its registered office at No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India.`,
+          `This Policy governs user consents, healthcare-related communications, AI-enabled interactions, preventive-health communications, telemedicine interactions, marketing communications, operational notifications, electronic records, healthcare workflows, and related communications facilitated through the Health Express platform (“Platform”).`,
+          `By accessing, registering on, interacting with, booking through, uploading information to, communicating with, or otherwise using the Platform, you consent to communications and processing activities described in this Policy.`,
+          `If you do not agree to this Policy, you must discontinue use of the Platform.`
+        ]
+      },
+      {
+        heading: "1. NATURE OF PLATFORM",
+        content: [
+          `1.1 Health Express is a technology-enabled healthcare coordination, aggregation, infrastructure, analytics, and preventive-health platform.`,
+          `1.2 The Platform may facilitate, coordinate, operationally manage, aggregate, or support: (a) diagnostic services; (b) home sample collection; (c) telemedicine services; (d) preventive-health systems; (e) wellness services; (f) biomarker systems; (g) AI-enabled healthcare systems; (h) healthcare-provider coordination; (i) medicine-delivery services; (j) healthcare communications; (k) healthcare analytics; (l) insurance-linked services; (m) subscription programs; (n) corporate wellness programs; and (o) future healthcare-related services.`,
+          `1.3 Certain healthcare services facilitated through the Platform may involve independent third-party Providers including laboratories, doctors, pharmacies, logistics providers, wellness providers, telemedicine practitioners, and healthcare institutions.`
+        ]
+      },
+      {
+        heading: "2. USER CONSENT",
+        content: [
+          `2.1 By accessing or using the Platform, Users expressly consent to: (a) collection of personal and healthcare information; (b) healthcare-related communications; (c) electronic communications; (d) AI-enabled systems; (e) preventive-health systems; (f) biomarker analytics; (g) operational workflows; (h) customer-support interactions; (i) healthcare coordination; (j) data processing activities; (k) healthcare reminders; (l) wellness communications; and (m) lawful operational activities.`,
+          `2.2 Users acknowledge that healthcare services may require processing of sensitive healthcare information.`,
+          `2.3 Users consent to operational communication workflows necessary for healthcare-service coordination.`
+        ]
+      },
+      {
+        heading: "3. TYPES OF COMMUNICATIONS",
+        content: [
+          `3.1 Health Express may communicate with Users through: (a) SMS; (b) WhatsApp; (c) email; (d) push notifications; (e) in-app messaging; (f) automated calls; (g) customer-support calls; (h) AI-enabled communication systems; (i) telemedicine communication systems; or (j) future communication technologies.`,
+          `3.2 Communications may relate to: (a) appointment scheduling; (b) healthcare reminders; (c) diagnostic workflows; (d) preventive-health reminders; (e) biomarker systems; (f) telemedicine services; (g) prescriptions; (h) operational notifications; (i) payment confirmations; (j) healthcare-provider coordination; (k) wellness programs; (l) AI-generated insights; (m) healthcare recommendations; (n) educational content; (o) marketing communications; (p) surveys; (q) account security; (r) fraud prevention; (s) regulatory compliance; or (t) lawful operational purposes.`
+        ]
+      },
+      {
+        heading: "4. HEALTHCARE COMMUNICATION CONSENT",
+        content: [
+          `4.1 Users expressly consent to receiving healthcare-related communications concerning: (a) appointments; (b) diagnostic bookings; (c) sample collection; (d) healthcare reminders; (e) reports; (f) telemedicine consultations; (g) healthcare-provider coordination; (h) preventive-health systems; (i) biomarker notifications; (j) prescription workflows; (k) healthcare alerts; or (l) operational healthcare activities.`,
+          `4.2 Users acknowledge that healthcare communications may contain sensitive healthcare information.`,
+          `4.3 Users remain responsible for maintaining accurate communication information.`,
+          `4.4 Health Express shall not be liable for communication failures caused by: (a) incorrect contact details; (b) telecom-provider failures; (c) spam filtering; (d) device issues; (e) internet disruptions; or (f) circumstances beyond reasonable control.`
+        ]
+      },
+      {
+        heading: "5. AI & PREVENTIVE-HEALTH COMMUNICATIONS",
+        content: [
+          `5.1 Health Express may use AI-enabled systems to generate: (a) healthcare reminders; (b) wellness notifications; (c) biomarker alerts; (d) preventive-health communications; (e) healthcare insights; (f) educational recommendations; (g) trend notifications; (h) operational automation; or (i) future AI-enabled healthcare communications.`,
+          `5.2 ALL AI-GENERATED COMMUNICATIONS ARE INFORMATIONAL ONLY.`,
+          `5.3 AI-generated communications: (a) are not medical advice; (b) are not diagnoses; (c) are not prescriptions; (d) are not treatment recommendations; (e) may contain inaccuracies; and (f) must not be solely relied upon for healthcare decisions.`,
+          `5.4 Users must consult licensed healthcare professionals before acting upon AI-generated healthcare information.`
+        ]
+      },
+      {
+        heading: "6. TELEMEDICINE COMMUNICATIONS",
+        content: [
+          `6.1 Telemedicine services may involve communication through: (a) video; (b) audio; (c) chat systems; (d) communication platforms; (e) operational workflows; or (f) future communication systems.`,
+          `6.2 Users acknowledge that telemedicine communications may involve: (a) internet-based systems; (b) telecommunications infrastructure; (c) operational limitations; (d) technology disruptions; or (e) provider-related constraints.`,
+          `6.3 Health Express does not guarantee uninterrupted telemedicine communications.`,
+          `6.4 Independent healthcare practitioners remain responsible for clinical advice and professional obligations.`
+        ]
+      },
+      {
+        heading: "7. MARKETING & PROMOTIONAL COMMUNICATIONS",
+        content: [
+          `7.1 Users consent to receiving: (a) promotional messages; (b) healthcare campaigns; (c) wellness communications; (d) preventive-health awareness messages; (e) offers; (f) discounts; (g) subscription-related communications; (h) educational content; (i) product announcements; or (j) service-related promotions.`,
+          `7.2 Users may opt out of non-essential marketing communications where legally permissible.`,
+          `7.3 Certain operational or healthcare-related communications may continue despite marketing opt-outs.`
+        ]
+      },
+      {
+        heading: "8. ELECTRONIC CONSENT & RECORDS",
+        content: [
+          `8.1 Users consent to electronic records, digital workflows, and electronic communications.`,
+          `8.2 Electronic records may include: (a) diagnostic reports; (b) invoices; (c) prescriptions; (d) appointment confirmations; (e) payment confirmations; (f) consent records; (g) healthcare communications; (h) operational records; or (i) healthcare-related documents.`,
+          `8.3 Users acknowledge that electronic records may satisfy legal documentation requirements where permitted by law.`
+        ]
+      },
+      {
+        heading: "9. RECORDING & QUALITY MONITORING",
+        content: [
+          `9.1 Health Express may monitor, record, store, analyze, or review communications for: (a) quality assurance; (b) operational training; (c) fraud prevention; (d) cybersecurity; (e) customer support; (f) dispute resolution; (g) healthcare coordination; (h) AI-system training; (i) analytics; or (j) lawful operational purposes.`,
+          `9.2 Users consent to such monitoring and recording activities where permitted under applicable law.`
+        ]
+      },
+      {
+        heading: "10. THIRD-PARTY PROVIDERS & COMMUNICATIONS",
+        content: [
+          `10.1 Certain communications may involve independent third-party Providers including: (a) laboratories; (b) doctors; (c) telemedicine practitioners; (d) logistics providers; (e) pharmacies; (f) imaging centers; (g) wellness providers; (h) cloud-service providers; (i) customer-support providers; or (j) communication-service providers.`,
+          `10.2 Health Express may share communication-related information with such Providers where reasonably necessary for healthcare-service coordination or lawful business purposes.`,
+          `10.3 Third-party Providers may maintain independent communication systems or policies.`
+        ]
+      },
+      {
+        heading: "11. INTERNATIONAL COMMUNICATIONS",
+        content: [
+          `11.1 International Users acknowledge that communications may: (a) traverse international telecommunications networks; (b) involve third-party communication providers; (c) be subject to varying telecommunications standards; or (d) involve jurisdiction-specific operational limitations.`,
+          `11.2 Health Express does not guarantee uninterrupted international communication functionality.`
+        ]
+      },
+      {
+        heading: "12. USER RESPONSIBILITIES",
+        content: [
+          `12.1 Users are responsible for: (a) maintaining accurate contact details; (b) monitoring communications; (c) safeguarding account access; (d) verifying healthcare information; (e) consulting healthcare professionals where necessary; and (f) responsibly using healthcare communications.`,
+          `12.2 Users acknowledge that delayed review of communications may impact healthcare workflows.`
+        ]
+      },
+      {
+        heading: "13. CYBERSECURITY & FRAUD PREVENTION",
+        content: [
+          `13.1 Health Express may monitor communications and usage patterns for: (a) fraud prevention; (b) abuse detection; (c) cybersecurity; (d) operational security; (e) healthcare-system integrity; (f) suspicious activity detection; or (g) lawful compliance purposes.`,
+          `13.2 Health Express reserves the right to investigate suspicious activity and cooperate with regulators or law-enforcement authorities.`
+        ]
+      },
+      {
+        heading: "14. PRIVACY & DATA PROCESSING",
+        content: [
+          `14.1 Communications facilitated through the Platform may involve processing of: (a) healthcare information; (b) operational data; (c) communication metadata; (d) customer-support records; (e) AI-system interaction data; (f) telemedicine records; or (g) healthcare-service workflows.`,
+          `14.2 Such processing shall be governed by the applicable Privacy Policy and applicable law.`
+        ]
+      },
+      {
+        heading: "15. DISCLAIMERS",
+        content: [
+          `15.1 Health Express does not guarantee: (a) uninterrupted communication delivery; (b) telecom-provider uptime; (c) message-delivery success; (d) uninterrupted AI-generated communications; (e) uninterrupted telemedicine connectivity; (f) absence of technical disruptions; or (g) uninterrupted communication infrastructure.`,
+          `15.2 Communications systems inherently involve technological, telecommunications, cybersecurity, and operational risks.`,
+          `15.3 Services are provided on an “as available” and “as is” basis.`
+        ]
+      },
+      {
+        heading: "16. LIMITATION OF LIABILITY",
+        content: [
+          `16.1 To the maximum extent permitted by law, Health Express’s aggregate liability arising out of communications, electronic records, AI-generated communications, healthcare workflows, telemedicine systems, or related matters shall not exceed the amount paid by the User in the disputed transaction.`,
+          `16.2 Under no circumstances shall Health Express be liable for: (a) indirect damages; (b) incidental damages; (c) consequential damages; (d) punitive damages; (e) communication delays; (f) telecom-provider failures; (g) data loss; (h) healthcare complications; (i) business interruption; (j) reputational harm; or (k) third-party claims.`
+        ]
+      },
+      {
+        heading: "17. FORCE MAJEURE",
+        content: [
+          `17.1 Health Express shall not be liable for disruptions, communication failures, operational interruptions, or technology failures arising from: (a) telecommunications disruptions; (b) internet failures; (c) cyberattacks; (d) infrastructure failures; (e) cloud-service outages; (f) governmental restrictions; (g) natural disasters; or (h) events beyond reasonable control.`
+        ]
+      },
+      {
+        heading: "18. MODIFICATIONS",
+        content: [
+          `18.1 Health Express reserves the right to modify, revise, suspend, update, or replace this Policy at any time.`,
+          `18.2 Updated versions become effective upon publication on the Platform.`,
+          `18.3 Continued use of the Platform constitutes acceptance of revised Policies.`
+        ]
+      },
+      {
+        heading: "19. GOVERNING LAW & DISPUTE RESOLUTION",
+        content: [
+          `19.1 This Policy shall be governed by the laws of India.`,
+          `19.2 Parties shall first attempt amicable resolution.`,
+          `19.3 Failing amicable settlement, disputes shall be resolved through binding arbitration under the Arbitration and Conciliation Act, 1996.`,
+          `19.4 Seat and venue of arbitration shall be Bengaluru, Karnataka.`,
+          `19.5 Courts located in Bengaluru shall have exclusive jurisdiction for matters not subject to arbitration.`
+        ]
+      },
+      {
+        heading: "20. CONTACT DETAILS",
+        content: [
+          `Health Express`,
+          `Registered Office: No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India`,
+          `Email: hello@healthexpress.care`,
+          `Contact / WhatsApp Support: +91 76765 58809`
+        ]
+      }
+    ]
   }
 };
