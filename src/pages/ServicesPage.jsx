@@ -663,7 +663,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   const IconComp = categoryIconMap[service.category_id] || FlaskConical;
                   const discountPrice = service.selling_price || service.discount_price || service.mrp;
                   const mrpPrice = service.mrp || service.price;
-                  const isHomeNursing = service.category_id === 'home-nursing' || service.subcategory === 'Home Nursing' || service.category_name === 'Home Nursing';
+                  const isHomeNursing = service.service_type === 'home_nursing' || service.category_id === 'home-nursing' || service.subcategory === 'Home Nursing' || service.category_name === 'Home Nursing';
 
                   const requiresFasting = (
                     service.requires_fasting ||

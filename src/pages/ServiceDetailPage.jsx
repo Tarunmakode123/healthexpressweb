@@ -51,7 +51,11 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
   const category = CATEGORIES.find(c => c.id === service.category_id) || CATEGORIES[0];
   const IconComponent = getCategoryIcon(service.category_id);
 
-  const whatsappMsg = `Namaste Health Express! I am interested in inquiring / booking "${service.name}". Please share test details, pricing, turnaround time, and home sample collection availability.`;
+  const isHomeNursing = service?.service_type === 'home_nursing' || service?.category_id === 'home-nursing' || service?.category_name === 'Home Nursing' || service?.subcategory === 'Home Nursing';
+
+  const whatsappMsg = isHomeNursing 
+    ? `Hi Health Express, I am interested in ${service.name}. Please share more details.`
+    : `Namaste Health Express! I am interested in inquiring / booking "${service.name}". Please share test details, pricing, turnaround time, and home sample collection availability.`;
 
   // Related services (4 items max for 4-column desktop grid)
   const relatedServices = ALL_SERVICES
@@ -174,29 +178,41 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
 
               {/* Action Buttons Row */}
               <div className="flex flex-wrap items-center gap-2.5 pt-2">
-                <button
-                  onClick={() => addToCart(service)}
-                  className="px-6 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md shadow-purple-700/20 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>Book Service • ₹{service.discount_price}</span>
-                </button>
+                {isHomeNursing ? (
+                  <button
+                    onClick={() => openWhatsApp(whatsappMsg)}
+                    className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-700/20 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4 fill-current" />
+                    <span>Contact Us on WhatsApp →</span>
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => addToCart(service)}
+                      className="px-6 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md shadow-purple-700/20 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>Book Service • ₹{service.discount_price}</span>
+                    </button>
 
-                <button
-                  onClick={onOpenUploadModal}
-                  className="px-5 py-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                >
-                  <Upload className="w-3.5 h-3.5 text-purple-700" />
-                  <span>Upload Prescription</span>
-                </button>
+                    <button
+                      onClick={onOpenUploadModal}
+                      className="px-5 py-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-purple-700" />
+                      <span>Upload Prescription</span>
+                    </button>
 
-                <button
-                  onClick={() => openWhatsApp(whatsappMsg)}
-                  className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 fill-current" />
-                  <span>Talk to Health Manager</span>
-                </button>
+                    <button
+                      onClick={() => openWhatsApp(whatsappMsg)}
+                      className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 fill-current" />
+                      <span>Talk to Health Manager</span>
+                    </button>
+                  </>
+                )}
               </div>
 
             </div>
@@ -207,7 +223,7 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
                 
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <span className="text-[11px] uppercase font-extrabold text-purple-300 tracking-wider">
-                    Transparent Healthcare Price
+                    {isHomeNursing ? 'Home Nursing Care' : 'Transparent Healthcare Price'}
                   </span>
                   <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
                     NABL Partnered
@@ -216,17 +232,27 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
 
                 {/* Price Display */}
                 <div className="space-y-1">
-                  <div className="flex items-baseline gap-2.5">
-                    <span className="text-3xl font-black text-white">₹{service.discount_price}</span>
-                    {service.price && (
-                      <span className="text-sm text-slate-400 line-through">₹{service.price}</span>
-                    )}
-                  </div>
-                  {service.discount_percentage && (
-                    <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
-                      <span>You save {service.discount_percentage} with Health Express</span>
-                    </p>
+                  {isHomeNursing ? (
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="text-xl font-extrabold text-purple-200 bg-purple-900/60 px-3 py-1 rounded-xl border border-purple-700/50">
+                        Contact Us
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline gap-2.5">
+                        <span className="text-3xl font-black text-white">₹{service.discount_price}</span>
+                        {service.price && (
+                          <span className="text-sm text-slate-400 line-through">₹{service.price}</span>
+                        )}
+                      </div>
+                      {service.discount_percentage && (
+                        <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          <span>You save {service.discount_percentage} with Health Express</span>
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -252,21 +278,33 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
 
                 {/* CTAs */}
                 <div className="space-y-2 pt-2">
-                  <button
-                    onClick={() => addToCart(service)}
-                    className="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                    <span>Book Service (₹{service.discount_price})</span>
-                  </button>
+                  {isHomeNursing ? (
+                    <button
+                      onClick={() => openWhatsApp(whatsappMsg)}
+                      className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Contact Us on WhatsApp →</span>
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => addToCart(service)}
+                        className="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        <span>Book Service (₹{service.discount_price})</span>
+                      </button>
 
-                  <a
-                    href={`tel:${HEALTH_MANAGER_PHONE}`}
-                    className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all border border-white/15"
-                  >
-                    <Phone className="w-3.5 h-3.5 text-purple-300" />
-                    <span>Call Health Manager Direct</span>
-                  </a>
+                      <a
+                        href={`tel:${HEALTH_MANAGER_PHONE}`}
+                        className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all border border-white/15"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-purple-300" />
+                        <span>Call Health Manager Direct</span>
+                      </a>
+                    </>
+                  )}
                 </div>
 
               </div>
