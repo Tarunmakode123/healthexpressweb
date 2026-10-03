@@ -350,7 +350,8 @@ export default function GenericDashboardPage() {
         prescription: 'Prescription',
         imaging_scan: 'MRI / Scan Report',
         doctor_notes: 'Doctor Consultation Note',
-        discharge_summary: 'Discharge Summary'
+        discharge_summary: 'Discharge Summary',
+        other: 'Other'
       };
 
       const newRecord = {
@@ -1168,6 +1169,7 @@ export default function GenericDashboardPage() {
                   <option value="imaging_scan">MRI / CT / X-Ray Scan Report</option>
                   <option value="doctor_notes">Doctor Consultation Note</option>
                   <option value="discharge_summary">Hospital Discharge Summary</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 
