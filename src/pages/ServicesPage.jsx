@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { fetchServices } from '../services/catalogService';
 import { useCart } from '../context/CartContext';
+import WaitlistModal from '../components/common/WaitlistModal';
 
 // Category Icon Mapping
 const categoryIconMap = {
@@ -34,14 +35,14 @@ const FULFILLMENT_OPTIONS = [
 ];
 
 const LOCATIONS = [
-  { id: 'all', label: 'All Locations' },
-  { id: 'Bengaluru', label: 'Bengaluru' },
-  { id: 'Delhi NCR', label: 'Delhi NCR' },
-  { id: 'Mumbai', label: 'Mumbai' },
-  { id: 'Hyderabad', label: 'Hyderabad' },
-  { id: 'Chennai', label: 'Chennai' },
-  { id: 'Kolkata', label: 'Kolkata' },
-  { id: 'Pune', label: 'Pune' }
+  { id: 'all', label: 'All Locations (Bengaluru Active)', isLive: true },
+  { id: 'Bengaluru', label: 'Bengaluru', isLive: true, badge: 'Active Live' },
+  { id: 'Delhi NCR', label: 'Delhi NCR', isLive: false, badge: 'Coming Soon' },
+  { id: 'Mumbai', label: 'Mumbai', isLive: false, badge: 'Coming Soon' },
+  { id: 'Hyderabad', label: 'Hyderabad', isLive: false, badge: 'Coming Soon' },
+  { id: 'Chennai', label: 'Chennai', isLive: false, badge: 'Coming Soon' },
+  { id: 'Kolkata', label: 'Kolkata', isLive: false, badge: 'Coming Soon' },
+  { id: 'Pune', label: 'Pune', isLive: false, badge: 'Coming Soon' }
 ];
 
 const SPECIALITIES = [
@@ -186,16 +187,26 @@ export default function ServicesPage({ onOpenUploadModal }) {
     updateUrlParams({ fulfillment: fulId, page: 1 });
   };
 
-  const handleLocationChange = (locId) => {
-    setSelectedLocation(locId);
-    setCurrentPage(1);
-    updateUrlParams({ location: locId, page: 1 });
-  };
+  // Waitlist Modal State
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [waitlistCity, setWaitlistCity] = useState('Delhi NCR');
 
   const handleSpecialityChange = (specId) => {
     setSelectedSpeciality(specId);
     setCurrentPage(1);
     updateUrlParams({ speciality: specId, page: 1 });
+  };
+
+  const handleLocationChange = (locId) => {
+    setSelectedLocation(locId);
+    setCurrentPage(1);
+    updateUrlParams({ location: locId, page: 1 });
+
+    if (locId !== 'all' && locId !== 'Bengaluru') {
+      const locObj = LOCATIONS.find(l => l.id === locId);
+      setWaitlistCity(locObj ? locObj.label : locId);
+      setIsWaitlistOpen(true);
+    }
   };
 
   const handleSortChange = (sortVal) => {
@@ -517,15 +528,22 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   {openSections.location && (
                     <div className="space-y-1.5 pt-1">
                       {LOCATIONS.map((loc) => (
-                        <label key={loc.id} className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer hover:text-purple-900">
-                          <input
-                            type="radio"
-                            name="sidebarLocation"
-                            checked={selectedLocation === loc.id}
-                            onChange={() => handleLocationChange(loc.id)}
-                            className="text-purple-700 focus:ring-purple-600"
-                          />
-                          <span>{loc.label}</span>
+                        <label key={loc.id} className="flex items-center justify-between font-medium text-slate-700 cursor-pointer hover:text-purple-900">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="sidebarLocation"
+                              checked={selectedLocation === loc.id}
+                              onChange={() => handleLocationChange(loc.id)}
+                              className="text-purple-700 focus:ring-purple-600"
+                            />
+                            <span>{loc.label}</span>
+                          </div>
+                          {!loc.isLive && (
+                            <span className="text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
+                              Coming Soon 🔔
+                            </span>
+                          )}
                         </label>
                       ))}
                     </div>
@@ -988,6 +1006,13 @@ export default function ServicesPage({ onOpenUploadModal }) {
           </div>
         </div>
       )}
+
+      {/* WAITLIST MODAL */}
+      <WaitlistModal
+        isOpen={isWaitlistOpen}
+        onClose={() => setIsWaitlistOpen(false)}
+        defaultCity={waitlistCity}
+      />
 
     </div>
   );

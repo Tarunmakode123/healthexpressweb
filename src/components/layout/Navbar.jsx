@@ -8,9 +8,17 @@ import {
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import WaitlistModal from '../common/WaitlistModal';
 
-const LOCATIONS = [
-  'Indore', 'Bengaluru', 'Delhi NCR', 'Mumbai', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune'
+const CITIES_LIST = [
+  { name: 'Bengaluru', isLive: true, badge: 'LIVE' },
+  { name: 'Delhi NCR', isLive: false, badge: 'Coming Soon' },
+  { name: 'Mumbai', isLive: false, badge: 'Coming Soon' },
+  { name: 'Hyderabad', isLive: false, badge: 'Coming Soon' },
+  { name: 'Chennai', isLive: false, badge: 'Coming Soon' },
+  { name: 'Kolkata', isLive: false, badge: 'Coming Soon' },
+  { name: 'Pune', isLive: false, badge: 'Coming Soon' },
+  { name: 'Indore', isLive: false, badge: 'Coming Soon' }
 ];
 
 export default function Navbar({ onOpenUploadModal }) {
@@ -21,13 +29,15 @@ export default function Navbar({ onOpenUploadModal }) {
   const [showAdminExitModal, setShowAdminExitModal] = useState(false);
   const [pendingTarget, setPendingTarget] = useState(null);
 
+  // Waitlist Modal state
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [waitlistCity, setWaitlistCity] = useState('Delhi NCR');
+
   // Search input state
   const [headerSearch, setHeaderSearch] = useState('');
 
-  // Location state with local storage persistence
-  const [selectedLocation, setSelectedLocation] = useState(() => {
-    return localStorage.getItem('he_user_city') || 'Indore';
-  });
+  // Location state (Active location: Bengaluru)
+  const [selectedLocation, setSelectedLocation] = useState('Bengaluru');
 
   // Geolocation states
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -102,11 +112,18 @@ export default function Navbar({ onOpenUploadModal }) {
     }
   };
 
-  const handleSelectLocation = (loc) => {
-    setSelectedLocation(loc);
-    localStorage.setItem('he_user_city', loc);
-    setLocationError(null);
-    setShowLocationMenu(false);
+  const handleSelectLocation = (locName) => {
+    if (locName === 'Bengaluru' || locName === 'Bangalore') {
+      setSelectedLocation('Bengaluru');
+      localStorage.setItem('he_user_city', 'Bengaluru');
+      setLocationError(null);
+      setShowLocationMenu(false);
+    } else {
+      setShowLocationMenu(false);
+      setIsMobileMenuOpen(false);
+      setWaitlistCity(locName);
+      setIsWaitlistOpen(true);
+    }
   };
 
   // Reverse Geocoding helper to resolve city from GPS coordinates
@@ -128,13 +145,13 @@ export default function Navbar({ onOpenUploadModal }) {
 
         if (rawCity) {
           const lowerRaw = rawCity.toLowerCase();
-          const matched = LOCATIONS.find(loc => {
-            const lowerLoc = loc.toLowerCase();
+          const matched = CITIES_LIST.find(c => {
+            const lowerLoc = c.name.toLowerCase();
             return lowerRaw.includes(lowerLoc) || lowerLoc.includes(lowerRaw) ||
-                   (loc === 'Bengaluru' && (lowerRaw.includes('bangalore') || lowerRaw.includes('bengaluru'))) ||
-                   (loc === 'Delhi NCR' && (lowerRaw.includes('delhi') || lowerRaw.includes('gurgaon') || lowerRaw.includes('noida')));
+                   (c.name === 'Bengaluru' && (lowerRaw.includes('bangalore') || lowerRaw.includes('bengaluru'))) ||
+                   (c.name === 'Delhi NCR' && (lowerRaw.includes('delhi') || lowerRaw.includes('gurgaon') || lowerRaw.includes('noida')));
           });
-          return matched || rawCity;
+          return matched ? matched.name : rawCity;
         }
       }
     } catch (err) {
@@ -260,22 +277,37 @@ export default function Navbar({ onOpenUploadModal }) {
 
                     {/* Manual City Selection List */}
                     <div className="border-t border-slate-100 pt-1">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2.5 py-1 block">
-                        SELECT CITY
-                      </span>
-                      <div className="max-h-52 overflow-y-auto space-y-0.5">
-                        {LOCATIONS.map((loc) => (
+                      <div className="flex items-center justify-between px-2.5 py-1">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                          SELECT CITY
+                        </span>
+                        <span className="text-[9px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">
+                          Bengaluru Live
+                        </span>
+                      </div>
+                      <div className="max-h-60 overflow-y-auto space-y-1">
+                        {CITIES_LIST.map((cityObj) => (
                           <button
-                            key={loc}
-                            onClick={() => handleSelectLocation(loc)}
-                            className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between cursor-pointer ${
-                              selectedLocation === loc
-                                ? 'bg-purple-50 text-purple-900 font-black'
-                                : 'text-slate-700 hover:bg-slate-50'
+                            key={cityObj.name}
+                            onClick={() => handleSelectLocation(cityObj.name)}
+                            className={`w-full text-left px-2.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                              cityObj.isLive
+                                ? 'bg-purple-50 text-purple-900 border border-purple-200/80 font-black shadow-2xs'
+                                : 'text-slate-700 hover:bg-slate-50 border border-transparent'
                             }`}
                           >
-                            <span>{loc}</span>
-                            {selectedLocation === loc && <span className="text-purple-700 font-extrabold">✓</span>}
+                            <span className="flex items-center gap-1.5">
+                              {cityObj.name}
+                            </span>
+                            {cityObj.isLive ? (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300">
+                                Active Live
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold border border-amber-200 hover:bg-purple-100 hover:text-purple-900 transition-colors">
+                                Coming Soon 🔔
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -497,7 +529,11 @@ export default function Navbar({ onOpenUploadModal }) {
                     onChange={(e) => handleSelectLocation(e.target.value)}
                     className="bg-transparent font-extrabold text-purple-900 outline-none cursor-pointer text-xs"
                   >
-                    {LOCATIONS.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                    {CITIES_LIST.map(c => (
+                      <option key={c.name} value={c.name}>
+                        {c.name} {c.isLive ? '(Active Live)' : '(Coming Soon 🔔)'}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -646,6 +682,13 @@ export default function Navbar({ onOpenUploadModal }) {
           </div>
         </div>
       )}
+
+      {/* 5. WAITLIST MODAL */}
+      <WaitlistModal
+        isOpen={isWaitlistOpen}
+        onClose={() => setIsWaitlistOpen(false)}
+        defaultCity={waitlistCity}
+      />
 
     </header>
   );
