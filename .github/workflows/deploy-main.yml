@@ -1,9 +1,6 @@
-name: Deploy HealthExpress Test
+name: Deploy HealthExpress MAIN
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -26,19 +23,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build website
+      - name: Build production website
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER: ${{ secrets.VITE_HEALTH_EXPRESS_WHATSAPP_NUMBER }}
 
-      - name: Deploy to Hostinger Test
+      - name: Verify Hostinger SPA fallback
+        run: test -f dist/.htaccess
+
+      - name: Deploy to HealthExpress MAIN
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.HOSTINGER_FTP_HOST }}
-          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          server: ${{ secrets.HOSTINGER_MAIN_FTP_HOST }}
+          username: ${{ secrets.HOSTINGER_MAIN_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_MAIN_FTP_PASSWORD }}
           protocol: ftp
           port: 21
-          server-dir: ${{ secrets.HOSTINGER_TEST_SERVER_DIR }}
+          server-dir: ${{ secrets.HOSTINGER_MAIN_SERVER_DIR }}
           local-dir: ./dist/
