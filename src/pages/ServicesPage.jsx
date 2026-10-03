@@ -738,28 +738,36 @@ export default function ServicesPage({ onOpenUploadModal }) {
 
                       {/* Pricing & Footer Actions */}
                       <div className="pt-3 border-t border-slate-100 space-y-2.5 mt-3">
-                        <div className="flex items-baseline justify-between">
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-base sm:text-lg font-black text-slate-900">₹{discountPrice}</span>
-                            {mrpPrice && mrpPrice > discountPrice && (
-                              <span className="text-xs text-slate-400 line-through">₹{mrpPrice}</span>
+                        {isHomeNursing ? (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs sm:text-sm font-extrabold text-purple-900 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">
+                              Contact us
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-baseline justify-between">
+                            <div className="flex items-baseline gap-1.5">
+                              <span className="text-base sm:text-lg font-black text-slate-900">₹{discountPrice}</span>
+                              {mrpPrice && mrpPrice > discountPrice && (
+                                <span className="text-xs text-slate-400 line-through">₹{mrpPrice}</span>
+                              )}
+                            </div>
+                            {service.discount_percentage && (
+                              <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                {service.discount_percentage} OFF
+                              </span>
                             )}
                           </div>
-                          {service.discount_percentage && (
-                            <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              {service.discount_percentage} OFF
-                            </span>
-                          )}
-                        </div>
+                        )}
 
                         {/* Home Nursing Card: Custom CTA without direct cart booking */}
                         {isHomeNursing ? (
                           <button
-                            onClick={() => openWhatsApp(`Hi HealthExpress, I would like to learn more about ${service.name}`)}
+                            onClick={() => openWhatsApp(`Hi Health Express, I am interested in ${service.name}. Please share more details.`)}
                             className="w-full py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-emerald-100 shrink-0" />
-                            <span className="truncate">Connect to Health Manager to learn more</span>
+                            <span className="truncate">Contact Us on WhatsApp →</span>
                           </button>
                         ) : (
                           <div className="grid grid-cols-2 gap-2">

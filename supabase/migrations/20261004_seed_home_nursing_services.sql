@@ -1,0 +1,61 @@
+-- ============================================================
+-- HEALTH EXPRESS — SUPABASE SQL MIGRATION
+-- SEED 10 HOME NURSING SERVICES INTO PUBLIC.SERVICES TABLE
+-- ============================================================
+
+INSERT INTO public.services (
+  slug,
+  service_code,
+  service_name,
+  category_id,
+  category_name,
+  subcategory,
+  provider,
+  description,
+  overview,
+  mrp,
+  selling_price,
+  b2b_price,
+  discount_percentage,
+  turnaround_time,
+  patient_preparation,
+  specimen_type,
+  home_collection_available,
+  centre_visit_required,
+  parameters,
+  parameters_count,
+  service_type,
+  source,
+  active
+) VALUES 
+('injection-administration', 'HEX-HN-001', 'Injection Administration', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Single dose IM/IV/SC injections administered by trained staff.', 'Single dose IM/IV/SC injections administered by trained staff.', 0, 0, 0, NULL, 'On-Demand', 'Valid doctor prescription required for injection administration.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('iv-drip-infusion', 'HEX-HN-002', 'IV Drip / Infusion', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Saline, IV fluids, and prescribed intravenous infusion administration.', 'Saline, IV fluids, and prescribed intravenous infusion administration.', 0, 0, 0, NULL, 'On-Demand', 'Valid doctor prescription required for IV infusion.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('dressing-change', 'HEX-HN-003', 'Dressing Change', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Sterile surgical wound care, bed leg ulcers, and burn dressing changes.', 'Sterile surgical wound care, bed leg ulcers, and burn dressing changes.', 0, 0, 0, NULL, 'On-Demand', 'Keep previous discharge summary or doctor notes handy.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('catheter-related-care', 'HEX-HN-004', 'Catheter-Related Care', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Foley catheter insertion, flushing, bag change, and hygiene care.', 'Foley catheter insertion, flushing, bag change, and hygiene care.', 0, 0, 0, NULL, 'On-Demand', 'No special preparation required.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('nebulization', 'HEX-HN-005', 'Nebulization', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Inhalation therapy and respiratory nebulizer administration at home.', 'Inhalation therapy and respiratory nebulizer administration at home.', 0, 0, 0, NULL, 'On-Demand', 'Keep prescribed respiratory medication ready.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('vital-checks', 'HEX-HN-006', 'Vital Checks', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Comprehensive monitoring of Pulse, SpO2, Temperature, and Respiration.', 'Comprehensive monitoring of Pulse, SpO2, Temperature, and Respiration.', 0, 0, 0, NULL, 'On-Demand', 'No special preparation required.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('blood-sugar-check', 'HEX-HN-007', 'Blood Sugar Check', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Fasting and postprandial glucose level check with glucometer.', 'Fasting and postprandial glucose level check with glucometer.', 0, 0, 0, NULL, 'On-Demand', 'For fasting check, 8-10 hours fasting required.', 'Capillary Blood', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('blood-pressure-check', 'HEX-HN-008', 'Blood Pressure Check', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Digital and manual BP monitoring with record keeping.', 'Digital and manual BP monitoring with record keeping.', 0, 0, 0, NULL, 'On-Demand', 'Rest for 5 minutes before BP measurement.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('sample-collection', 'HEX-HN-009', 'Sample Collection', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Home blood, urine, and specimen collection for lab testing.', 'Home blood, urine, and specimen collection for lab testing.', 0, 0, 0, NULL, 'On-Demand', 'Follow specific test fasting or preparation instructions.', 'Blood / Urine / Specimen', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true),
+('medication-administration', 'HEX-HN-010', 'Medication Administration', 'home-nursing', 'Home Nursing', 'Home Nursing Care', 'Health Express Care Team', 'Oral, topical, and scheduled prescription drug administration.', 'Oral, topical, and scheduled prescription drug administration.', 0, 0, 0, NULL, 'On-Demand', 'Keep doctor prescriptions and medications accessible.', 'N/A', true, false, '[]'::jsonb, 0, 'home_nursing', 'catalog', true)
+ON CONFLICT (slug) DO UPDATE SET
+  service_code = EXCLUDED.service_code,
+  service_name = EXCLUDED.service_name,
+  category_id = EXCLUDED.category_id,
+  category_name = EXCLUDED.category_name,
+  subcategory = EXCLUDED.subcategory,
+  provider = EXCLUDED.provider,
+  description = EXCLUDED.description,
+  overview = EXCLUDED.overview,
+  mrp = EXCLUDED.mrp,
+  selling_price = EXCLUDED.selling_price,
+  b2b_price = EXCLUDED.b2b_price,
+  discount_percentage = EXCLUDED.discount_percentage,
+  patient_preparation = EXCLUDED.patient_preparation,
+  specimen_type = EXCLUDED.specimen_type,
+  home_collection_available = EXCLUDED.home_collection_available,
+  centre_visit_required = EXCLUDED.centre_visit_required,
+  service_type = EXCLUDED.service_type,
+  source = EXCLUDED.source,
+  active = EXCLUDED.active,
+  updated_at = now();
