@@ -436,15 +436,13 @@ export default function GenericDashboardPage() {
 
             <div className="hidden md:block w-px h-5 bg-slate-800" />
 
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-purple-300 transition-colors"
+            <Link
+              to="/services"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs shadow-md shadow-purple-600/30 transition-all cursor-pointer active:scale-95 shrink-0"
             >
-              <span>Visit Main Website</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+              <ShoppingBag className="w-3.5 h-3.5 text-purple-200" />
+              <span>Book Services</span>
+            </Link>
           </div>
 
           {/* Right Side: Authenticated Member Account Dropdown */}
