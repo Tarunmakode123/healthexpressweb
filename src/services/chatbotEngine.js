@@ -52,7 +52,7 @@ function extractSearchKeywords(rawQuery) {
 
 function searchCatalogServices(rawQuery) {
   const clean = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  if (!clean) return [];
+  if (!clean || clean.length < 3) return [];
 
   // 1. Alias Matching
   for (const alias of SERVICE_ALIASES) {
@@ -74,9 +74,13 @@ function searchCatalogServices(rawQuery) {
   );
   if (exactMatch.length > 0) return exactMatch;
 
-  // 3. Substring match on service name or subcategory
-  const nameMatches = ALL_SERVICES.filter((s) => s.name.toLowerCase().includes(clean) || (s.subcategory || '').toLowerCase().includes(clean));
-  if (nameMatches.length > 0) return nameMatches.slice(0, 3);
+  // 3. Substring match on service name using word boundary or clean length >= 4
+  if (clean.length >= 3) {
+    const safeClean = clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const wordRegex = new RegExp(`\\b${safeClean}`, 'i');
+    const nameMatches = ALL_SERVICES.filter((s) => wordRegex.test(s.name.toLowerCase()) || (s.subcategory || '').toLowerCase().includes(clean));
+    if (nameMatches.length > 0) return nameMatches.slice(0, 3);
+  }
 
   // 4. Keyword Match after stripping stop words
   const keywords = extractSearchKeywords(rawQuery);
@@ -153,6 +157,25 @@ function evaluateGeographyCoverage(rawQuery) {
 export function processUserMessage(rawQuery, currentPath = '/', userContext = {}) {
   const cleanQuery = rawQuery.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
   const ESCALATION = "Let me connect you to your Health Manager.";
+
+  // ----------------------------------------------------
+  // 0. GENERAL GREETINGS & SALUTATIONS
+  // ----------------------------------------------------
+  const greetings = ['hi', 'hello', 'hey', 'greetings', 'namaste', 'hi hex', 'hello hex', 'good morning', 'good evening', 'good afternoon', 'hy', 'hola'];
+  if (greetings.includes(cleanQuery) || cleanQuery === 'hi' || cleanQuery === 'hello' || cleanQuery === 'hey') {
+    return {
+      intent: 'GREETING',
+      text: `${HEX_SPECIFICATION.agentIdentity.greeting}\n\nI am **HEX**, your Health Express Care Assistant. I can explain diagnostic services, home nursing care, pilot coverage in Bengaluru, or connect you with your Health Manager.`,
+      quickReplies: [
+        { label: "🧪 Lab Diagnostics", action: "nav_services" },
+        { label: "🏡 Home Nursing Care", action: "whatsapp_service_nursing" },
+        { label: "📄 Upload Prescription", action: "open_upload_modal" },
+        { label: "📍 Bengaluru Coverage", action: "whatsapp_locality" },
+        { label: "💬 Connect with Health Manager", action: "whatsapp_general" }
+      ],
+      whatsappMsg: DEFAULT_MESSAGES.general
+    };
+  }
 
   // ----------------------------------------------------
   // 1. IDENTITY & WHO ARE YOU INTENT (Section 3 & Rule 1)
@@ -589,7 +612,8 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
 
   if (matchedServices.length > 0) {
     const primary = matchedServices[0];
-    let replyText = `🧪 **${primary.name}**\n${primary.shortDesc || primary.description}`;
+    const descText = primary.short_description || primary.shortDesc || primary.description || '';
+    let replyText = `🧪 **${primary.name}**${descText ? '\n' + descText : ''}`;
 
     if (primary.price_type === 'QUOTE_REQUIRED') {
       replyText += `\n\n💰 **Pricing**: A personalized quotation is required for this service.\n\n${ESCALATION}`;
@@ -618,23 +642,7 @@ export function processUserMessage(rawQuery, currentPath = '/', userContext = {}
     };
   }
 
-  // ----------------------------------------------------
-  // 12. GENERAL GREETINGS
-  // ----------------------------------------------------
-  const greetings = ['hi', 'hello', 'hey', 'greetings', 'namaste', 'hi hex', 'hello hex'];
-  if (greetings.includes(cleanQuery)) {
-    return {
-      intent: 'GREETING',
-      text: `${HEX_SPECIFICATION.agentIdentity.greeting}\n\nI am **HEX**, your Health Express Care Assistant. I can explain diagnostic tests, home nursing care, pilot coverage in Bengaluru, or connect you with your Health Manager.`,
-      quickReplies: [
-        { label: "🧪 Lab Diagnostics", action: "nav_services" },
-        { label: "🏡 Home Nursing Care", action: "whatsapp_service_nursing" },
-        { label: "📄 Upload Prescription", action: "open_upload_modal" },
-        { label: "📍 Bengaluru Coverage", action: "whatsapp_locality" }
-      ],
-      whatsappMsg: DEFAULT_MESSAGES.general
-    };
-  }
+
 
   // ----------------------------------------------------
   // 13. GOLDEN RULE FALLBACK (Rule 25)
