@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Phone, User, ArrowRight, CheckCircle2, ShieldCheck, 
   Sparkles, AlertCircle, RefreshCw, ChevronLeft, Gift, Coins
@@ -11,16 +11,10 @@ import { POPULAR_COUNTRY_CODES, validateAndNormalizeInternationalPhone } from '.
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { login, signup, isLoggedIn, user, session } = useAuth();
   const { walletSettings } = useCart();
 
-  // Mode: 'signin' or 'signup'
-  const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
-  const [mode, setMode] = useState(initialMode);
-
   // Form Fields for Mobile OTP
-  const [fullName, setFullName] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(true);
@@ -65,11 +59,6 @@ export default function AuthPage() {
     const phoneCheck = validateAndNormalizeInternationalPhone(phone, countryCode);
     if (!phoneCheck.isValid) {
       setError(phoneCheck.error);
-      return;
-    }
-
-    if (mode === 'signup' && !fullName.trim()) {
-      setError('Please enter your full name.');
       return;
     }
 
@@ -319,44 +308,14 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Sign In / Sign Up Mode Switcher */}
+          {/* Single Unified Login Header */}
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => {
-                  setMode('signin');
-                  setOtpStep(false);
-                  setError('');
-                  setSuccessMessage('');
-                }}
-                className={`text-lg font-extrabold pb-1 transition-all cursor-pointer ${
-                  mode === 'signin'
-                    ? 'text-purple-800 border-b-2 border-purple-700'
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                Sign In
-              </button>
-
-              <button
-                onClick={() => {
-                  setMode('signup');
-                  setOtpStep(false);
-                  setError('');
-                  setSuccessMessage('');
-                }}
-                className={`text-lg font-extrabold pb-1 transition-all cursor-pointer ${
-                  mode === 'signup'
-                    ? 'text-purple-800 border-b-2 border-purple-700'
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                Sign Up
-              </button>
-            </div>
+            <h1 className="text-lg font-extrabold pb-1 text-purple-800 border-b-2 border-purple-700">
+              Login
+            </h1>
 
             <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-100">
-              {mode === 'signin' ? 'Mobile OTP Login' : 'Mobile OTP Registration'}
+              Mobile OTP Login
             </span>
           </div>
 
@@ -380,21 +339,6 @@ export default function AuthPage() {
             {!otpStep ? (
               /* Step 1: Mobile Number Input Form */
               <form onSubmit={handlePhoneSubmit} className="space-y-4">
-                {mode === 'signup' && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-800">Full Name</label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="e.g. Rahul Sharma"
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
-                      />
-                    </div>
-                  </div>
-                )}
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800">Mobile Phone Number</label>
@@ -535,39 +479,9 @@ export default function AuthPage() {
             )}
           </div>
 
-          {/* Bottom Switch Mode helper */}
+          {/* Mobile OTP Access Note */}
           <div className="text-center pt-2 text-xs text-slate-500">
-            {mode === 'signin' ? (
-              <span>
-                Don't have a Health Express account?{' '}
-                <button
-                  onClick={() => {
-                    setMode('signup');
-                    setOtpStep(false);
-                    setError('');
-                    setSuccessMessage('');
-                  }}
-                  className="text-purple-700 font-extrabold hover:underline cursor-pointer"
-                >
-                  Sign Up Free
-                </button>
-              </span>
-            ) : (
-              <span>
-                Already registered?{' '}
-                <button
-                  onClick={() => {
-                    setMode('signin');
-                    setOtpStep(false);
-                    setError('');
-                    setSuccessMessage('');
-                  }}
-                  className="text-purple-700 font-extrabold hover:underline cursor-pointer"
-                >
-                  Sign In
-                </button>
-              </span>
-            )}
+            <span>Instant, passwordless mobile access for all Health Express members.</span>
           </div>
 
         </div>
