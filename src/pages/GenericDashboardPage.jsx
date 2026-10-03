@@ -6,7 +6,7 @@ import {
   Clock, Coins, RefreshCw, MessageSquare, ExternalLink, Filter, ChevronDown,
   Sparkles, CreditCard, Eye, Calculator, Globe, Hospital, Compass, ChevronRight, Settings,
   Zap, ArrowUpRight, Check, AlertCircle, Folder, UploadCloud, Download, Share2, Search,
-  FileCheck, X, HardDrive, Headphones, PhoneCall, Stethoscope, Shield, Bookmark, Gift
+  FileCheck, X, HardDrive, Headphones, PhoneCall, Stethoscope, Shield, Bookmark, Gift, Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
@@ -50,10 +50,38 @@ export default function GenericDashboardPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadCategory, setUploadCategory] = useState('lab_report');
   const [uploadTitle, setUploadTitle] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadError, setUploadError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [customRecords, setCustomRecords] = useState([]);
+
+  // Multi-File Add & Remove Helpers
+  const handleAddFiles = (newFileList) => {
+    setUploadError('');
+    if (!newFileList || newFileList.length === 0) return;
+
+    const validNewFiles = [];
+    for (const file of Array.from(newFileList)) {
+      const val = validatePrescriptionFile(file);
+      if (!val.isValid) {
+        setUploadError(`"${file.name}": ${val.error}`);
+        return;
+      }
+      validNewFiles.push(file);
+    }
+
+    setSelectedFiles(prev => {
+      const existingKeys = new Set(prev.map(f => `${f.name}_${f.size}`));
+      const uniqueFiles = validNewFiles.filter(f => !existingKeys.has(`${f.name}_${f.size}`));
+      return [...prev, ...uniqueFiles];
+    });
+  };
+
+  const handleRemoveFile = (indexToRemove) => {
+    setUploadError('');
+    setSelectedFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
 
   // Health Wallet Modal State
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
@@ -78,6 +106,8 @@ export default function GenericDashboardPage() {
     function handleOpenModal(e) {
       const cat = e?.detail?.category || 'lab_report';
       setUploadCategory(cat);
+      setSelectedFiles([]);
+      setUploadError('');
       setIsUploadModalOpen(true);
     }
     window.addEventListener('open-upload-modal', handleOpenModal);
@@ -88,7 +118,7 @@ export default function GenericDashboardPage() {
   const openModalWithCategory = (cat = 'lab_report') => {
     setUploadCategory(cat);
     setUploadError('');
-    setSelectedFile(null);
+    setSelectedFiles([]);
     setUploadTitle('');
     setIsUploadModalOpen(true);
   };
@@ -326,60 +356,81 @@ export default function GenericDashboardPage() {
   const currentWalletCoins = typeof memberData?.walletCoins === 'number' ? memberData.walletCoins : 0;
   const rupeesDiscountValue = Math.floor(currentWalletCoins / coinsPerRupee);
 
-  // Handle Document Upload Submission to Health Vault
+  // Handle Document Upload Submission to Health Vault (Multi-file upload support)
   const handleUploadSubmit = (e) => {
     e.preventDefault();
     setUploadError('');
 
-    if (!selectedFile) {
-      setUploadError('Please select a file to upload.');
+    if (!selectedFiles || selectedFiles.length === 0) {
+      setUploadError('Please select at least one file to upload.');
       return;
     }
 
-    const val = validatePrescriptionFile(selectedFile);
-    if (!val.isValid) {
-      setUploadError(val.error);
-      return;
+    // Validate every file individually
+    for (const file of selectedFiles) {
+      const val = validatePrescriptionFile(file);
+      if (!val.isValid) {
+        setUploadError(`"${file.name}": ${val.error}`);
+        return;
+      }
     }
 
     setIsUploading(true);
 
     setTimeout(() => {
-      const categoryLabels = {
-        lab_report: 'Lab Report',
-        prescription: 'Prescription',
-        imaging_scan: 'MRI / Scan Report',
-        doctor_notes: 'Doctor Consultation Note',
-        discharge_summary: 'Discharge Summary',
-        other: 'Other'
-      };
+      try {
+        const categoryLabels = {
+          lab_report: 'Lab Report',
+          prescription: 'Prescription',
+          imaging_scan: 'MRI / Scan Report',
+          doctor_notes: 'Doctor Consultation Note',
+          discharge_summary: 'Discharge Summary',
+          other: 'Other'
+        };
 
-      const newRecord = {
-        id: `doc-${Date.now()}`,
-        title: uploadTitle.trim() || selectedFile.name,
-        category: uploadCategory,
-        categoryLabel: categoryLabels[uploadCategory] || 'Medical Record',
-        uploadedAt: new Date().toISOString(),
-        fileSize: `${Math.round(selectedFile.size / 1024)} KB`,
-        status: uploadCategory === 'prescription' ? 'Under Care Manager Review' : 'Saved in Vault',
-        publicUrl: URL.createObjectURL(selectedFile),
-        isPrescription: uploadCategory === 'prescription'
-      };
+        const newRecords = selectedFiles.map((file, idx) => {
+          let recordTitle = uploadTitle.trim();
+          if (recordTitle) {
+            if (selectedFiles.length > 1) {
+              recordTitle = `${recordTitle} (${idx + 1})`;
+            }
+          } else {
+            recordTitle = file.name;
+          }
 
-      setCustomRecords(prev => [newRecord, ...prev]);
-      setIsUploading(false);
-      setIsUploadModalOpen(false);
-      setSelectedFile(null);
-      setUploadTitle('');
-      setUploadCategory('lab_report');
+          return {
+            id: `doc-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+            title: recordTitle,
+            category: uploadCategory,
+            categoryLabel: categoryLabels[uploadCategory] || 'Medical Record',
+            uploadedAt: new Date().toISOString(),
+            fileSize: `${Math.round(file.size / 1024)} KB`,
+            status: uploadCategory === 'prescription' ? 'Under Care Manager Review' : 'Saved in Vault',
+            publicUrl: URL.createObjectURL(file),
+            isPrescription: uploadCategory === 'prescription',
+            storageReference: file.name
+          };
+        });
 
-      // Auto-switch to vault or prescription tab
-      if (uploadCategory === 'prescription') {
-        setActiveWorkspaceTab('prescriptions');
-      } else {
-        setActiveWorkspaceTab('vault');
+        setCustomRecords(prev => [...newRecords, ...prev]);
+        setIsUploading(false);
+        setIsUploadModalOpen(false);
+        setSelectedFiles([]);
+        setUploadTitle('');
+        setUploadCategory('lab_report');
+
+        // Auto-switch to vault or prescription tab
+        if (uploadCategory === 'prescription') {
+          setActiveWorkspaceTab('prescriptions');
+        } else {
+          setActiveWorkspaceTab('vault');
+        }
+      } catch (err) {
+        console.error('Upload submit exception:', err);
+        setUploadError(`Upload failed: ${err.message || 'Error processing files.'}`);
+        setIsUploading(false);
       }
-    }, 600);
+    }, 400);
   };
 
   // Quick CTA Dispatcher
@@ -1147,7 +1198,7 @@ export default function GenericDashboardPage() {
               </div>
 
               <button
-                onClick={() => { setIsUploadModalOpen(false); setUploadError(''); setSelectedFile(null); }}
+                onClick={() => { setIsUploadModalOpen(false); setUploadError(''); setSelectedFiles([]); }}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -1185,24 +1236,98 @@ export default function GenericDashboardPage() {
                 />
               </div>
 
-              {/* File Dropzone */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold text-slate-800">File Attachment (PDF, JPG, PNG, WEBP, DOCX)</label>
-                <div className="p-4 border-2 border-dashed border-purple-200 rounded-2xl bg-purple-50/40 text-center space-y-2 relative hover:bg-purple-50 transition-colors">
+              {/* File Dropzone & Multi-file Upload Area */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-extrabold text-slate-800">
+                    File Attachment (PDF, JPG, PNG, WEBP, DOCX)
+                  </label>
+                  {selectedFiles.length > 0 && (
+                    <span className="text-[11px] font-extrabold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                      {selectedFiles.length} {selectedFiles.length === 1 ? 'file' : 'files'} selected
+                    </span>
+                  )}
+                </div>
+
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); setIsDragOver(false); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      handleAddFiles(e.dataTransfer.files);
+                    }
+                  }}
+                  className={`p-4 border-2 border-dashed rounded-2xl text-center space-y-2 relative transition-colors ${
+                    isDragOver 
+                      ? 'border-purple-600 bg-purple-100/70' 
+                      : 'border-purple-200 bg-purple-50/40 hover:bg-purple-50'
+                  }`}
+                >
                   <UploadCloud className="w-8 h-8 text-purple-600 mx-auto" />
                   <div>
-                    <span className="text-xs font-bold text-purple-900">
-                      {selectedFile ? selectedFile.name : 'Click or drop file here'}
+                    <span className="text-xs font-bold text-purple-900 block">
+                      {selectedFiles.length > 0 ? 'Click or drop more files to add' : 'Click or drop files here'}
                     </span>
-                    <p className="text-[10px] text-slate-500">Maximum file size: 10MB</p>
+                    <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                      Maximum file size: 10MB per file
+                    </p>
                   </div>
                   <input
                     type="file"
+                    multiple
                     accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                    onChange={(e) => setSelectedFile(e.target.files[0] || null)}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleAddFiles(e.target.files);
+                      }
+                      e.target.value = '';
+                    }}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   />
                 </div>
+
+                {/* Selected Files List Preview */}
+                {selectedFiles.length > 0 && (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 pt-1">
+                    {selectedFiles.map((file, idx) => {
+                      const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+                      const sizeKb = Math.round(file.size / 1024);
+                      const sizeFormatted = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+
+                      return (
+                        <div 
+                          key={`${file.name}_${file.size}_${idx}`}
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-purple-100 shadow-2xs hover:border-purple-200 transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-800 font-black text-[9px] flex items-center justify-center shrink-0 border border-purple-200">
+                              {ext}
+                            </div>
+                            <div className="min-w-0 text-left">
+                              <p className="text-xs font-bold text-slate-800 truncate" title={file.name}>
+                                {file.name}
+                              </p>
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                {sizeFormatted}
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(idx)}
+                            className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer shrink-0"
+                            title="Remove file"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Error Message */}
