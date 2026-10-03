@@ -98,7 +98,7 @@ export async function createInternalOrder({ customerName, customerPhone, custome
 
   const { verifiedTotal, verifiedSubtotal, promoDiscount, coinDiscount, coinsUsed, promoCodeApplied, validatedItems } = cartValidation;
   const isCod = paymentMethod.toUpperCase() === 'COD';
-  const paymentMode = isCod ? 'COD' : (isRazorpayLiveConfigured() ? 'LIVE' : 'DEMO');
+  const paymentMode = isRazorpayLiveConfigured() ? 'LIVE' : 'DEMO';
 
   // 3. Database persistence via Supabase RPC
   if (isSupabaseConfigured) {
