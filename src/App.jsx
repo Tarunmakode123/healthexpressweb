@@ -98,7 +98,7 @@ function MainLayout() {
     <>
       <ScrollToTop />
       {!isStandaloneApp && <HealthExpressIntro />}
-      <div className={`min-h-screen flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900 antialiased ${isAdminRoute ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'}`}>
+      <div className={`min-h-screen flex flex-col font-sans selection:bg-purple-100 selection:text-purple-900 antialiased w-full max-w-full overflow-x-hidden ${isAdminRoute ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'}`}>
         
         {/* Responsive Header Navbar (Public Consumer Pages Only) */}
         {!isStandaloneApp && (

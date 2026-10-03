@@ -442,12 +442,12 @@ export default function Navbar({ onOpenUploadModal }) {
             <div className="md:hidden flex items-center gap-2">
               <button
                 onClick={openCart}
-                className="relative p-2 rounded-xl bg-purple-700 text-white flex items-center justify-center cursor-pointer"
+                className="relative p-2.5 min-w-[44px] min-h-[44px] rounded-xl bg-purple-700 hover:bg-purple-800 text-white flex items-center justify-center cursor-pointer touch-target active:scale-95 transition-transform"
                 aria-label="Open Cart"
               >
-                <ShoppingBag className="w-4 h-4 text-white" />
+                <ShoppingBag className="w-5 h-5 text-white" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-purple-900 text-white text-[9px] font-black flex items-center justify-center border border-white">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-400 text-purple-950 text-[10px] font-black flex items-center justify-center border border-purple-900 shadow-2xs">
                     {itemCount}
                   </span>
                 )}
@@ -455,7 +455,7 @@ export default function Navbar({ onOpenUploadModal }) {
 
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 text-slate-700 hover:text-purple-700 hover:bg-purple-50 rounded-xl cursor-pointer"
+                className="p-2.5 min-w-[44px] min-h-[44px] text-slate-700 hover:text-purple-700 hover:bg-purple-50 rounded-xl cursor-pointer touch-target active:scale-95 transition-transform flex items-center justify-center"
                 aria-label="Toggle Navigation Menu"
               >
                 {isMobileMenuOpen ? <X className="w-6 h-6 text-purple-700" /> : <Menu className="w-6 h-6" />}
