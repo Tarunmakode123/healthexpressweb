@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { fetchServices } from '../services/catalogService';
 import { useCart } from '../context/CartContext';
+import { openWhatsApp } from '../utils/whatsapp';
 import WaitlistModal from '../components/common/WaitlistModal';
 
 // Category Icon Mapping
@@ -754,7 +755,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         {/* Home Nursing Card: Custom CTA without direct cart booking */}
                         {isHomeNursing ? (
                           <button
-                            onClick={() => window.open(`https://wa.me/919876543210?text=${encodeURIComponent('Hi HealthExpress, I would like to learn more about ' + service.name)}`, '_blank')}
+                            onClick={() => openWhatsApp(`Hi HealthExpress, I would like to learn more about ${service.name}`)}
                             className="w-full py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-emerald-100 shrink-0" />
