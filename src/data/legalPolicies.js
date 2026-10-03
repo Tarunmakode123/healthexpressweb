@@ -357,5 +357,230 @@ export const LEGAL_POLICIES = {
         ]
       }
     ]
+  },
+  privacy: {
+    id: "privacy",
+    title: "HEALTH EXPRESS PRIVACY POLICY",
+    shortTitle: "Privacy Policy",
+    effectiveDate: "May 25, 2026",
+    sections: [
+      {
+        heading: "PREAMBLE",
+        content: [
+          `This Privacy Policy (“Policy”) constitutes a legally binding agreement between you (“User”, “you”, “your”) and Health Express (“Health Express”, “Company”, “we”, “our”, or “us”), having its registered office at No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India.`,
+          `This Policy governs the collection, processing, storage, retention, operational utilization, analysis, transfer, disclosure, sharing, protection, handling, and management of personal information, healthcare information, operational data, analytics information, tracking data, behavioral information, AI-enabled processing data, and related information collected through the Health Express website, mobile applications, APIs, dashboards, software systems, communication systems, authentication systems, integrations, AI-enabled systems, analytics infrastructure, healthcare infrastructure systems, and related digital properties (collectively, the “Platform”).`,
+          `This Policy shall be read together with the Health Express Terms & Conditions, Cookie Policy, Refund & Cancellation Policy, Telemedicine Policy, Consent Policies, and all other legal policies published on the Platform from time to time.`,
+          `By accessing, browsing, registering on, interacting with, communicating through, uploading information to, making payments through, booking services through, or otherwise using the Platform, you acknowledge that you have read, understood, and expressly consented to the collection, processing, storage, operational utilization, analysis, disclosure, transfer, retention, and handling of information in accordance with this Policy.`,
+          `If you do not agree with this Policy, you must immediately discontinue use of the Platform.`,
+          `This electronic record is generated in accordance with the Information Technology Act, 2000, applicable rules thereunder, the Digital Personal Data Protection Act, 2023, and related amendments governing electronic records and digital processing activities, and does not require any physical or digital signature.`
+        ]
+      },
+      {
+        heading: "1. APPLICABILITY",
+        content: [
+          `This Policy applies to all Users interacting with the Platform including website visitors, mobile application users, patients, caregivers, family members, dependents, healthcare providers, telemedicine users, wellness-service users, insurance-linked healthcare users, corporate wellness participants, enterprise healthcare users, and related individuals.`,
+          `This Policy applies to healthcare-related services facilitated, coordinated, operationally managed, aggregated, enabled, or supported through the Platform.`,
+          `This Policy applies irrespective of whether Users access the Platform from India or internationally.`
+        ]
+      },
+      {
+        heading: "2. NATURE OF PLATFORM",
+        content: [
+          `Health Express operates as a technology-enabled healthcare coordination, preventive-health, healthcare-commerce, analytics, wellness, telemedicine facilitation, operational healthcare infrastructure, diagnostics coordination, healthcare-support, and AI-enabled systems platform.`,
+          `The Platform may facilitate, coordinate, aggregate, operationally manage, support, enable, or provide access to diagnostic testing, telemedicine consultations, preventive-health systems, biomarker analytics, wellness services, medicine-delivery systems, healthcare-provider coordination, AI-enabled systems, health-record management systems, communication systems, customer-support systems, healthcare analytics systems, insurance-linked healthcare services, subscription services, enterprise healthcare systems, corporate wellness programs, and future healthcare-related services.`,
+          `Certain healthcare services facilitated through the Platform are rendered by independent third-party Providers including laboratories, doctors, telemedicine practitioners, pharmacies, imaging centers, logistics partners, wellness providers, insurers, operational vendors, and related service providers.`,
+          `Health Express primarily functions as a technology and operational coordination platform unless expressly stated otherwise.`
+        ]
+      },
+      {
+        heading: "3. TYPES OF INFORMATION COLLECTED",
+        content: [
+          `Health Express may collect, process, analyze, store, operationally utilize, transfer, disclose, or otherwise handle information including names, dates of birth, gender, phone numbers, email addresses, addresses, emergency contact details, demographic information, healthcare histories, biomarker information, diagnostic reports, consultation records, prescriptions, uploaded medical records, insurance information, payment information, wellness information, authentication credentials, passwords, device identifiers, browser information, operating-system information, IP addresses, cookies, tracking data, advertising identifiers, cross-device identifiers, session activity, interaction activity, clickstream information, referral information, internet service provider information, communication records, call recordings, emails, chats, customer-support interactions, AI-interaction information, wearable-device data, genomic information where permitted under applicable law, biometric information, voice information, facial images, operational telemetry, crash reports, session replay information, heatmap information, behavioral analytics information, push-notification identifiers, SDK information, location information, user-generated content, infrastructure diagnostics, analytics information, operational reporting information, and related healthcare or operational information.`,
+          `Certain information collected through the Platform may constitute personal information, healthcare information, sensitive personal data or information, protected health-related information, or regulated digital information under applicable law.`,
+          `Users acknowledge that multiple profiles may be created within a single account for family members, dependents, caregivers, or authorized individuals. Users represent and warrant that they possess all necessary rights, permissions, authorizations, and consents prior to sharing third-party information through the Platform.`,
+          `Users remain solely responsible for ensuring that all information submitted through the Platform is accurate, lawful, updated, complete, and authorized.`
+        ]
+      },
+      {
+        heading: "4. SOURCES OF INFORMATION",
+        content: [
+          `Information may be collected directly from Users, uploaded documents, healthcare providers, laboratories, pharmacies, telemedicine practitioners, payment providers, analytics systems, advertising systems, cloud-service providers, wearable integrations, communication systems, authentication systems, customer-support systems, AI-enabled systems, cookies, SDKs, APIs, tracking technologies, operational systems, insurers, enterprise healthcare systems, wellness providers, social-media integrations, marketing systems, and lawful third-party integrations.`,
+          `Information may additionally be generated operationally through healthcare workflows, diagnostics workflows, preventive-health systems, telemedicine systems, operational systems, AI-enabled systems, behavioral analytics systems, audience analytics systems, customer-support interactions, fraud-prevention systems, cybersecurity systems, communication systems, infrastructure systems, and analytics infrastructure.`
+        ]
+      },
+      {
+        heading: "5. PURPOSES OF PROCESSING",
+        content: [
+          `Health Express may process information for account creation, authentication, healthcare-service coordination, diagnostics workflows, telemedicine systems, healthcare operations, appointment scheduling, medicine-delivery workflows, preventive-health systems, biomarker analytics, AI-enabled systems, operational automation, customer-support systems, fraud prevention, cybersecurity, infrastructure optimization, analytics systems, audience analytics, operational reporting, payment processing, communication systems, service optimization, workflow optimization, personalization systems, recommendation systems, advertising systems, retargeting systems, campaign measurement, healthcare analytics, healthcare research, internal audits, quality assurance, legal compliance, dispute resolution, audit obligations, regulatory obligations, healthcare-awareness initiatives, wellness communications, public-health compliance, product development, infrastructure management, operational continuity, and lawful business purposes.`,
+          `Users expressly acknowledge that healthcare workflows and operational healthcare systems may require processing of healthcare information, operational information, behavioral analytics, communication information, and related digital information.`,
+          `Users may withdraw consent for certain non-essential processing activities where legally permissible. Withdrawal of consent may affect Health Express’s ability to provide certain Platform functionality, healthcare workflows, personalization systems, communication systems, AI-enabled systems, or related services.`
+        ]
+      },
+      {
+        heading: "6. TRACKING TECHNOLOGIES, COOKIES & BEHAVIORAL ANALYTICS",
+        content: [
+          `Health Express may utilize cookies, SDKs, tracking pixels, device identifiers, analytics technologies, advertising technologies, session replay systems, telemetry systems, operational monitoring systems, heatmap systems, behavioral analytics systems, audience analytics systems, crash-reporting systems, cross-device tracking systems, personalization technologies, authentication systems, and related Tracking Technologies as described in the Cookie Policy.`,
+          `Tracking Technologies may support authentication systems, fraud-prevention systems, cybersecurity systems, healthcare workflows, diagnostics workflows, customer-support systems, operational continuity, analytics systems, AI-enabled systems, infrastructure optimization, communication systems, recommendation systems, personalization systems, advertising systems, retargeting systems, preventive-health systems, biomarker systems, session analytics, infrastructure monitoring, and lawful business purposes.`,
+          `Health Express may utilize technologies and systems including Google Analytics, Google Ads, Firebase, Google Tag Manager, Google Maps, Google Sign-In systems, Meta Pixel, Meta Conversion API, Instagram advertising systems, Hotjar, Microsoft Clarity, FullStory, Razorpay, Stripe, Intercom, Zendesk, Calendly, YouTube integrations, WhatsApp communication systems, push-notification systems, Firebase Authentication systems, Supabase systems, Auth0 systems, and related third-party operational technologies.`,
+          `The Platform may utilize session replay systems, behavioral analytics systems, telemetry systems, clickstream analysis systems, navigation-pattern analysis systems, heatmap technologies, operational diagnostics systems, crash-reporting systems, and related technologies for operational optimization, customer-support analysis, healthcare workflow optimization, cybersecurity, fraud prevention, AI-system optimization, infrastructure optimization, service improvement, analytics systems, and lawful operational purposes.`,
+          `Such systems may process clicks, taps, scrolling behavior, interaction patterns, timestamps, technical diagnostics, navigation activity, communication activity, session activity, operational telemetry, and related interaction information.`,
+          `Users acknowledge that certain third-party systems integrated with the Platform may independently process information subject to their own policies.`
+        ]
+      },
+      {
+        heading: "7. AI SYSTEMS, AUTOMATED PROCESSING & PREVENTIVE-HEALTH SYSTEMS",
+        content: [
+          `Health Express may utilize AI-enabled systems for workflow optimization, personalization systems, recommendation systems, healthcare analytics, preventive-health systems, biomarker systems, operational reporting, automation systems, customer-support systems, infrastructure optimization, communication optimization, analytics systems, and related assistive functions.`,
+          `Users acknowledge and agree that healthcare interaction data, uploaded information, operational data, behavioral analytics, communication data, device activity, and related information may contribute to AI-enabled systems, analytics systems, automation systems, recommendation systems, personalization systems, predictive systems, operational systems, and product-improvement systems.`,
+          `Health Express may utilize anonymized, aggregated, de-identified, or pseudonymized information for AI model training, healthcare analytics, operational optimization, infrastructure optimization, healthcare research, preventive-health systems, product development, analytics systems, and lawful business purposes.`,
+          `Health Express expressly clarifies that sensitive healthcare decisions are not made solely through automated systems and that AI-enabled systems are intended primarily for operational support and assistive functions rather than autonomous clinical decision-making.`,
+          `AI-enabled systems may contain inaccuracies, biases, predictive limitations, incomplete outputs, technological errors, algorithmic limitations, or operational constraints.`,
+          `Users remain solely responsible for verifying healthcare decisions with qualified healthcare professionals.`
+        ]
+      },
+      {
+        heading: "8. ADVERTISING, RETARGETING & COMMUNICATION SYSTEMS",
+        content: [
+          `Health Express may utilize advertising systems, audience analytics systems, campaign-measurement systems, personalization systems, conversion-tracking systems, retargeting systems, behavioral advertising systems, cross-platform analytics systems, and remarketing systems.`,
+          `Such systems may support healthcare-awareness campaigns, wellness campaigns, service-awareness initiatives, audience segmentation, communication optimization, campaign measurement, personalized advertising, retargeting initiatives, cross-device analytics, and lawful marketing activities.`,
+          `Users consent to receiving SMS communications, WhatsApp communications, emails, push notifications, wellness communications, preventive-health communications, service notifications, operational notifications, healthcare-awareness communications, marketing communications, personalized advertising communications, remarketing communications, and related communications where legally permissible.`,
+          `Users may opt out of certain non-essential marketing communications or advertising systems where legally permissible.`,
+          `Certain operational communications, healthcare notifications, security alerts, fraud-prevention communications, account notifications, and legally required communications may remain necessary for Platform operations.`
+        ]
+      },
+      {
+        heading: "9. THIRD-PARTY DISCLOSURES & INTERNATIONAL TRANSFERS",
+        content: [
+          `Information may be shared with laboratories, doctors, telemedicine practitioners, pharmacies, imaging centers, logistics partners, insurers, payment providers, analytics providers, cloud-service providers, advertising providers, AI infrastructure providers, customer-support vendors, communication providers, cybersecurity providers, fraud-prevention systems, operational vendors, enterprise healthcare partners, wellness providers, governmental authorities where legally required, and lawful operational partners.`,
+          `Information shall be shared only to the extent reasonably necessary for healthcare delivery, diagnostics workflows, operational coordination, analytics systems, AI-enabled systems, cybersecurity, fraud prevention, advertising systems, communication systems, infrastructure management, payment processing, legal compliance, or lawful business operations.`,
+          `Health Express does not sell personally identifiable healthcare information in violation of applicable law.`,
+          `Health Express may disclose information pursuant to legal obligations, governmental requests, judicial orders, regulatory obligations, law-enforcement requests, public-health obligations, or lawful investigations.`,
+          `Health Express may disclose or transfer information as part of mergers, acquisitions, financing transactions, restructuring exercises, asset transfers, business reorganizations, or operational transitions.`,
+          `Users acknowledge and agree that information may be transferred, processed, analyzed, stored, or operationally utilized outside India subject to applicable law and commercially reasonable safeguards.`,
+          `Certain cloud-service providers, analytics systems, AI infrastructure providers, communication systems, advertising technologies, authentication systems, and operational systems may process information across jurisdictions where legally permissible.`
+        ]
+      },
+      {
+        heading: "10. PAYMENTS & FINANCIAL INFORMATION",
+        content: [
+          `Payment transactions may be processed through third-party payment providers, banking institutions, UPI systems, wallet systems, international payment systems, card networks, financial infrastructure providers, and related payment technologies.`,
+          `Financial information including card details, banking details, UPI identifiers, and payment instrument information may be collected directly by third-party payment providers.`,
+          `Health Express does not independently store complete payment credentials unless operationally necessary and legally permissible.`,
+          `Financial transactions are processed through encrypted and commercially reasonable payment systems.`,
+          `Health Express shall not be liable for banking downtime, payment gateway failures, unauthorized banking activity outside Health Express systems, transaction delays, OTP failures, financial-system disruptions, or operational failures attributable to third-party payment systems.`
+        ]
+      },
+      {
+        heading: "11. DATA STORAGE, SECURITY & RETENTION",
+        content: [
+          `Healthcare information and operational information may be hosted using cloud-service providers located in India or other jurisdictions permitted under applicable law.`,
+          `Health Express may utilize AWS, Google Cloud, Firebase infrastructure systems, CDN systems, cloud-security systems, infrastructure-monitoring systems, and related operational technologies.`,
+          `Health Express implements commercially reasonable administrative, operational, technical, organizational, and cybersecurity safeguards including encryption systems, access-control systems, authentication systems, firewalls, monitoring systems, transport-layer security systems, logging systems, fraud-prevention systems, and related security measures.`,
+          `Access to sensitive information may be restricted to authorized personnel, operational teams, contractors, service providers, infrastructure providers, healthcare partners, and related entities requiring such access for lawful purposes.`,
+          `Users acknowledge that digital systems, internet infrastructure, cloud infrastructure, communication systems, AI systems, analytics systems, operational systems, and related technologies inherently involve cybersecurity, infrastructure, communication, predictive, and operational risks.`,
+          `Health Express does not guarantee uninterrupted Platform functionality, uninterrupted cloud infrastructure, uninterrupted analytics systems, uninterrupted advertising systems, uninterrupted AI-system functionality, cybersecurity immunity, complete prevention of unauthorized access, or absolute information security.`,
+          `Information may be retained for healthcare continuity, operational continuity, fraud prevention, cybersecurity, diagnostics workflows, analytics systems, AI systems, healthcare workflows, preventive-health systems, infrastructure optimization, legal compliance, audit obligations, dispute resolution, operational investigations, regulatory obligations, and lawful business purposes.`,
+          `Retention periods may vary depending on operational requirements, healthcare workflows, infrastructure systems, cybersecurity systems, analytics systems, regulatory obligations, or legal requirements.`,
+          `Users may request deletion of information subject to applicable law, healthcare obligations, fraud-prevention obligations, cybersecurity obligations, audit requirements, operational dependencies, legal obligations, or lawful retention obligations.`
+        ]
+      },
+      {
+        heading: "12. USER RIGHTS, CONSENT MANAGEMENT & DO NOT TRACK DISCLOSURES",
+        content: [
+          `Subject to applicable law, Users may request access to information, correction of inaccurate information, deletion requests, consent withdrawal, opt-out from certain marketing communications, modification of cookie preferences, opt-out from certain advertising systems, or grievance review.`,
+          `Users may manage certain tracking preferences through browser settings, consent-management systems, device permissions, operating-system settings, advertising controls, or related technical mechanisms where technically feasible.`,
+          `Certain healthcare, operational, cybersecurity, fraud-prevention, audit, infrastructure, regulatory, or legal obligations may limit deletion rights, withdrawal rights, or opt-out rights.`,
+          `Withdrawal of consent shall not affect lawful processing undertaken prior to such withdrawal.`,
+          `Certain browsers or devices may transmit “Do Not Track” (“DNT”) or related privacy-control signals. Due to the absence of universally accepted technological standards governing such systems, Health Express does not guarantee uniform recognition or response to all DNT signals across all systems, browsers, devices, or third-party technologies.`,
+          `Third-party technologies integrated into the Platform may independently process DNT signals subject to their own policies.`
+        ]
+      },
+      {
+        heading: "13. TELEMEDICINE, CORPORATE WELLNESS & HEALTHCARE PROGRAMS",
+        content: [
+          `Telemedicine consultations facilitated through the Platform may involve processing of consultation records, uploaded medical records, prescriptions, communication records, operational healthcare information, diagnostics information, and related healthcare data.`,
+          `Telemedicine practitioners remain independently responsible for diagnoses, clinical decisions, treatment plans, prescriptions, medical advice, and professional obligations.`,
+          `Health Express may operationally coordinate telemedicine workflows, communication systems, healthcare workflows, customer-support systems, and operational infrastructure.`,
+          `Where healthcare services are facilitated through employers, insurers, enterprise healthcare systems, corporate wellness programs, or organizational healthcare arrangements, certain healthcare information may be shared subject to applicable law, operational requirements, User consent, and contractual healthcare arrangements.`,
+          `Aggregated, anonymized, de-identified, or pseudonymized wellness analytics may be generated for enterprise healthcare systems, corporate wellness programs, healthcare analytics systems, and preventive-health initiatives.`
+        ]
+      },
+      {
+        heading: "14. USER-GENERATED CONTENT",
+        content: [
+          `Users retain ownership of uploaded User Content.`,
+          `By uploading User Content, Users grant Health Express a worldwide, non-exclusive, royalty-free, transferable, sublicensable license to store, process, analyze, reproduce, transmit, display, aggregate, operationally utilize, modify, and use such content for healthcare operations, diagnostics workflows, analytics systems, AI-enabled systems, preventive-health systems, operational workflows, customer-support systems, fraud prevention, infrastructure optimization, communication systems, service improvement, product development, healthcare analytics, healthcare research, and lawful business purposes.`,
+          `Users represent and warrant that uploaded content is lawfully uploaded, authorized for use, does not violate rights of third parties, and complies with applicable law.`
+        ]
+      },
+      {
+        heading: "15. CHILDREN & MINORS",
+        content: [
+          `The Platform is not directed toward minors independently using healthcare services without supervision of parents, guardians, or legally authorized adults.`,
+          `Health Express does not knowingly permit non-essential behavioral advertising profiling of minors where prohibited under applicable law.`,
+          `Parents and guardians remain responsible for consents, communications, uploaded information, healthcare decisions, operational activity, and Platform usage relating to minors.`,
+          `If Health Express becomes aware that information relating to minors has been collected without lawful authorization, Health Express may take steps to delete such information where legally appropriate.`
+        ]
+      },
+      {
+        heading: "16. CYBERSECURITY & FRAUD PREVENTION",
+        content: [
+          `Health Express may monitor Platform usage, operational systems, transactions, communication systems, healthcare workflows, analytics systems, AI systems, behavioral analytics systems, infrastructure systems, and related activity for fraud prevention, cybersecurity, abuse prevention, suspicious-activity detection, payment-risk assessment, infrastructure protection, operational integrity, legal compliance, and lawful business purposes.`,
+          `Health Express reserves the right to investigate suspicious activity, suspend accounts, restrict access, cooperate with regulators, cooperate with law-enforcement authorities, preserve operational logs, or disclose information where legally necessary.`
+        ]
+      },
+      {
+        heading: "17. DISCLAIMERS",
+        content: [
+          `The Platform, healthcare operations, AI-enabled systems, analytics systems, operational systems, advertising systems, personalization systems, preventive-health systems, cloud infrastructure, and related technologies are provided on an “as available” and “as is” basis.`,
+          `Health Express does not guarantee uninterrupted Platform functionality, uninterrupted provider availability, uninterrupted analytics systems, uninterrupted AI-system functionality, uninterrupted advertising systems, uninterrupted operational continuity, uninterrupted telecommunications systems, uninterrupted cloud infrastructure, cybersecurity immunity, healthcare outcomes, predictive accuracy, personalization accuracy, recommendation accuracy, operational continuity, or absolute data security.`,
+          `Digital systems, healthcare systems, AI systems, analytics systems, operational systems, cloud infrastructure, telecommunications systems, cybersecurity systems, advertising systems, and related technologies inherently involve operational, predictive, technological, communication, infrastructure, and cybersecurity risks.`
+        ]
+      },
+      {
+        heading: "18. LIMITATION OF LIABILITY",
+        content: [
+          `To the maximum extent permitted by law, Health Express’s aggregate liability arising out of or relating to privacy matters, healthcare operations, analytics systems, AI-enabled systems, advertising systems, Tracking Technologies, operational systems, cybersecurity systems, communication systems, data processing activities, or related matters shall not exceed the amount paid by the User in the disputed transaction giving rise to such liability.`,
+          `Under no circumstances shall Health Express be liable for indirect damages, incidental damages, consequential damages, punitive damages, emotional distress, healthcare complications, reputational harm, business interruption, data loss, cybersecurity incidents, advertising-system failures, AI-system inaccuracies, infrastructure failures, operational disruptions, or third-party claims.`
+        ]
+      },
+      {
+        heading: "19. FORCE MAJEURE",
+        content: [
+          `Health Express shall not be liable for delays, disruptions, operational failures, cybersecurity incidents, infrastructure failures, data incidents, analytics failures, AI-system failures, telecommunications failures, healthcare disruptions, or related operational interruptions arising from cyberattacks, governmental restrictions, pandemics, cloud-service failures, power outages, infrastructure disruptions, natural disasters, strikes, telecommunications disruptions, or events beyond reasonable control.`
+        ]
+      },
+      {
+        heading: "20. MODIFICATIONS",
+        content: [
+          `Health Express reserves the right to revise, amend, suspend, discontinue, modify, replace, or update this Policy at any time.`,
+          `Updated Policies shall become effective upon publication on the Platform unless otherwise stated.`,
+          `Continued use of the Platform following publication of revised Policies constitutes acceptance of such updated Policies.`
+        ]
+      },
+      {
+        heading: "21. GOVERNING LAW & DISPUTE RESOLUTION",
+        content: [
+          `This Policy shall be governed by and construed in accordance with the laws of India.`,
+          `Parties shall first attempt amicable resolution of disputes.`,
+          `Failing amicable settlement, disputes arising out of or relating to this Policy shall be resolved through binding arbitration under the Arbitration and Conciliation Act, 1996.`,
+          `Arbitration shall be conducted by a sole arbitrator appointed by Health Express. The seat and venue of arbitration shall be Bengaluru, Karnataka. Proceedings shall be conducted in English.`,
+          `Courts located in Bengaluru, Karnataka shall have exclusive jurisdiction over matters not subject to arbitration.`,
+          `If any provision of this Policy is held invalid or unenforceable, the remaining provisions shall continue in full force and effect.`
+        ]
+      },
+      {
+        heading: "22. CONTACT DETAILS & GRIEVANCE REDRESSAL",
+        content: [
+          `Health Express`,
+          `Registered Office: No 9 VMS Tower, Thambu Chetty Palya Main Rd, Opposite Amma’s Pastry, Bengaluru, Karnataka – 560016, India`,
+          `Email: hello@healthexpress.care`,
+          `Grievance Officer: Ms. Jancy (Designation: Grievance Officer)`,
+          `Email: hello@healthexpress.care`,
+          `Contact / WhatsApp Support: +91 76765 58809`,
+          `Users may contact Health Express regarding privacy concerns, grievances, correction requests, deletion requests, consent-withdrawal requests, cookie preferences, advertising preferences, or related matters through the contact details provided above.`
+        ]
+      }
+    ]
   }
 };
