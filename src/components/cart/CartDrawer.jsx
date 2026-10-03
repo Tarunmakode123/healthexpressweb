@@ -15,6 +15,7 @@ import {
   VITE_RAZORPAY_KEY_ID 
 } from '../../services/paymentService';
 import RazorpayDemoModal from '../common/RazorpayDemoModal';
+import AuthModal from '../common/AuthModal';
 
 export default function CartDrawer() {
   const { 
@@ -46,11 +47,12 @@ export default function CartDrawer() {
     finalPayable 
   } = useCart();
 
-  const { user } = useAuth();
+  const { user, session, isLoggedIn } = useAuth();
 
   const [promoInput, setPromoInput] = useState('');
   const [checkoutStep, setCheckoutStep] = useState('cart'); // 'cart' | 'checkout' | 'success'
   const [paymentMethodChoice, setPaymentMethodChoice] = useState('cod'); // 'cod' | 'online'
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
   // Checkout Form State
   const [patientData, setPatientData] = useState({
@@ -67,6 +69,19 @@ export default function CartDrawer() {
   // Demo Payment Modal State
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [pendingDemoOrder, setPendingDemoOrder] = useState(null);
+
+  const handleProceedToCheckout = () => {
+    if (session?.user || (isLoggedIn && user)) {
+      setCheckoutStep('checkout');
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleAuthModalSuccess = () => {
+    setIsAuthModalOpen(false);
+    setCheckoutStep('checkout');
+  };
 
   // Sync patient name/phone from auth if available
   useEffect(() => {
@@ -915,7 +930,7 @@ export default function CartDrawer() {
 
                 <div className="flex flex-col gap-1.5">
                   <button
-                    onClick={() => setCheckoutStep('checkout')}
+                    onClick={handleProceedToCheckout}
                     className="w-full py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-purple-700/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>Proceed to Checkout</span>
@@ -933,6 +948,14 @@ export default function CartDrawer() {
           </div>
         </div>
       </div>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthModalSuccess}
+        title="Login to Continue"
+        subtitle="Please login to continue with your healthcare booking."
+      />
 
       <RazorpayDemoModal
         isOpen={isDemoModalOpen}
