@@ -223,7 +223,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-[85vh] bg-gradient-to-b from-purple-50/70 via-slate-50/30 to-white py-12 md:py-16 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[85vh] bg-gradient-to-b from-purple-50/70 via-slate-50/30 to-white py-12 md:py-16 pb-28 md:pb-16 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       
       <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white rounded-3xl border border-purple-100 shadow-2xl overflow-hidden">
         
@@ -346,23 +346,23 @@ export default function AuthPage() {
                     <select
                       value={countryCode}
                       onChange={(e) => setCountryCode(e.target.value)}
-                      className="px-2.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white shrink-0 cursor-pointer"
+                      className="w-[95px] sm:w-[115px] shrink-0 px-2 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-extrabold text-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white cursor-pointer"
                     >
                       {POPULAR_COUNTRY_CODES.map((c) => (
                         <option key={c.code} value={c.code}>
-                          {c.flag} {c.code} ({c.country})
+                          {c.flag} {c.code}
                         </option>
                       ))}
                     </select>
 
-                    <div className="relative flex-1">
-                      <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <div className="relative flex-1 min-w-0">
+                      <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder={countryCode === '+91' ? 'Enter 10-digit mobile' : 'Enter mobile number'}
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                        className="w-full pl-10 pr-3 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
                       />
                     </div>
                   </div>
