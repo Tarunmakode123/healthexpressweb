@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, Lock, DollarSign, ShoppingBag, FileText, Users, 
+  ShieldCheck, Lock, DollarSign, ShoppingBag, FileText, Users, User,
   RefreshCw, CheckCircle2, AlertCircle, Clock, Search, Filter, 
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X,
   BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck, Menu, Settings,
@@ -4140,6 +4140,263 @@ function AdminDashboardPage() {
         )}
 
       </main>
+
+      {/* ORDER DETAILS MODAL */}
+      {selectedOrder && (() => {
+        const payObj = selectedOrder.payments?.[0] || {};
+        const payMethod = (payObj.payment_method || selectedOrder.payment_method || 'ONLINE').toUpperCase();
+        const payMode = (payObj.payment_mode || selectedOrder.payment_mode || 'LIVE').toUpperCase();
+        const isCod = payMethod === 'COD' || payMode === 'COD';
+        const orderItems = Array.isArray(selectedOrder.items) ? selectedOrder.items : [];
+
+        return (
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+            <div className="w-full max-w-2xl bg-slate-900 border border-purple-500/40 rounded-3xl shadow-2xl overflow-hidden text-left space-y-0 my-8">
+              
+              {/* Modal Header */}
+              <div className="p-5 bg-gradient-to-r from-purple-950 via-slate-900 to-slate-900 border-b border-purple-800/40 flex items-center justify-between text-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-purple-900/80 border border-purple-500/50 flex items-center justify-center text-purple-300 shadow-md">
+                    <ShoppingBag className="w-5 h-5 text-purple-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white flex items-center gap-2">
+                      <span>Order Details:</span>
+                      <span className="text-purple-300 font-mono">{selectedOrder.order_code || selectedOrder.id}</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium">
+                      Placed on: {new Date(selectedOrder.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSelectedOrder(null)} 
+                  className="p-1.5 text-slate-400 hover:text-white rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-5 text-xs max-h-[80vh] overflow-y-auto">
+                
+                {/* 1. Customer & Delivery Info Card */}
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-purple-300 flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                    <User className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Customer & Delivery Details</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-300">
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Customer Name</span>
+                      <span className="font-extrabold text-white text-sm">
+                        {selectedOrder.customer_name || selectedOrder.patient?.full_name || 'Guest Customer'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Phone Number</span>
+                      <span className="font-bold text-purple-300 font-mono">
+                        {selectedOrder.customer_phone || selectedOrder.patient?.phone_e164 || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Email Address</span>
+                      <span className="font-medium text-slate-200">
+                        {selectedOrder.customer_email || selectedOrder.patient?.email || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">Delivery Address / Location</span>
+                      <span className="font-medium text-slate-200">
+                        {selectedOrder.shipping_address || selectedOrder.delivery_address || selectedOrder.address || 'Standard Delivery / Sample Pick-up'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Payment & Status Summary Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
+                  {/* Payment Details */}
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                    <div className="text-[11px] font-extrabold uppercase tracking-wider text-purple-300 flex items-center justify-between border-b border-slate-800 pb-2">
+                      <div className="flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Payment Information</span>
+                      </div>
+                      {isCod ? (
+                        <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black flex items-center gap-1">
+                          <Truck className="w-3 h-3" /> COD
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-black flex items-center gap-1">
+                          <CreditCard className="w-3 h-3" /> ONLINE ({payMode})
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 text-slate-300">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 font-bold">Payment Method:</span>
+                        <span className="font-extrabold text-white">
+                          {isCod ? 'Cash on Delivery (COD)' : `Online Payment (${payMode})`}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 font-bold">Payment Status:</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide ${
+                          selectedOrder.payment_status === 'PAID'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : selectedOrder.payment_status === 'FAILED'
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                        }`}>
+                          {selectedOrder.payment_status}
+                        </span>
+                      </div>
+
+                      {payObj.razorpay_payment_id && (
+                        <div className="flex items-center justify-between pt-1 text-[11px]">
+                          <span className="text-slate-400 font-bold">Razorpay Payment ID:</span>
+                          <span className="font-mono text-purple-300 truncate max-w-[150px]" title={payObj.razorpay_payment_id}>
+                            {payObj.razorpay_payment_id}
+                          </span>
+                        </div>
+                      )}
+
+                      {payObj.razorpay_order_id && (
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400 font-bold">Razorpay Order ID:</span>
+                          <span className="font-mono text-purple-300 truncate max-w-[150px]" title={payObj.razorpay_order_id}>
+                            {payObj.razorpay_order_id}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Mark COD Collected Button inside Modal */}
+                      {isCod && selectedOrder.payment_status === 'PENDING' && (
+                        <div className="pt-2 border-t border-slate-800">
+                          <button
+                            type="button"
+                            onClick={() => setCodConfirmOrder(selectedOrder)}
+                            className="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-slate-950 font-black text-xs cursor-pointer transition-colors shadow-sm flex items-center justify-center gap-1.5"
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>Mark COD Collected</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Status & Fulfillment */}
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                    <div className="text-[11px] font-extrabold uppercase tracking-wider text-purple-300 flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                      <Clock className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Order Fulfillment Status</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-slate-400 font-bold text-[10px] uppercase mb-1">Update Status:</label>
+                        <select
+                          value={selectedOrder.order_status}
+                          onChange={(e) => {
+                            const newStatus = e.target.value;
+                            handleOrderStatusChange(selectedOrder.id, newStatus);
+                            setSelectedOrder(prev => prev ? { ...prev, order_status: newStatus } : null);
+                          }}
+                          className="w-full bg-slate-900 border border-slate-700 text-white font-extrabold text-xs rounded-xl p-2.5 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+                        >
+                          <option value="PENDING">PENDING</option>
+                          <option value="CONFIRMED">CONFIRMED</option>
+                          <option value="COMPLETED">COMPLETED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                      </div>
+
+                      <div className="pt-1 text-[11px] text-slate-400 space-y-1">
+                        <div className="flex justify-between">
+                          <span>Created At:</span>
+                          <span className="font-mono text-slate-200">
+                            {new Date(selectedOrder.created_at).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        {selectedOrder.updated_at && (
+                          <div className="flex justify-between">
+                            <span>Last Updated:</span>
+                            <span className="font-mono text-slate-200">
+                              {new Date(selectedOrder.updated_at).toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* 3. Purchased Items Breakdown Table */}
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-purple-300 flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                    <FileText className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Purchased Healthcare Services ({orderItems.length})</span>
+                  </div>
+
+                  {orderItems.length === 0 ? (
+                    <p className="text-slate-400 italic text-center py-4">No item details recorded for this order.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {orderItems.map((it, idx) => {
+                        const price = it.discount_price || it.price || it.unit_price || 0;
+                        const qty = it.quantity || 1;
+                        const itemTotal = price * qty;
+
+                        return (
+                          <div key={idx} className="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between gap-3 text-xs">
+                            <div className="space-y-0.5 min-w-0 flex-1">
+                              <div className="font-extrabold text-white truncate">{it.name || it.service_name || 'Healthcare Service'}</div>
+                              {it.code && <div className="text-[10px] font-mono text-purple-400">Code: {it.code}</div>}
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="font-bold text-slate-300 text-[11px]">{qty} x ₹{price}</div>
+                              <div className="font-black text-purple-300">₹{itemTotal}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Total Amount Footer */}
+                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between font-black text-sm">
+                    <span className="text-slate-300">Total Order Amount:</span>
+                    <span className="text-emerald-400 text-base">₹{selectedOrder.total_amount}</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrder(null)}
+                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Close Details
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      })()}
 
       {/* CREATE / EDIT PROMO MODAL */}
       {isPromoModalOpen && (
