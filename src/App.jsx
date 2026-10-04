@@ -24,6 +24,7 @@ import SurgeryDetailPage from './pages/SurgeryDetailPage';
 import AboutPage from './pages/AboutPage';
 import ProvidersPage from './pages/ProvidersPage';
 import ContactPage from './pages/ContactPage';
+import TelemedicinePage from './pages/TelemedicinePage';
 import LegalPage from './pages/LegalPage';
 import AuthPage from './pages/AuthPage';
 import GenericDashboardPage from './pages/GenericDashboardPage';
@@ -121,6 +122,7 @@ function MainLayout() {
             <Route path="/about" element={<AboutPage onOpenUploadModal={handleOpenUploadModal} />} />
             <Route path="/providers" element={<ProvidersPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/telemedicine" element={<TelemedicinePage />} />
             <Route path="/legal/:type" element={<LegalPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/login" element={<AuthPage />} />

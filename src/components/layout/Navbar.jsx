@@ -205,7 +205,7 @@ export default function Navbar({ onOpenUploadModal }) {
     { label: 'Home Nursing', href: '/home-nursing-care' },
     { label: 'Genomics', href: '/services?category=genetics' },
     { label: 'Surgeries', href: '/surgeries' },
-    { label: 'Telemedicine', href: '/contact' },
+    { label: 'Telemedicine', href: '/telemedicine', badge: 'Soon' },
     { label: 'Health Library', href: '/health-library' },
     { label: 'Calculators', href: '/health-calculators' },
     { label: 'For Providers', href: '/providers' },
@@ -477,13 +477,20 @@ export default function Navbar({ onOpenUploadModal }) {
                   key={item.label}
                   to={item.href}
                   onClick={(e) => handleLinkClick(e, item.href)}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-purple-800 text-white shadow-2xs font-extrabold'
                       : 'hover:bg-purple-100/70 hover:text-purple-900 text-slate-700'
                   }`}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${
+                      isActive ? 'bg-amber-400 text-purple-950' : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
