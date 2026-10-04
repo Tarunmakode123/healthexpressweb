@@ -3,10 +3,12 @@ import { MapPin, X, Bell, CheckCircle2, Sparkles, Send, ShieldCheck } from 'luci
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { INDIAN_CITIES } from '../../data/indianCities';
+import { POPULAR_COUNTRY_CODES, validateAndNormalizeInternationalPhone } from '../../utils/phone';
 
 export default function WaitlistModal({ isOpen, onClose, defaultCity = 'Delhi NCR' }) {
   const [city, setCity] = useState(defaultCity);
   const [fullName, setFullName] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,8 +31,10 @@ export default function WaitlistModal({ isOpen, onClose, defaultCity = 'Delhi NC
       setErrorMsg('Please enter your full name');
       return;
     }
-    if (!phone.trim() || phone.trim().length < 10) {
-      setErrorMsg('Please enter a valid 10-digit mobile number');
+    
+    const phoneCheck = validateAndNormalizeInternationalPhone(phone, countryCode);
+    if (!phoneCheck.isValid) {
+      setErrorMsg(phoneCheck.error);
       return;
     }
 
@@ -40,7 +44,7 @@ export default function WaitlistModal({ isOpen, onClose, defaultCity = 'Delhi NC
     try {
       const waitlistRecord = {
         name: fullName.trim(),
-        phone: phone.trim(),
+        phone: phoneCheck.phone_e164,
         email: email.trim(),
         city: city.trim(),
         type: 'waitlist',
@@ -52,7 +56,7 @@ export default function WaitlistModal({ isOpen, onClose, defaultCity = 'Delhi NC
         await supabase.from('enquiries').insert([
           {
             full_name: fullName.trim(),
-            phone_e164: phone.trim().startsWith('+') ? phone.trim() : `+91${phone.trim()}`,
+            phone_e164: phoneCheck.phone_e164,
             city: city.trim(),
             notes: `Waitlist entry for city expansion: ${city.trim()}`,
             status: 'waitlist_pending'
@@ -202,16 +206,24 @@ export default function WaitlistModal({ isOpen, onClose, defaultCity = 'Delhi NC
                   Phone Number <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex gap-2">
-                  <span className="px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs font-bold text-slate-600 shrink-0">
-                    +91
-                  </span>
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="px-2.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-purple-600 cursor-pointer shrink-0"
+                  >
+                    {POPULAR_COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.code}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     type="tel"
                     required
-                    maxLength={10}
+                    maxLength={countryCode === '+91' ? 10 : 15}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    placeholder="10-digit mobile number"
+                    placeholder={countryCode === '+91' ? '10-digit mobile number' : 'Mobile phone number'}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-purple-600 transition-all"
                   />
                 </div>
