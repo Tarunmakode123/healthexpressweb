@@ -30,7 +30,13 @@ export async function fetchCategories() {
       return { success: true, categories: FALLBACK_CATEGORIES, source: 'fallback' };
     }
 
-    return { success: true, categories: data, source: 'supabase' };
+    const normalizedCategories = data.map(cat => ({
+      ...cat,
+      name: (cat.slug === 'imaging' || cat.name === 'Imaging & Radiology') ? 'Radiology' :
+            (cat.slug === 'genetics' || cat.name === 'Genomics & Genetics') ? 'Genomics' : cat.name
+    }));
+
+    return { success: true, categories: normalizedCategories, source: 'supabase' };
   } catch (err) {
     console.error('fetchCategories exception:', err);
     return { success: true, categories: FALLBACK_CATEGORIES, source: 'fallback', error: err.message };
@@ -69,7 +75,13 @@ export async function fetchCategoryBySlug(slug) {
       return { success: false, error: `Category "${slug}" not found.` };
     }
 
-    return { success: true, category: data, source: 'supabase' };
+    const normalizedCategory = {
+      ...data,
+      name: (data.slug === 'imaging' || data.name === 'Imaging & Radiology') ? 'Radiology' :
+            (data.slug === 'genetics' || data.name === 'Genomics & Genetics') ? 'Genomics' : data.name
+    };
+
+    return { success: true, category: normalizedCategory, source: 'supabase' };
   } catch (err) {
     console.error(`fetchCategoryBySlug exception for "${slug}":`, err);
     const fallback = FALLBACK_CATEGORIES.find(c => c.id === slug || c.slug === slug);

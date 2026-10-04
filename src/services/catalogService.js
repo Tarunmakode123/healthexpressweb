@@ -89,7 +89,11 @@ export async function fetchServices({
         supabase.from('services').select('id', { count: 'exact', head: true }).eq('active', true)
       ]);
 
-      const activeCategories = categoriesRes.categories || CATEGORIES;
+      const activeCategories = (categoriesRes.categories || CATEGORIES).map(cat => ({
+        ...cat,
+        name: (cat.slug === 'imaging' || cat.id === 'imaging' || cat.name === 'Imaging & Radiology') ? 'Radiology' :
+              (cat.slug === 'genetics' || cat.id === 'genetics' || cat.name === 'Genomics & Genetics') ? 'Genomics' : cat.name
+      }));
 
       const enrichedCategories = await Promise.all(
         activeCategories.map(async (cat) => {
