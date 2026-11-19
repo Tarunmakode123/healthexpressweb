@@ -41,7 +41,7 @@ export default function ExpertiseSection() {
   ];
 
   return (
-    <section className="py-16 lg:py-15 bg-gradient-to-b from-white via-slate-50/60 to-white relative overflow-hidden font-serif" id="expertise-section" style={{ fontFamily: 'serif' }}>
+    <section className="py-16 lg:py-15 bg-gradient-to-b from-white via-slate-50/60 to-white relative overflow-hidden" id="expertise-section">
       
       {/* Custom Animations & Highly Prominent Sharp Edge Purple Highlight Box Style */}
       <style>{`
@@ -89,17 +89,17 @@ export default function ExpertiseSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3 animate-fade-in-up">
           <span 
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-none font-extrabold text-xs uppercase tracking-widest border shadow-2xs font-serif"
-            style={{ backgroundColor: 'rgba(97, 44, 156, 0.06)', borderColor: 'rgba(97, 44, 156, 0.25)', color: '#612c9c', fontFamily: 'serif' }}
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-none font-extrabold text-xs uppercase tracking-widest border shadow-2xs"
+            style={{ backgroundColor: 'rgba(97, 44, 156, 0.06)', borderColor: 'rgba(97, 44, 156, 0.25)', color: '#612c9c' }}
           >
             <Sparkles className="w-3.5 h-3.5" style={{ color: '#612c9c' }} />
             Our Best Expertise
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.15] font-serif" style={{ fontFamily: 'serif' }}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
             Our Best Expertise To Get <br />
-            <span style={{ color: '#612c9c', fontFamily: 'serif' }}>100% Clear & Accurate Results</span>
+            <span style={{ color: '#612c9c' }}>100% Clear & Accurate Results</span>
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 font-medium max-w-xl mx-auto leading-relaxed font-serif" style={{ fontFamily: 'serif' }}>
+          <p className="text-sm sm:text-base text-slate-600 font-medium max-w-xl mx-auto leading-relaxed">
             From safe doorstep sample collection to final expert review, our specialized workflow ensures absolute clarity and trust.
           </p>
         </div>
@@ -114,8 +114,8 @@ export default function ExpertiseSection() {
               return (
                 <div 
                   key={idx}
-                  className="expertise-card-box rounded-none p-5 sm:p-6 space-y-2.5 animate-fade-in-up group font-serif"
-                  style={{ animationDelay: `${idx * 0.15}s`, fontFamily: 'serif' }}
+                  className="expertise-card-box rounded-none p-5 sm:p-6 space-y-2.5 animate-fade-in-up group"
+                  style={{ animationDelay: `${idx * 0.15}s` }}
                 >
                   <div className="flex items-center justify-between">
                     <div 
@@ -126,10 +126,10 @@ export default function ExpertiseSection() {
                     </div>
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors font-serif" style={{ fontFamily: 'serif' }}>
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed font-serif" style={{ fontFamily: 'serif' }}>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
                     {item.desc}
                   </p>
                 </div>
@@ -156,8 +156,8 @@ export default function ExpertiseSection() {
               return (
                 <div 
                   key={idx}
-                  className="expertise-card-box rounded-none p-5 sm:p-6 space-y-2.5 animate-fade-in-up group font-serif"
-                  style={{ animationDelay: `${(idx + 3) * 0.15}s`, fontFamily: 'serif' }}
+                  className="expertise-card-box rounded-none p-5 sm:p-6 space-y-2.5 animate-fade-in-up group"
+                  style={{ animationDelay: `${(idx + 3) * 0.15}s` }}
                 >
                   <div className="flex items-center justify-between">
                     <div 
@@ -168,10 +168,10 @@ export default function ExpertiseSection() {
                     </div>
                     <CheckCircle className="w-4 h-4 text-emerald-600" />
                   </div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors font-serif" style={{ fontFamily: 'serif' }}>
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed font-serif" style={{ fontFamily: 'serif' }}>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
                     {item.desc}
                   </p>
                 </div>

@@ -64,7 +64,7 @@ export default function NewServicesSection() {
   };
 
   return (
-    <section className="py-8 sm:py-14 lg:py-10 bg-white relative overflow-hidden font-serif" style={{ fontFamily: 'serif' }}>
+    <section className="py-8 sm:py-14 lg:py-10 bg-white relative overflow-hidden">
      
       <style>{`
         @keyframes scroll-left {
@@ -121,16 +121,16 @@ export default function NewServicesSection() {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <span
-            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border font-serif"
-            style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c', fontFamily: 'serif' }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border"
+            style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c' }}
           >
             Explore Offerings
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight font-serif" style={{ fontFamily: 'serif' }}>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
             Specialized Medical Services, <br />
-            <span style={{ color: '#612c9c', fontFamily: 'serif' }}>Designed For Care.</span>
+            <span style={{ color: '#612c9c' }}>Designed For Care.</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 font-medium font-serif" style={{ fontFamily: 'serif' }}>
+          <p className="text-xs sm:text-sm text-slate-600 font-medium">
             Browse through our extensive catalog of lab diagnostics, home care, radiology scans, and surgical procedures.
           </p>
         </div>
@@ -141,24 +141,24 @@ export default function NewServicesSection() {
             <div key={rowIndex} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center border-b border-slate-100 pb-8 last:border-b-0">
               
               {/* LEFT SIDE: Highly Highlighted Category Info Box */}
-              <div className="lg:col-span-3 space-y-3 text-left category-info-box rounded-none p-5 sm:p-5.5 font-serif" style={{ fontFamily: 'serif' }}>
+              <div className="lg:col-span-3 space-y-3 text-left category-info-box rounded-none p-5 sm:p-5.5">
                 <span
-                  className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-none border inline-block bg-white/80 shadow-xs font-serif"
-                  style={{ borderColor: 'rgba(97, 44, 156, 0.3)', color: '#612c9c', fontFamily: 'serif' }}
+                  className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-none border inline-block bg-white/80 shadow-xs"
+                  style={{ borderColor: 'rgba(97, 44, 156, 0.3)', color: '#612c9c' }}
                 >
                   {row.badgeLabel}
                 </span>
-                <h3 className="text-xl sm:text-2xl font-black text-slate-900 capitalize font-serif" style={{ fontFamily: 'serif' }}>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 capitalize">
                   {row.categoryName}
                 </h3>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed font-serif" style={{ fontFamily: 'serif' }}>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   {row.subtitle}
                 </p>
                 <div className="pt-1 flex items-center justify-between">
                   <Link
                     to="/services"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold transition-colors hover:underline font-serif"
-                    style={{ color: '#612c9c', fontFamily: 'serif' }}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold transition-colors hover:underline"
+                    style={{ color: '#612c9c' }}
                   >
                     <span>View All {row.categoryName}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -200,20 +200,19 @@ export default function NewServicesSection() {
                     {row.items.concat(row.items).map((item, idx) => (
                       <div
                         key={idx}
-                        className="w-[310px] sm:w-[330px] bg-white hover:bg-purple-50/10 border border-slate-200 rounded-none p-4.5 mx-3 flex flex-col justify-between shrink-0 transition-all duration-300 group purple-box-shadow purple-box-shadow-hover font-serif"
-                        style={{ fontFamily: 'serif' }}
+                        className="w-[310px] sm:w-[330px] bg-white hover:bg-purple-50/10 border border-slate-200 rounded-none p-4.5 mx-3 flex flex-col justify-between shrink-0 transition-all duration-300 group purple-box-shadow purple-box-shadow-hover"
                       >
                         <div className="space-y-3">
                           
                           {/* Brand & Badge Top Header */}
                           <div className="flex items-center justify-between pb-1">
-                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-none flex items-center gap-1 font-serif" style={{ fontFamily: 'serif' }}>
+                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-none flex items-center gap-1">
                               <ShieldCheck className="w-3 h-3" style={{ color: '#612c9c' }} />
                               {item.brand}
                             </span>
                             <span
-                              className="text-[9px] font-extrabold px-2 py-0.5 rounded-none border font-serif"
-                              style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c', fontFamily: 'serif' }}
+                              className="text-[9px] font-extrabold px-2 py-0.5 rounded-none border"
+                              style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c' }}
                             >
                               Verified
                             </span>
@@ -221,7 +220,7 @@ export default function NewServicesSection() {
 
                           {/* Sub-Service Name with Larger Dynamic Icon on the Right Side */}
                           <div className="flex items-center justify-between gap-3 pt-1">
-                            <h4 className="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 font-serif" style={{ fontFamily: 'serif' }}>
+                            <h4 className="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2">
                               {item.name}
                             </h4>
                             <img
@@ -232,7 +231,7 @@ export default function NewServicesSection() {
                           </div>
 
                           {/* Description */}
-                          <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2 font-serif" style={{ fontFamily: 'serif' }}>
+                          <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2">
                             {item.desc}
                           </p>
                         </div>
@@ -241,13 +240,13 @@ export default function NewServicesSection() {
                         <div className="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between">
                           <Link
                             to="/services"
-                            className="px-3.5 py-1.5 rounded-none text-white font-bold text-xs transition-colors flex items-center gap-1.5 font-serif"
-                            style={{ backgroundColor: '#612c9c', fontFamily: 'serif' }}
+                            className="px-3.5 py-1.5 rounded-none text-white font-bold text-xs transition-colors flex items-center gap-1.5"
+                            style={{ backgroundColor: '#612c9c' }}
                           >
                             <span>Book Now</span>
                             <ArrowRight className="w-3.5 h-3.5 text-white/80" />
                           </Link>
-                          <span className="text-[11px] font-extrabold text-slate-500 font-serif" style={{ fontFamily: 'serif' }}>
+                          <span className="text-[11px] font-extrabold text-slate-500">
                             Available 24/7
                           </span>
                         </div>

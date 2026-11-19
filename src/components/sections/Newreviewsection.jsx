@@ -85,7 +85,7 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section className="py-8 lg:py-12 bg-gradient-to-b from-white via-slate-50/50 to-white border-t border-slate-100 relative overflow-hidden font-serif" id="testimonials-section" style={{ fontFamily: 'serif' }}>
+    <section className="py-8 lg:py-12 bg-gradient-to-b from-white via-slate-50/50 to-white border-t border-slate-100 relative overflow-hidden" id="testimonials-section">
       
       <style>{`
         /* Strongly Highlighted Sharp Edge Review Card Box */
@@ -113,17 +113,17 @@ export default function TestimonialsSection() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-3 text-left max-w-2xl">
             <span 
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border font-serif"
-              style={{ backgroundColor: 'rgba(100, 48, 158, 0.05)', borderColor: 'rgba(100, 48, 158, 0.2)', color: '#64309e', fontFamily: 'serif' }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border"
+              style={{ backgroundColor: 'rgba(100, 48, 158, 0.05)', borderColor: 'rgba(100, 48, 158, 0.2)', color: '#64309e' }}
             >
               <Sparkles className="w-3.5 h-3.5" style={{ color: '#64309e' }} />
               PATIENT REVIEWS & STORIES
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight font-serif" style={{ fontFamily: 'serif' }}>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
               Trusted by thousands of <br />
-              <span style={{ color: '#64309e', fontFamily: 'serif' }}>families in Bangalore</span>
+              <span style={{ color: '#64309e' }}>families in Bangalore</span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium font-serif" style={{ fontFamily: 'serif' }}>
+            <p className="text-xs sm:text-sm text-slate-600 font-medium">
               Read genuine feedback from patients who experience fast home collection, 100% clear results, and dedicated care every single day.
             </p>
           </div>
@@ -156,8 +156,7 @@ export default function TestimonialsSection() {
           {INDIAN_REVIEWS.map((item, idx) => (
             <div 
               key={idx}
-              className="w-[300px] sm:w-[340px] shrink-0 review-card-box rounded-none p-6 flex flex-col justify-between group relative text-left font-serif"
-              style={{ fontFamily: 'serif' }}
+              className="w-[300px] sm:w-[340px] shrink-0 review-card-box rounded-none p-6 flex flex-col justify-between group relative text-left"
             >
               {/* Top Quote Icon & Stars */}
               <div className="space-y-4">
@@ -170,7 +169,7 @@ export default function TestimonialsSection() {
                   <Quote className="w-8 h-8 text-purple-300/60 group-hover:text-purple-400 transition-colors" />
                 </div>
 
-                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed font-serif" style={{ fontFamily: 'serif' }}>
+                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
                   "{item.review}"
                 </p>
               </div>
@@ -178,13 +177,13 @@ export default function TestimonialsSection() {
               {/* Bottom User Info */}
               <div className="pt-4 mt-6 border-t border-purple-100 flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 group-hover:text-purple-950 transition-colors flex items-center gap-1.5 font-serif" style={{ fontFamily: 'serif' }}>
+                  <h4 className="text-sm font-black text-slate-900 group-hover:text-purple-950 transition-colors flex items-center gap-1.5">
                     {item.name}
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline shrink-0" />
                   </h4>
-                  <p className="text-[11px] text-slate-500 font-semibold font-serif" style={{ fontFamily: 'serif' }}>{item.location}</p>
+                  <p className="text-[11px] text-slate-500 font-semibold">{item.location}</p>
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 bg-white px-2.5 py-1 rounded-none border border-purple-100 shadow-2xs font-serif" style={{ fontFamily: 'serif' }}>
+                <span className="text-[10px] font-bold text-slate-500 bg-white px-2.5 py-1 rounded-none border border-purple-100 shadow-2xs">
                   {item.date}
                 </span>
               </div>

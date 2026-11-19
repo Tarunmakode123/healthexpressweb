@@ -45,7 +45,7 @@ export default function WhyHealthExpressSection() {
   ];
 
   return (
-    <section className="py-16 lg:py-6 bg-slate-50 border-t border-purple-100/60 relative overflow-hidden font-serif" id="why-choose-us" style={{ fontFamily: 'serif' }}>
+    <section className="py-16 lg:py-6 bg-slate-50 border-t border-purple-100/60 relative overflow-hidden" id="why-choose-us">
       
       <style>{`
         /* Strongly Highlighted Sharp Edge Advantage Box Style */
@@ -97,16 +97,16 @@ export default function WhyHealthExpressSection() {
             {/* Section Header */}
             <div className="space-y-3">
               <span 
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-none font-extrabold text-xs uppercase tracking-wider border shadow-2xs font-serif"
-                style={{ backgroundColor: 'rgba(97, 44, 156, 0.08)', borderColor: 'rgba(97, 44, 156, 0.25)', color: '#612c9c', fontFamily: 'serif' }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-none font-extrabold text-xs uppercase tracking-wider border shadow-2xs"
+                style={{ backgroundColor: 'rgba(97, 44, 156, 0.08)', borderColor: 'rgba(97, 44, 156, 0.25)', color: '#612c9c' }}
               >
                 <Sparkles className="w-3.5 h-3.5" style={{ color: '#612c9c' }} />
                 THE HEALTH EXPRESS ADVANTAGE
               </span>
-              <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-[1.15] font-serif" style={{ fontFamily: 'serif' }}>
-                Why Choose <span style={{ color: '#612c9c', fontFamily: 'serif' }}>Health Express?</span>
+              <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                Why Choose <span style={{ color: '#612c9c' }}>Health Express?</span>
               </h2>
-              <p className="text-sm sm:text-base text-slate-600 font-medium max-w-xl leading-relaxed font-serif" style={{ fontFamily: 'serif' }}>
+              <p className="text-sm sm:text-base text-slate-600 font-medium max-w-xl leading-relaxed">
                 Experience seamless diagnostics and professional care built around your health, convenience, and absolute trust.
               </p>
             </div>
@@ -116,25 +116,24 @@ export default function WhyHealthExpressSection() {
               {advantages.map((item, idx) => (
                 <div 
                   key={idx}
-                  className="advantage-card-box rounded-none p-4 sm:p-4.5 flex flex-col justify-between group font-serif"
-                  style={{ fontFamily: 'serif' }}
+                  className="advantage-card-box rounded-none p-4 sm:p-4.5 flex flex-col justify-between group"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span 
-                        className="text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-none border shadow-2xs bg-white font-serif"
-                        style={{ borderColor: 'rgba(97, 44, 156, 0.25)', color: '#612c9c', fontFamily: 'serif' }}
+                        className="text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-none border shadow-2xs bg-white"
+                        style={{ borderColor: 'rgba(97, 44, 156, 0.25)', color: '#612c9c' }}
                       >
                         {item.num}
                       </span>
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     </div>
                     
-                    <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors line-clamp-1 font-serif" style={{ fontFamily: 'serif' }}>
+                    <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-950 transition-colors line-clamp-1">
                       {item.title}
                     </h3>
                     
-                    <p className="text-[11px] sm:text-xs text-slate-600 font-medium leading-relaxed line-clamp-2 font-serif" style={{ fontFamily: 'serif' }}>
+                    <p className="text-[11px] sm:text-xs text-slate-600 font-medium leading-relaxed line-clamp-2">
                       {item.desc}
                     </p>
                   </div>

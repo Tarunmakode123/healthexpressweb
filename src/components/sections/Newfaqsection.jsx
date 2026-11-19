@@ -36,7 +36,7 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="py-5 lg:py-10 bg-white relative overflow-hidden font-serif" id="faq-section" style={{ fontFamily: 'serif' }}>
+    <section className="py-5 lg:py-10 bg-white relative overflow-hidden" id="faq-section">
       
       <style>{`
         /* Strongly Highlighted Sharp Edge FAQ Accordion Box */
@@ -59,16 +59,16 @@ export default function FaqSection() {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <span 
-            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border font-serif"
-            style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c', fontFamily: 'serif' }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border"
+            style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c' }}
           >
             <Sparkles className="w-3.5 h-3.5" style={{ color: '#612c9c' }} />
             GOT QUESTIONS?
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight font-serif" style={{ fontFamily: 'serif' }}>
-            Frequently Asked <span style={{ color: '#612c9c', fontFamily: 'serif' }}>Questions</span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+            Frequently Asked <span style={{ color: '#612c9c' }}>Questions</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 font-medium font-serif" style={{ fontFamily: 'serif' }}>
+          <p className="text-xs sm:text-sm text-slate-600 font-medium">
             Find answers to common questions about our services, bookings, and home healthcare options.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function FaqSection() {
           {/* LEFT SIDE: Bigger Image Showcase */}
           <div className="lg:col-span-5 relative flex items-center justify-center">
             <div className="relative w-full max-w-lg bg-white p-4 rounded-none border-2 border-purple-100 shadow-2xl overflow-hidden group">
-              <div className="absolute top-6 left-6 z-10 bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-none flex items-center gap-1.5 shadow-md font-serif" style={{ fontFamily: 'serif' }}>
+              <div className="absolute top-6 left-6 z-10 bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-none flex items-center gap-1.5 shadow-md">
                 <ShieldCheck className="w-4 h-4" style={{ color: '#612c9c' }} />
                 <span>Health Express Assistance</span>
               </div>
@@ -91,7 +91,7 @@ export default function FaqSection() {
                 />
               </div>
               {/* Floating Trust Indicator Card */}
-              <div className="absolute bottom-6 left-6 right-6 z-20 bg-white/95 backdrop-blur-md p-4 rounded-none shadow-xl border border-purple-100 flex items-center gap-3 font-serif" style={{ fontFamily: 'serif' }}>
+              <div className="absolute bottom-6 left-6 right-6 z-20 bg-white/95 backdrop-blur-md p-4 rounded-none shadow-xl border border-purple-100 flex items-center gap-3">
                 <div 
                   className="w-10 h-10 rounded-none flex items-center justify-center text-white shrink-0 shadow-md"
                   style={{ backgroundColor: '#612c9c' }}
@@ -99,8 +99,8 @@ export default function FaqSection() {
                   <HelpCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 font-serif" style={{ fontFamily: 'serif' }}>Need More Clarity?</h4>
-                  <p className="text-[11px] text-slate-600 font-medium font-serif" style={{ fontFamily: 'serif' }}>Our health experts are available 24/7.</p>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">Need More Clarity?</h4>
+                  <p className="text-[11px] text-slate-600 font-medium">Our health experts are available 24/7.</p>
                 </div>
               </div>
             </div>
@@ -113,15 +113,13 @@ export default function FaqSection() {
               return (
                 <div 
                   key={index}
-                  className={`rounded-none transition-all duration-300 overflow-hidden font-serif ${
+                  className={`rounded-none transition-all duration-300 overflow-hidden ${
                     isOpen ? 'faq-card-box shadow-md' : 'bg-white border-2 border-slate-200/80 hover:border-purple-300 shadow-2xs'
                   }`}
-                  style={{ fontFamily: 'serif' }}
                 >
                   <button
                     onClick={() => toggleFaq(index)}
-                    className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 text-left font-extrabold text-slate-900 text-sm sm:text-base cursor-pointer focus:outline-none font-serif"
-                    style={{ fontFamily: 'serif' }}
+                    className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 text-left font-extrabold text-slate-900 text-sm sm:text-base cursor-pointer focus:outline-none"
                   >
                     <span className={isOpen ? "text-[#612c9c]" : "text-slate-900"}>
                       {faq.question}
@@ -136,7 +134,7 @@ export default function FaqSection() {
                   </button>
 
                   {isOpen && (
-                    <div className="px-4 sm:px-5 pb-5 pt-0 text-xs sm:text-sm text-slate-600 font-medium leading-relaxed border-t border-purple-100/60 pt-3 font-serif" style={{ fontFamily: 'serif' }}>
+                    <div className="px-4 sm:px-5 pb-5 pt-0 text-xs sm:text-sm text-slate-600 font-medium leading-relaxed border-t border-purple-100/60 pt-3">
                       {faq.answer}
                     </div>
                   )}

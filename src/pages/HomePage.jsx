@@ -14,7 +14,7 @@ import StickyMobileCTA from '../components/layout/StickyMobileCTA';
 
 export default function HomePage({ onOpenUploadModal, onOpenCalculatorModal }) {
   return (
-    <div className="space-y-0 relative">
+    <div className="space-y-0 relative font-healthians">
       {/* 1. WHO ARE YOU? -> Hero */}
       <HeroSection onOpenUploadModal={onOpenUploadModal} />
 
