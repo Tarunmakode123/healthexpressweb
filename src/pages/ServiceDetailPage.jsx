@@ -51,6 +51,9 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
 
   const isHomeNursing = service?.service_type === 'home_nursing' || service?.category_id === 'home-nursing' || service?.category_name === 'Home Nursing' || service?.subcategory === 'Home Nursing';
 
+  const discountPrice = service?.discount_price || service?.discounted_price || service?.price || 0;
+  const mrpPrice = service?.mrp || service?.price;
+
   const whatsappMsg = isHomeNursing 
     ? `Hi Health Express, I am interested in ${service.name}. Please share more details.`
     : `Namaste Health Express! I am interested in inquiring / booking "${service.name}". Please share test details, pricing, turnaround time, and home sample collection availability.`;
@@ -168,13 +171,13 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
               {/* Mobile-Only Price & Quick CTA Bar */}
               <div className="lg:hidden pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-xl font-black text-slate-900">₹{service.discount_price}</div>
-                  {service.price && service.price > service.discount_price && (
-                    <div className="text-xs text-slate-400 line-through">₹{service.price}</div>
+                  <div className="text-xl font-black text-slate-900">₹{discountPrice}</div>
+                  {mrpPrice && mrpPrice > discountPrice && (
+                    <div className="text-xs text-slate-400 line-through">₹{mrpPrice}</div>
                   )}
                 </div>
                 <button
-                  onClick={() => addToCart(service)}
+                  onClick={() => addToCart({ ...service, price: discountPrice })}
                   className="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-sm active:scale-95 flex items-center gap-1.5"
                 >
                   <ShoppingBag className="w-4 h-4" />
@@ -335,9 +338,9 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
               {!isHomeNursing && (
                 <div className="space-y-1">
                   <div className="flex items-baseline gap-2.5">
-                    <span className="text-3xl font-black text-slate-900">₹{service.discount_price}</span>
-                    {service.price && service.price > service.discount_price && (
-                      <span className="text-base text-slate-400 line-through">₹{service.price}</span>
+                    <span className="text-3xl font-black text-slate-900">₹{discountPrice}</span>
+                    {mrpPrice && mrpPrice > discountPrice && (
+                      <span className="text-base text-slate-400 line-through">₹{mrpPrice}</span>
                     )}
                     {service.discount_percentage && (
                       <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -362,7 +365,7 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
                 ) : (
                   <>
                     <button
-                      onClick={() => addToCart(service)}
+                      onClick={() => addToCart({ ...service, price: discountPrice })}
                       className="w-full py-3.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
                     >
                       <ShoppingBag className="w-4 h-4" />
