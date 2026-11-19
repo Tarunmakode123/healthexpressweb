@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { 
   FlaskConical, Scan, Dna, Home, ShieldCheck, 
   Search, ChevronRight, MessageSquare, Upload, SlidersHorizontal, 
-  X, ChevronDown, ChevronUp, ShoppingBag, RefreshCw, Filter, MapPin, Stethoscope
+  X, ChevronDown, ChevronUp, ShoppingBag, RefreshCw, Filter, MapPin, Stethoscope, ArrowRight
 } from 'lucide-react';
 import { fetchServices } from '../services/catalogService';
 import { useCart } from '../context/CartContext';
@@ -676,18 +676,18 @@ export default function ServicesPage({ onOpenUploadModal }) {
                   return (
                     <div
                       key={service.id || service.slug}
-                      className="bg-white rounded-2xl border border-slate-200/90 hover:border-purple-300 p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between text-left group min-h-[220px]"
+                      className="bg-white rounded-2xl border border-slate-200/80 hover:border-purple-300 hover:shadow-lg p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between text-left group shadow-xs hover:-translate-y-0.5"
                     >
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         
                         {/* Top Category Badge & Fulfillment Tag */}
-                        <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
-                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2 py-0.5 rounded border border-purple-100 flex items-center gap-1">
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2.5">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1">
                             <IconComp className="w-3 h-3 text-purple-700 shrink-0" />
                             <span>{service.category_name || 'Healthcare'}</span>
                           </span>
 
-                          <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded ${
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
                             isHomeNursing
                               ? 'bg-purple-50 text-purple-800 border border-purple-200'
                               : service.centre_visit_required
@@ -701,27 +701,22 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         {/* Fasting Badge (Featured prominently if required) */}
                         {requiresFasting && (
                           <div className="pt-0.5">
-                            <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded inline-block shadow-2xs">
+                            <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-300/80 px-2 py-0.5 rounded-md inline-block">
                               ⚠️ Fasting Required
                             </span>
                           </div>
                         )}
 
-                        {/* Service Code & Title */}
-                        <div>
-                          {service.service_code && (
-                            <span className="text-[9px] font-mono text-slate-400 font-bold block">
-                              Code: {service.service_code}
-                            </span>
-                          )}
+                        {/* Test Name & Description (Code removed for clean UI) */}
+                        <div className="space-y-1">
                           <Link
                             to={`/services/${service.slug}`}
-                            className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-1 leading-snug block"
+                            className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug block"
                           >
                             {service.name}
                           </Link>
                           {service.description && (
-                            <p className="text-[10px] sm:text-[11px] text-slate-500 line-clamp-2 leading-normal font-normal mt-0.5">
+                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed font-normal">
                               {service.description}
                             </p>
                           )}
@@ -729,62 +724,39 @@ export default function ServicesPage({ onOpenUploadModal }) {
 
                         {/* Parameter / Specimen Count tag if present */}
                         {service.parameters_count > 0 && (
-                          <div className="text-[9px] font-semibold text-slate-400">
+                          <div className="text-[10px] font-semibold text-slate-400">
                             <span>Includes {service.parameters_count} Parameters</span>
                           </div>
                         )}
 
                       </div>
 
-                      {/* Pricing & Footer Actions */}
-                      <div className="pt-3 border-t border-slate-100 space-y-2.5 mt-3">
+                      {/* Pricing & Single Full-Width Book Now Button */}
+                      <div className="pt-3 border-t border-slate-100 space-y-3 mt-4">
                         {!isHomeNursing && (
                           <div className="flex items-baseline justify-between">
                             <div className="flex items-baseline gap-1.5">
-                              <span className="text-base sm:text-lg font-black text-slate-900">₹{discountPrice}</span>
+                              <span className="text-lg sm:text-xl font-black text-slate-900">₹{discountPrice}</span>
                               {mrpPrice && mrpPrice > discountPrice && (
                                 <span className="text-xs text-slate-400 line-through">₹{mrpPrice}</span>
                               )}
                             </div>
                             {service.discount_percentage && (
-                              <span className="text-[9px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                              <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                                 {service.discount_percentage} OFF
                               </span>
                             )}
                           </div>
                         )}
 
-                        {/* Home Nursing Card: Custom CTA without direct cart booking */}
-                        {isHomeNursing ? (
-                          <button
-                            onClick={() => openWhatsApp(`Hi Health Express, I am interested in ${service.name}. Please share more details.`)}
-                            className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5 text-emerald-100 shrink-0" />
-                            <span className="truncate">Contact Us on WhatsApp →</span>
-                          </button>
-                        ) : (
-                          <div className="grid grid-cols-2 gap-2">
-                            <Link
-                              to={`/services/${service.slug}`}
-                              className="py-2 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-extrabold text-xs flex items-center justify-center gap-1 transition-colors text-center"
-                            >
-                              <span>Details</span>
-                              <ChevronRight className="w-3 h-3" />
-                            </Link>
-
-                            <button
-                              onClick={() => addToCart({
-                                ...service,
-                                price: discountPrice
-                              })}
-                              className="py-2 px-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 transition-colors shadow-2xs cursor-pointer touch-target active:scale-95"
-                            >
-                              <ShoppingBag className="w-3 h-3 text-purple-200" />
-                              <span>Add</span>
-                            </button>
-                          </div>
-                        )}
+                        {/* Single Full-Width Book Now Action */}
+                        <Link
+                          to={`/services/${service.slug}`}
+                          className="w-full py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 text-center cursor-pointer group-hover:bg-purple-800"
+                        >
+                          <span>Book Now</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
                       </div>
 
                     </div>
