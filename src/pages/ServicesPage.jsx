@@ -266,11 +266,11 @@ export default function ServicesPage({ onOpenUploadModal }) {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-200">
+                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-200">
                   Diagnostic & Health Services
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1.5">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1.5">
                 Book Diagnostic Tests, Radiology & Home Nursing
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
@@ -686,7 +686,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         
                         {/* Clean Category Badge */}
                         <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1 w-fit">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1 w-fit">
                             <IconComp className="w-3 h-3 text-purple-700 shrink-0" />
                             <span>{displayCategoryName}</span>
                           </span>
@@ -696,7 +696,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         <div className="h-11 sm:h-12 flex items-start">
                           <Link
                             to={`/services/${service.slug}`}
-                            className="text-sm sm:text-[15px] font-extrabold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug block"
+                            className="text-sm sm:text-[15px] font-bold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug block"
                             title={service.name}
                           >
                             {service.name}
@@ -709,13 +709,13 @@ export default function ServicesPage({ onOpenUploadModal }) {
                       <div className="pt-3 border-t border-slate-100 space-y-3 mt-4">
                         <div className="flex items-baseline justify-between h-7">
                           <div className="flex items-baseline gap-1.5">
-                            <span className="text-lg sm:text-xl font-black text-slate-900">₹{discountPrice}</span>
+                            <span className="text-lg sm:text-xl font-bold text-slate-900">₹{discountPrice}</span>
                             {mrpPrice && mrpPrice > discountPrice && (
                               <span className="text-xs text-slate-400 line-through">₹{mrpPrice}</span>
                             )}
                           </div>
                           {service.discount_percentage ? (
-                            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                               {service.discount_percentage} OFF
                             </span>
                           ) : (
@@ -726,7 +726,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         {/* Single Full-Width Book Now Action */}
                         <Link
                           to={`/services/${service.slug}`}
-                          className="w-full py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 text-center cursor-pointer group-hover:bg-purple-800"
+                          className="w-full py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 text-center cursor-pointer group-hover:bg-purple-800"
                         >
                           <span>Book Now</span>
                           <ArrowRight className="w-3.5 h-3.5" />

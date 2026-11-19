@@ -52,6 +52,20 @@ h1, h2, h3, h4, h5, h6, p, span, a, label {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* Poppins Typographic Calibration: Clean, modern, crisp medical typography without bulky weights */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.015em;
+}
+
+/* Tone down extreme Poppins weights (900/800) so headings and rupee prices look sleek across entire website */
+.font-black {
+  font-weight: 700 !important;
+}
+
+.font-extrabold {
+  font-weight: 600 !important;
+}
+
 .font-healthians,
 .font-healthians *,
 .home-page-poppins,
