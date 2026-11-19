@@ -64,7 +64,7 @@ export default function NewServicesSection() {
   };
 
   return (
-    <section className="py-8 sm:py-14 lg:py-10 bg-white relative overflow-hidden">
+    <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-[#f8f5fc] via-[#faf7fd] to-[#f5effb] relative overflow-hidden border-y border-purple-100/70">
      
       <style>{`
         @keyframes scroll-left {
@@ -97,22 +97,23 @@ export default function NewServicesSection() {
         }
         /* Custom little purple box shadow */
         .purple-box-shadow {
-          box-shadow: 0 4px 20px -4px rgba(97, 44, 156, 0.15);
+          box-shadow: 0 4px 20px -4px rgba(97, 44, 156, 0.10);
         }
         .purple-box-shadow-hover:hover {
-          box-shadow: 0 6px 25px -2px rgba(97, 44, 156, 0.25);
+          box-shadow: 0 10px 25px -2px rgba(97, 44, 156, 0.20);
         }
         /* Enhanced Category Info Box Highlight */
         .category-info-box {
-          background: linear-gradient(135deg, rgba(97, 44, 156, 0.12) 0%, rgba(97, 44, 156, 0.03) 100%);
-          border: 1px solid rgba(97, 44, 156, 0.25);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 238, 255, 0.7) 100%);
+          border: 1px solid rgba(97, 44, 156, 0.20);
           border-left: 4px solid #612c9c;
-          box-shadow: 0 8px 25px -4px rgba(97, 44, 156, 0.15);
+          border-radius: 1rem;
+          box-shadow: 0 8px 25px -4px rgba(97, 44, 156, 0.12);
           transition: all 0.3s ease;
         }
         .category-info-box:hover {
-          box-shadow: 0 12px 30px -4px rgba(97, 44, 156, 0.25);
-          border-color: rgba(97, 44, 156, 0.4);
+          box-shadow: 0 14px 30px -4px rgba(97, 44, 156, 0.22);
+          border-color: rgba(97, 44, 156, 0.35);
         }
       `}</style>
 
@@ -121,8 +122,8 @@ export default function NewServicesSection() {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <span
-            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border"
-            style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c' }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full font-extrabold text-xs uppercase tracking-wider border shadow-2xs"
+            style={{ backgroundColor: 'rgba(97, 44, 156, 0.08)', borderColor: 'rgba(97, 44, 156, 0.25)', color: '#612c9c' }}
           >
             Explore Offerings
           </span>
@@ -141,9 +142,9 @@ export default function NewServicesSection() {
             <div key={rowIndex} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center border-b border-slate-100 pb-8 last:border-b-0">
               
               {/* LEFT SIDE: Highly Highlighted Category Info Box */}
-              <div className="lg:col-span-3 space-y-3 text-left category-info-box rounded-none p-5 sm:p-5.5">
+              <div className="lg:col-span-3 space-y-3.5 text-left category-info-box rounded-2xl p-5 sm:p-6">
                 <span
-                  className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-none border inline-block bg-white/80 shadow-xs"
+                  className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full border inline-block bg-white shadow-2xs"
                   style={{ borderColor: 'rgba(97, 44, 156, 0.3)', color: '#612c9c' }}
                 >
                   {row.badgeLabel}
@@ -154,7 +155,7 @@ export default function NewServicesSection() {
                 <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   {row.subtitle}
                 </p>
-                <div className="pt-1 flex items-center justify-between">
+                <div className="pt-2 flex items-center justify-between">
                   <Link
                     to="/services"
                     className="inline-flex items-center gap-1.5 text-xs font-bold transition-colors hover:underline"
@@ -168,14 +169,14 @@ export default function NewServicesSection() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => scrollManual(rowIndex, 'left')}
-                      className="w-7 h-7 rounded-none border border-purple-200 bg-white flex items-center justify-center text-slate-700 hover:bg-purple-50 transition-colors cursor-pointer shadow-xs"
+                      className="w-8 h-8 rounded-xl border border-purple-200/80 bg-white flex items-center justify-center text-slate-700 hover:bg-purple-100 hover:text-purple-950 transition-all cursor-pointer shadow-2xs active:scale-95"
                       title="Scroll Left"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => scrollManual(rowIndex, 'right')}
-                      className="w-7 h-7 rounded-none border border-purple-200 bg-white flex items-center justify-center text-slate-700 hover:bg-purple-50 transition-colors cursor-pointer shadow-xs"
+                      className="w-8 h-8 rounded-xl border border-purple-200/80 bg-white flex items-center justify-center text-slate-700 hover:bg-purple-100 hover:text-purple-950 transition-all cursor-pointer shadow-2xs active:scale-95"
                       title="Scroll Right"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -187,9 +188,9 @@ export default function NewServicesSection() {
               {/* RIGHT SIDE: Automatic Marquee + Manual Scroll Container */}
               <div className="lg:col-span-9 overflow-hidden relative py-2">
                 
-                {/* Minimal Edge Gradient Fades */}
-                <div className="absolute left-0 inset-y-0 w-4 sm:w-6 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 inset-y-0 w-4 sm:w-6 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+                {/* Minimal Edge Gradient Fades matching section background */}
+                <div className="absolute left-0 inset-y-0 w-4 sm:w-8 bg-gradient-to-r from-[#faf7fd] to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 inset-y-0 w-4 sm:w-8 bg-gradient-to-l from-[#faf7fd] to-transparent z-10 pointer-events-none" />
 
                 <div
                   ref={rowRefs[rowIndex]}
@@ -200,18 +201,18 @@ export default function NewServicesSection() {
                     {row.items.concat(row.items).map((item, idx) => (
                       <div
                         key={idx}
-                        className="w-[310px] sm:w-[330px] bg-white hover:bg-purple-50/10 border border-slate-200 rounded-none p-4.5 mx-3 flex flex-col justify-between shrink-0 transition-all duration-300 group purple-box-shadow purple-box-shadow-hover"
+                        className="w-[310px] sm:w-[330px] bg-white hover:bg-purple-50/15 border border-purple-100/80 hover:border-purple-300 rounded-2xl p-5 mx-3 flex flex-col justify-between shrink-0 transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1"
                       >
                         <div className="space-y-3">
                           
                           {/* Brand & Badge Top Header */}
                           <div className="flex items-center justify-between pb-1">
-                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-none flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200/60 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                               <ShieldCheck className="w-3 h-3" style={{ color: '#612c9c' }} />
                               {item.brand}
                             </span>
                             <span
-                              className="text-[9px] font-extrabold px-2 py-0.5 rounded-none border"
+                              className="text-[9px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-2xs"
                               style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c' }}
                             >
                               Verified
@@ -240,7 +241,7 @@ export default function NewServicesSection() {
                         <div className="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between">
                           <Link
                             to="/services"
-                            className="px-3.5 py-1.5 rounded-none text-white font-bold text-xs transition-colors flex items-center gap-1.5"
+                            className="px-4 py-2 rounded-xl text-white font-bold text-xs transition-all flex items-center gap-1.5 active:scale-95 shadow-xs hover:shadow-md cursor-pointer"
                             style={{ backgroundColor: '#612c9c' }}
                           >
                             <span>Book Now</span>
