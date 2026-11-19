@@ -673,21 +673,25 @@ export default function ServicesPage({ onOpenUploadModal }) {
                     (service.name && service.name.toLowerCase().includes('fasting'))
                   );
 
+                  const displayCategoryName = (service.category_name || 'Healthcare')
+                    .replace('Imaging & Radiology', 'Radiology')
+                    .replace('Pathology & Diagnostics', 'Pathology');
+
                   return (
                     <div
                       key={service.id || service.slug}
-                      className="bg-white rounded-2xl border border-slate-200/80 hover:border-purple-300 hover:shadow-lg p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between text-left group shadow-xs hover:-translate-y-0.5"
+                      className="bg-white rounded-2xl border border-slate-200/80 hover:border-purple-300 hover:shadow-lg p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between text-left group shadow-xs hover:-translate-y-0.5 h-full"
                     >
-                      <div className="space-y-3">
+                      <div className="space-y-2.5">
                         
-                        {/* Top Category Badge & Fulfillment Tag */}
-                        <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-2.5">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1">
+                        {/* Top Category Badge & Fulfillment Tag (Never wraps) */}
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5 min-h-[32px]">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1 truncate max-w-[140px]">
                             <IconComp className="w-3 h-3 text-purple-700 shrink-0" />
-                            <span>{service.category_name || 'Healthcare'}</span>
+                            <span className="truncate">{displayCategoryName}</span>
                           </span>
 
-                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap ${
                             isHomeNursing
                               ? 'bg-purple-50 text-purple-800 border border-purple-200'
                               : service.centre_visit_required
@@ -698,56 +702,49 @@ export default function ServicesPage({ onOpenUploadModal }) {
                           </span>
                         </div>
 
-                        {/* Fasting Badge (Featured prominently if required) */}
-                        {requiresFasting && (
-                          <div className="pt-0.5">
-                            <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-300/80 px-2 py-0.5 rounded-md inline-block">
+                        {/* Fasting Requirement Slot (Fixed height across all cards for perfect alignment) */}
+                        <div className="h-6 flex items-center">
+                          {requiresFasting ? (
+                            <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-300/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
                               ⚠️ Fasting Required
                             </span>
-                          </div>
-                        )}
-
-                        {/* Test Name & Description (Code removed for clean UI) */}
-                        <div className="space-y-1">
-                          <Link
-                            to={`/services/${service.slug}`}
-                            className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug block"
-                          >
-                            {service.name}
-                          </Link>
-                          {service.description && (
-                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed font-normal">
-                              {service.description}
-                            </p>
+                          ) : (
+                            <span className="text-[9px] font-extrabold uppercase tracking-wider bg-slate-50 text-slate-500 border border-slate-200/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                              ✓ No Fasting Required
+                            </span>
                           )}
                         </div>
 
-                        {/* Parameter / Specimen Count tag if present */}
-                        {service.parameters_count > 0 && (
-                          <div className="text-[10px] font-semibold text-slate-400">
-                            <span>Includes {service.parameters_count} Parameters</span>
-                          </div>
-                        )}
+                        {/* Test Name (Fixed height container, No irregular subtitles) */}
+                        <div className="h-11 sm:h-12 flex items-start">
+                          <Link
+                            to={`/services/${service.slug}`}
+                            className="text-sm sm:text-[15px] font-extrabold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug block"
+                            title={service.name}
+                          >
+                            {service.name}
+                          </Link>
+                        </div>
 
                       </div>
 
                       {/* Pricing & Single Full-Width Book Now Button */}
-                      <div className="pt-3 border-t border-slate-100 space-y-3 mt-4">
-                        {!isHomeNursing && (
-                          <div className="flex items-baseline justify-between">
-                            <div className="flex items-baseline gap-1.5">
-                              <span className="text-lg sm:text-xl font-black text-slate-900">₹{discountPrice}</span>
-                              {mrpPrice && mrpPrice > discountPrice && (
-                                <span className="text-xs text-slate-400 line-through">₹{mrpPrice}</span>
-                              )}
-                            </div>
-                            {service.discount_percentage && (
-                              <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                {service.discount_percentage} OFF
-                              </span>
+                      <div className="pt-3 border-t border-slate-100 space-y-3 mt-3">
+                        <div className="flex items-baseline justify-between h-7">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-lg sm:text-xl font-black text-slate-900">₹{discountPrice}</span>
+                            {mrpPrice && mrpPrice > discountPrice && (
+                              <span className="text-xs text-slate-400 line-through">₹{mrpPrice}</span>
                             )}
                           </div>
-                        )}
+                          {service.discount_percentage ? (
+                            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              {service.discount_percentage} OFF
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-semibold text-slate-400">Standard Price</span>
+                          )}
+                        </div>
 
                         {/* Single Full-Width Book Now Action */}
                         <Link
