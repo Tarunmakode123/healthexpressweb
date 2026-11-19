@@ -7,6 +7,8 @@ import CalculatorModal from './components/common/CalculatorModal';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PrescriptionModal from './components/common/PrescriptionModal';
+import CallbackModal from './components/common/CallbackModal';
+import CallbackBottomStrip from './components/layout/CallbackBottomStrip';
 import CareManagerCTA from './components/common/CareManagerCTA';
 import HealthExpressAssistant from './components/chat/HealthExpressAssistant';
 import HealthExpressIntro from './components/common/HealthExpressIntro';
@@ -75,9 +77,17 @@ function MainLayout() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [activeCalcSlug, setActiveCalcSlug] = useState('bmi-calculator');
+  const [isCallbackModalOpen, setIsCallbackModalOpen] = useState(false);
+  const [callbackInitialPhone, setCallbackInitialPhone] = useState('');
 
   const handleOpenUploadModal = () => setIsUploadModalOpen(true);
   const handleCloseUploadModal = () => setIsUploadModalOpen(false);
+
+  const handleOpenCallbackModal = (phone = '') => {
+    setCallbackInitialPhone(phone);
+    setIsCallbackModalOpen(true);
+  };
+  const handleCloseCallbackModal = () => setIsCallbackModalOpen(false);
 
   const handleOpenCalcModal = (slug = 'bmi-calculator') => {
     setActiveCalcSlug(slug);
@@ -91,8 +101,17 @@ function MainLayout() {
       handleOpenCalcModal(slug);
     };
 
+    const handleGlobalCallbackModal = (e) => {
+      const phone = e.detail?.phone || '';
+      handleOpenCallbackModal(phone);
+    };
+
     window.addEventListener('open-calculator-modal', handleGlobalCalcModal);
-    return () => window.removeEventListener('open-calculator-modal', handleGlobalCalcModal);
+    window.addEventListener('open-callback-modal', handleGlobalCallbackModal);
+    return () => {
+      window.removeEventListener('open-calculator-modal', handleGlobalCalcModal);
+      window.removeEventListener('open-callback-modal', handleGlobalCallbackModal);
+    };
   }, []);
 
   return (
@@ -139,6 +158,7 @@ function MainLayout() {
           <>
             <Footer onOpenUploadModal={handleOpenUploadModal} />
             <CareManagerCTA />
+            <CallbackBottomStrip onOpenCallbackModal={handleOpenCallbackModal} />
             <HealthExpressAssistant onOpenUploadModal={handleOpenUploadModal} />
           </>
         )}
@@ -155,6 +175,12 @@ function MainLayout() {
         <PrescriptionModal 
           isOpen={isUploadModalOpen} 
           onClose={handleCloseUploadModal} 
+        />
+
+        <CallbackModal
+          isOpen={isCallbackModalOpen}
+          onClose={handleCloseCallbackModal}
+          initialPhone={callbackInitialPhone}
         />
 
       </div>

@@ -3,9 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Menu, X, MessageSquare, ArrowRight, Upload, User, LogOut, 
   ShoppingBag, ShieldAlert, Search, MapPin, ChevronDown, 
-  Package, FileText, Navigation, Loader2, AlertCircle 
+  Package, FileText, Navigation, Loader2, AlertCircle, Phone 
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../../utils/whatsapp';
+import { HEALTH_MANAGER_PHONE, HEALTH_MANAGER_DISPLAY_PHONE } from '../../config/constants';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import WaitlistModal from '../common/WaitlistModal';
@@ -364,6 +365,25 @@ export default function Navbar({ onOpenUploadModal }) {
                 </>
               )}
 
+              {/* Customer Support Phone Display (Healthians Style - Image 3) */}
+              <a
+                href={`tel:${HEALTH_MANAGER_PHONE}`}
+                className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-slate-800 border border-purple-200/90 transition-all group"
+                title={`Call Customer Support (${HEALTH_MANAGER_DISPLAY_PHONE})`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                  <Phone className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-left leading-tight">
+                  <span className="text-[10px] text-purple-700 font-extrabold uppercase tracking-wider block">
+                    Customer Support
+                  </span>
+                  <span className="text-xs font-black text-slate-900 group-hover:text-purple-900 block font-mono">
+                    {HEALTH_MANAGER_DISPLAY_PHONE}
+                  </span>
+                </div>
+              </a>
+
               {/* WhatsApp Quick Contact */}
               {!showCustomerAccount && (
                 <button
@@ -439,7 +459,16 @@ export default function Navbar({ onOpenUploadModal }) {
             </div>
 
             {/* Mobile Actions Header Bar */}
-            <div className="md:hidden flex items-center gap-2">
+            <div className="md:hidden flex items-center gap-1.5 sm:gap-2">
+              <a
+                href={`tel:${HEALTH_MANAGER_PHONE}`}
+                className="p-2.5 min-w-[40px] min-h-[40px] rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 flex items-center justify-center active:scale-95 transition-transform"
+                title={`Call Customer Support (${HEALTH_MANAGER_DISPLAY_PHONE})`}
+                aria-label="Call Customer Support"
+              >
+                <Phone className="w-4 h-4 text-purple-700" />
+              </a>
+
               <button
                 onClick={openCart}
                 className="relative p-2.5 min-w-[44px] min-h-[44px] rounded-xl bg-purple-700 hover:bg-purple-800 text-white flex items-center justify-center cursor-pointer touch-target active:scale-95 transition-transform"
