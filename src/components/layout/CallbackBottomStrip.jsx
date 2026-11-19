@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PhoneCall, X, ArrowRight, Zap, ShieldCheck } from 'lucide-react';
+import { X, ArrowRight, Zap } from 'lucide-react';
 
 export default function CallbackBottomStrip({ onOpenCallbackModal }) {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -17,59 +17,49 @@ export default function CallbackBottomStrip({ onOpenCallbackModal }) {
   return (
     <aside 
       aria-label="Request Callback from Health Advisor"
-      className="fixed bottom-0 inset-x-0 z-30 bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-950 text-white shadow-2xl border-t border-purple-700/40 py-2.5 px-4 backdrop-blur-md animate-in slide-in-from-bottom-5 duration-300"
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 w-[94%] sm:w-auto sm:min-w-[540px] md:min-w-[620px] max-w-xl bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-950 text-white shadow-2xl rounded-t-2xl sm:rounded-t-3xl border-t-2 border-x border-purple-400/30 px-5 pt-3 pb-3 backdrop-blur-md animate-in slide-in-from-bottom-5 duration-300"
     >
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left relative">
+      <div className="relative flex flex-col items-center justify-center gap-2 text-center">
         
-        {/* Left Side: Headline & Badge */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 rounded-full bg-amber-400 text-purple-950 flex items-center justify-center shrink-0 shadow-sm font-bold">
-            <Zap className="w-4 h-4 fill-purple-950" />
-          </div>
-          <div>
-            <div className="text-xs sm:text-sm font-black tracking-tight text-white flex items-center gap-2 justify-center sm:justify-start">
-              <span>Get a Callback from our Health Advisor</span>
-              <span className="hidden md:inline-block text-[10px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">
-                10-Min Response
-              </span>
-            </div>
-            <p className="text-[11px] text-purple-200/90 font-medium hidden lg:block">
-              Free expert guidance on blood tests, scans, doctor consults & home nursing in Bengaluru.
-            </p>
-          </div>
+        {/* Close / Dismiss Button */}
+        <button
+          onClick={() => setIsDismissed(true)}
+          className="absolute -right-1 -top-1 p-1 text-purple-300 hover:text-white transition-colors cursor-pointer"
+          title="Dismiss callback bar"
+          aria-label="Dismiss callback bar"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {/* Center Title & 10-Min Badge */}
+        <div className="flex items-center gap-2 text-xs sm:text-sm font-black tracking-tight text-white">
+          <Zap className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+          <span>Get a Callback from our Health Advisor</span>
+          <span className="text-[10px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold hidden sm:inline-block">
+            10-Min Response
+          </span>
         </div>
 
-        {/* Center / Right: Quick 10-Digit Mobile Input & Action Button */}
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full sm:w-auto justify-center">
-          <div className="relative w-full sm:w-64 max-w-xs">
+        {/* Form: Input + Button */}
+        <form onSubmit={handleSubmit} className="w-full max-w-lg">
+          <div className="flex items-stretch overflow-hidden rounded-xl bg-white shadow-lg border border-white/20">
             <input
               type="tel"
               maxLength={10}
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
               placeholder="Enter your 10 digit mobile no."
-              className="w-full px-3.5 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold placeholder:text-slate-400 placeholder:font-medium outline-none focus:ring-2 focus:ring-amber-400 shadow-inner"
+              className="flex-1 min-w-0 px-3.5 py-2 sm:py-2.5 text-slate-900 text-xs sm:text-sm font-semibold placeholder:text-slate-400 placeholder:font-normal outline-none bg-white"
             />
+            <button
+              type="submit"
+              className="px-4 sm:px-6 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-black text-xs sm:text-sm shrink-0 flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <span>Get a Call Back</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
           </div>
-
-          <button
-            type="submit"
-            className="px-4 sm:px-6 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shrink-0 flex items-center gap-1.5 shadow-md shadow-rose-600/30 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
-          >
-            <span>Get a Call Back</span>
-            <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-          </button>
         </form>
-
-        {/* Dismiss Button */}
-        <button
-          onClick={() => setIsDismissed(true)}
-          className="absolute right-0 sm:right-2 top-0 sm:top-1/2 sm:-translate-y-1/2 p-1 text-purple-300 hover:text-white transition-colors cursor-pointer"
-          title="Dismiss banner"
-          aria-label="Dismiss banner"
-        >
-          <X className="w-4 h-4" />
-        </button>
 
       </div>
     </aside>
