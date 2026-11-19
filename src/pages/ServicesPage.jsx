@@ -682,40 +682,17 @@ export default function ServicesPage({ onOpenUploadModal }) {
                       key={service.id || service.slug}
                       className="bg-white rounded-2xl border border-slate-200/80 hover:border-purple-300 hover:shadow-lg p-4 sm:p-5 transition-all duration-200 flex flex-col justify-between text-left group shadow-xs hover:-translate-y-0.5 h-full"
                     >
-                      <div className="space-y-2.5">
+                      <div className="space-y-3">
                         
-                        {/* Top Category Badge & Fulfillment Tag (Never wraps) */}
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5 min-h-[32px]">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1 truncate max-w-[140px]">
+                        {/* Clean Category Badge */}
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1 w-fit">
                             <IconComp className="w-3 h-3 text-purple-700 shrink-0" />
-                            <span className="truncate">{displayCategoryName}</span>
-                          </span>
-
-                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap ${
-                            isHomeNursing
-                              ? 'bg-purple-50 text-purple-800 border border-purple-200'
-                              : service.centre_visit_required
-                              ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                              : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                          }`}>
-                            {isHomeNursing ? 'Home Delivery' : service.centre_visit_required ? 'Centre Visit' : 'Home Collection'}
+                            <span>{displayCategoryName}</span>
                           </span>
                         </div>
 
-                        {/* Fasting Requirement Slot (Fixed height across all cards for perfect alignment) */}
-                        <div className="h-6 flex items-center">
-                          {requiresFasting ? (
-                            <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-300/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
-                              ⚠️ Fasting Required
-                            </span>
-                          ) : (
-                            <span className="text-[9px] font-extrabold uppercase tracking-wider bg-slate-50 text-slate-500 border border-slate-200/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
-                              ✓ No Fasting Required
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Test Name (Fixed height container, No irregular subtitles) */}
+                        {/* Test Name (Fixed height container for perfect grid alignment) */}
                         <div className="h-11 sm:h-12 flex items-start">
                           <Link
                             to={`/services/${service.slug}`}
@@ -729,7 +706,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                       </div>
 
                       {/* Pricing & Single Full-Width Book Now Button */}
-                      <div className="pt-3 border-t border-slate-100 space-y-3 mt-3">
+                      <div className="pt-3 border-t border-slate-100 space-y-3 mt-4">
                         <div className="flex items-baseline justify-between h-7">
                           <div className="flex items-baseline gap-1.5">
                             <span className="text-lg sm:text-xl font-black text-slate-900">₹{discountPrice}</span>
