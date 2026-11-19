@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   FlaskConical, Scan, Dna, Home, Stethoscope, ShieldCheck, 
-  Clock, Calendar, FileText, CheckCircle2, AlertCircle, MessageSquare, 
-  Phone, ArrowRight, ChevronRight, HelpCircle, UserCheck, ShieldAlert, 
-  ShoppingBag, Upload, TestTube2, MapPin, ChevronDown, ChevronUp, Sparkles, Building2
+  Clock, AlertCircle, MessageSquare, Phone, ArrowRight, ChevronRight, 
+  HelpCircle, UserCheck, ShoppingBag, Upload, TestTube2, CheckCircle2,
+  FileText
 } from 'lucide-react';
 import { ALL_SERVICES, CATEGORIES } from '../data/services';
-import { CATEGORY_GUIDANCE_BLOCKS, HEALTH_MANAGER_PHONE } from '../config/constants';
+import { HEALTH_MANAGER_PHONE } from '../config/constants';
 import { openWhatsApp } from '../utils/whatsapp';
 import { useCart } from '../context/CartContext';
-import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+import { fetchServiceBySlug } from '../services/catalogService';
 
 // Helper to get category icon component
 function getCategoryIcon(categoryId) {
@@ -24,8 +24,6 @@ function getCategoryIcon(categoryId) {
     default: return TestTube2;
   }
 }
-
-import { fetchServiceBySlug } from '../services/catalogService';
 
 export default function ServiceDetailPage({ onOpenUploadModal }) {
   const { slug } = useParams();
@@ -63,7 +61,7 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
     .slice(0, 4);
 
   // Track SERVICE_VIEW analytics event
-  React.useEffect(() => {
+  useEffect(() => {
     if (slug) {
       import('../utils/analytics.js').then(({ logAnalyticsEvent }) => {
         logAnalyticsEvent('SERVICE_VIEW', { metadata: { service_id: slug }, deduplicate: true });
@@ -92,33 +90,25 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
           <span className="text-purple-900 font-bold truncate max-w-[240px]">{service.name}</span>
         </nav>
 
-        {/* TOP SERVICE SUMMARY & PURCHASE HEADER (2 COLUMNS DESKTOP, NO IMAGES) */}
-        <div className="bg-white rounded-2xl border border-purple-100/80 shadow-md p-5 sm:p-7 relative overflow-hidden text-left">
+        {/* UNIFIED 2-COLUMN LAYOUT: Left = Test Info, Right = Sticky Booking */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start text-left">
           
-          {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-purple-50/70 rounded-full blur-3xl pointer-events-none -z-0" />
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10 items-start">
+          {/* ========================================================= */}
+          {/* LEFT COLUMN: All Medical & Test Information (lg:col-span-8) */}
+          {/* ========================================================= */}
+          <div className="lg:col-span-8 space-y-6">
             
-            {/* LEFT COLUMN: Service Info & Highlights */}
-            <div className="lg:col-span-8 space-y-4">
+            {/* 1. TEST HEADER CARD */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 sm:p-7 space-y-4">
               
-              <DiscountHeroBanner />
-
-              {/* Category Badge & Tags */}
+              {/* Category & Fulfillment Badges */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-900 text-xs font-bold border border-purple-200">
                   <IconComponent className="w-3.5 h-3.5 text-purple-700" />
                   <span>{category?.name}</span>
                 </span>
 
-                {service.discount_percentage && (
-                  <span className="px-2.5 py-1 rounded-full bg-purple-700 text-white text-xs font-extrabold shadow-2xs">
-                    ⚡ {service.discount_percentage} OFF
-                  </span>
-                )}
-
-                <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
                   service.centre_visit_required 
                     ? 'bg-amber-50 text-amber-900 border-amber-200' 
                     : 'bg-emerald-50 text-emerald-900 border-emerald-200'
@@ -132,216 +122,110 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
                 {service.name}
               </h1>
 
-              {/* Short Description */}
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-3xl">
-                {service.shortDesc || service.description || service.overview}
-              </p>
-
-              {/* Compact Specs Grid (No-Image Visual Pill Bar) */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-xs">
+              {/* 4-Pill Specs Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 text-xs">
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-purple-700" />
+                    <Clock className="w-3.5 h-3.5 text-purple-700 shrink-0" />
                     <span>Report Time</span>
                   </div>
-                  <div className="font-extrabold text-slate-900 mt-0.5 truncate">{service.turnaround_time}</div>
+                  <div className="font-extrabold text-slate-900 mt-1 truncate">
+                    {service.turnaround_time || '24-48 Hours'}
+                  </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-                    <TestTube2 className="w-3.5 h-3.5 text-purple-700" />
+                    <TestTube2 className="w-3.5 h-3.5 text-purple-700 shrink-0" />
                     <span>Sample Type</span>
                   </div>
-                  <div className="font-extrabold text-slate-900 mt-0.5 truncate">{service.sample_type || 'Standard Procedure'}</div>
+                  <div className="font-extrabold text-slate-900 mt-1 truncate">
+                    {service.sample_type || 'Blood / Serum'}
+                  </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 text-purple-700" />
+                    <AlertCircle className="w-3.5 h-3.5 text-purple-700 shrink-0" />
                     <span>Fasting</span>
                   </div>
-                  <div className="font-extrabold text-slate-900 mt-0.5 truncate">
+                  <div className="font-extrabold text-slate-900 mt-1 truncate">
                     {service.fasting_required ? 'Fasting Required' : 'No Fasting'}
                   </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <div className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
-                    <FileText className="w-3.5 h-3.5 text-purple-700" />
+                    <FileText className="w-3.5 h-3.5 text-purple-700 shrink-0" />
                     <span>Parameters</span>
                   </div>
-                  <div className="font-extrabold text-slate-900 mt-0.5 truncate">
+                  <div className="font-extrabold text-slate-900 mt-1 truncate">
                     {service.parameters_count ? `${service.parameters_count} Included` : 'Detailed Report'}
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons Row */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-2">
-                {isHomeNursing ? (
-                  <button
-                    onClick={() => openWhatsApp(whatsappMsg)}
-                    className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-700/20 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                  >
-                    <MessageSquare className="w-4 h-4 fill-current" />
-                    <span>Contact Us on WhatsApp →</span>
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => addToCart(service)}
-                      className="px-6 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-md shadow-purple-700/20 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      <span>Book Service • ₹{service.discount_price}</span>
-                    </button>
-
-                    <button
-                      onClick={onOpenUploadModal}
-                      className="px-5 py-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                    >
-                      <Upload className="w-3.5 h-3.5 text-purple-700" />
-                      <span>Upload Prescription</span>
-                    </button>
-
-                    <button
-                      onClick={() => openWhatsApp(whatsappMsg)}
-                      className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 fill-current" />
-                      <span>Talk to Health Manager</span>
-                    </button>
-                  </>
-                )}
-              </div>
-
-            </div>
-
-            {/* RIGHT COLUMN: Sticky Purchase Card (Amazon-style Compact Price Box) */}
-            <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-3">
-              <div className="bg-gradient-to-br from-slate-900 via-purple-950 to-slate-950 text-white rounded-2xl p-5 shadow-xl border border-purple-800/40 text-left space-y-4">
-                
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <span className="text-[11px] uppercase font-extrabold text-purple-300 tracking-wider">
-                    {isHomeNursing ? 'Home Nursing Care' : 'Transparent Healthcare Price'}
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
-                    NABL Partnered
-                  </span>
-                </div>
-
-                {/* Price Display */}
-                {!isHomeNursing && (
-                  <div className="space-y-1">
-                    <div className="flex items-baseline gap-2.5">
-                      <span className="text-3xl font-black text-white">₹{service.discount_price}</span>
-                      {service.price && (
-                        <span className="text-sm text-slate-400 line-through">₹{service.price}</span>
-                      )}
-                    </div>
-                    {service.discount_percentage && (
-                      <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        <span>You save {service.discount_percentage} with Health Express</span>
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Feature Checklist */}
-                <div className="space-y-2 pt-2 border-t border-white/10 text-xs text-slate-300 font-medium">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>NABL Accredited Diagnostic Network</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>100% Free Health Manager Support</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Verified Smart Digital PDF Report</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Sample Picked Up from Doorstep</span>
-                  </div>
-                </div>
-
-                {/* CTAs */}
-                <div className="space-y-2 pt-2">
-                  {isHomeNursing ? (
-                    <button
-                      onClick={() => openWhatsApp(whatsappMsg)}
-                      className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Contact Us on WhatsApp →</span>
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => addToCart(service)}
-                        className="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
-                      >
-                        <ShoppingBag className="w-4 h-4" />
-                        <span>Book Service (₹{service.discount_price})</span>
-                      </button>
-
-                      <a
-                        href={`tel:${HEALTH_MANAGER_PHONE}`}
-                        className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all border border-white/15"
-                      >
-                        <Phone className="w-3.5 h-3.5 text-purple-300" />
-                        <span>Call Health Manager Direct</span>
-                      </a>
-                    </>
+              {/* Mobile-Only Price & Quick CTA Bar */}
+              <div className="lg:hidden pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xl font-black text-slate-900">₹{service.discount_price}</div>
+                  {service.price && service.price > service.discount_price && (
+                    <div className="text-xs text-slate-400 line-through">₹{service.price}</div>
                   )}
                 </div>
-
+                <button
+                  onClick={() => addToCart(service)}
+                  className="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs shadow-sm active:scale-95 flex items-center gap-1.5"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Book Now</span>
+                </button>
               </div>
+
             </div>
 
-          </div>
-        </div>
-
-        {/* MAIN DETAILED SECTIONS & SIDEBAR */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left">
-          
-          {/* LEFT MAIN CONTENT COLUMN */}
-          <div className="lg:col-span-8 space-y-6">
-            
-            {/* OVERVIEW / ABOUT THIS TEST */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-3">
+            {/* 2. ABOUT & PURPOSE OF THIS TEST (Consolidated Single Block, No Duplication) */}
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
               <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                <FileText className="w-4 h-4 text-purple-700" />
-                About {service.name}
+                <FileText className="w-4.5 h-4.5 text-purple-700" />
+                <span>About this Test</span>
               </h2>
+              
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                {service.overview || service.description}
+                {service.overview || service.description || service.shortDesc || "Comprehensive medical investigation carried out by accredited diagnostic partner laboratories with verified digital reporting."}
               </p>
+
+              {service.why_it_is_done && (
+                <div className="pt-3 border-t border-slate-100 space-y-1.5">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                    Why is this test recommended?
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    {service.why_it_is_done}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {/* WHY IT IS DONE */}
-            {service.why_it_is_done && (
-              <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-3">
-                <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <UserCheck className="w-4 h-4 text-purple-700" />
-                  Why is this Test Recommended?
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  {service.why_it_is_done}
-                </p>
+            {/* 3. PREPARATION GUIDELINES */}
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-3">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <AlertCircle className="w-4.5 h-4.5 text-purple-700" />
+                <span>Preparation Guidelines</span>
+              </h2>
+              
+              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs sm:text-sm text-amber-950 leading-relaxed font-medium">
+                {service.preparation || "No specialized preparation is required for this service. Stay hydrated and carry any existing prescription if applicable."}
               </div>
-            )}
+            </div>
 
-            {/* PARAMETERS INCLUDED */}
+            {/* 4. PARAMETERS INCLUDED (If Panel Test) */}
             {service.parameters && service.parameters.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+              <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                    <FlaskConical className="w-4 h-4 text-purple-700" />
-                    What's Included ({service.parameters.length} Parameters)
+                    <FlaskConical className="w-4.5 h-4.5 text-purple-700" />
+                    <span>What's Included ({service.parameters.length} Parameters)</span>
                   </h2>
                   <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-100">
                     Comprehensive Panel
@@ -358,90 +242,46 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
               </div>
             )}
 
-            {/* PREPARATION INSTRUCTIONS */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-3">
+            {/* 5. HOW IT WORKS (Simple 4-Step Patient Journey) */}
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
               <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                <AlertCircle className="w-4 h-4 text-purple-700" />
-                Before Your Test (Preparation Guidelines)
-              </h2>
-              {service.preparation ? (
-                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-950 leading-relaxed font-medium">
-                  {service.preparation}
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-600 leading-relaxed">
-                  No specialized preparation is required for this service. Stay hydrated and carry any existing prescription if applicable.
-                </div>
-              )}
-            </div>
-
-            {/* HOW IT WORKS (4-STEP PROCESS) */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
-              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                <Clock className="w-4 h-4 text-purple-700" />
-                How It Works
+                <Clock className="w-4.5 h-4.5 text-purple-700" />
+                <span>How It Works</span>
               </h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 text-left space-y-1.5">
                   <div className="w-6 h-6 rounded-full bg-purple-700 text-white text-xs font-black flex items-center justify-center">1</div>
-                  <div className="text-xs font-extrabold text-slate-900">Book Service</div>
-                  <p className="text-[11px] text-slate-600">Book online or upload prescription for instant confirmation.</p>
+                  <div className="text-xs font-extrabold text-slate-900">Book Test</div>
+                  <p className="text-[11px] text-slate-600 leading-normal">Book online or upload prescription in 1 click.</p>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 text-left space-y-1.5">
                   <div className="w-6 h-6 rounded-full bg-purple-700 text-white text-xs font-black flex items-center justify-center">2</div>
                   <div className="text-xs font-extrabold text-slate-900">Sample Collection</div>
-                  <p className="text-[11px] text-slate-600">Certified phlebotomist collects sample at home or visit partner lab.</p>
+                  <p className="text-[11px] text-slate-600 leading-normal">Certified phlebotomist collects sample at home.</p>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 text-left space-y-1.5">
                   <div className="w-6 h-6 rounded-full bg-purple-700 text-white text-xs font-black flex items-center justify-center">3</div>
-                  <div className="text-xs font-extrabold text-slate-900">NABL Processing</div>
-                  <p className="text-[11px] text-slate-600">Sample analyzed in high-end accredited NABL diagnostics facility.</p>
+                  <div className="text-xs font-extrabold text-slate-900">NABL Lab Processing</div>
+                  <p className="text-[11px] text-slate-600 leading-normal">Sample analyzed in high-end accredited NABL facility.</p>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 text-left space-y-1.5">
                   <div className="w-6 h-6 rounded-full bg-purple-700 text-white text-xs font-black flex items-center justify-center">4</div>
                   <div className="text-xs font-extrabold text-slate-900">Digital Report</div>
-                  <p className="text-[11px] text-slate-600">Receive verified PDF report + free doctor/health manager guidance.</p>
+                  <p className="text-[11px] text-slate-600 leading-normal">Verified PDF report delivered to your WhatsApp & Email.</p>
                 </div>
               </div>
             </div>
 
-            {/* IMPORTANT SERVICE GUIDANCE BLOCKS */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
-                Service Guidance & Information
-              </h3>
-              
-              <div className="p-4 rounded-2xl bg-purple-50/80 border border-purple-200 text-left space-y-1.5">
-                <div className="text-xs font-bold text-purple-950 flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-purple-700 shrink-0" />
-                  <span>{CATEGORY_GUIDANCE_BLOCKS.block1.title}</span>
-                </div>
-                <p className="text-xs text-slate-700 leading-relaxed">
-                  {CATEGORY_GUIDANCE_BLOCKS.block1.body}
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-100/80 border border-slate-200 text-left space-y-1.5">
-                <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-700 shrink-0" />
-                  <span>{CATEGORY_GUIDANCE_BLOCKS.block2.title}</span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {CATEGORY_GUIDANCE_BLOCKS.block2.body}
-                </p>
-              </div>
-            </div>
-
-            {/* FREQUENTLY ASKED QUESTIONS */}
+            {/* 6. FREQUENTLY ASKED QUESTIONS */}
             {service.faq && service.faq.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+              <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs space-y-4">
                 <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <HelpCircle className="w-4 h-4 text-purple-700" />
-                  Frequently Asked Questions
+                  <HelpCircle className="w-4.5 h-4.5 text-purple-700" />
+                  <span>Frequently Asked Questions</span>
                 </h2>
 
                 <div className="space-y-2.5">
@@ -454,18 +294,14 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
                       >
                         <button
                           onClick={() => toggleFaq(idx)}
-                          className="w-full px-4 py-3 text-left font-bold text-xs text-slate-900 flex items-center justify-between gap-3 hover:bg-slate-100/70 cursor-pointer"
+                          className="w-full px-4 py-3 text-left font-bold text-xs sm:text-sm text-slate-900 flex items-center justify-between gap-3 hover:bg-slate-100/70 cursor-pointer"
                         >
                           <span>{item.q}</span>
-                          {isOpen ? (
-                            <ChevronUp className="w-4 h-4 text-purple-700 shrink-0" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                          )}
+                          <span className="text-purple-700 font-extrabold">{isOpen ? '−' : '+'}</span>
                         </button>
 
                         {isOpen && (
-                          <div className="px-4 pb-3 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-200/60 bg-white">
+                          <div className="px-4 pb-3 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200/60 bg-white">
                             {item.a}
                           </div>
                         )}
@@ -478,67 +314,121 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
 
           </div>
 
-          {/* RIGHT SIDEBAR (TRUST & DIRECT CONTACT) */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* ========================================================= */}
+          {/* RIGHT COLUMN: Single Sticky Booking & Trust Card (lg:col-span-4) */}
+          {/* ========================================================= */}
+          <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-4 self-start">
             
-            {/* WHATSAPP CONSULTATION CARD */}
-            <div className="bg-gradient-to-br from-purple-800 to-purple-950 text-white rounded-2xl p-5 space-y-3 shadow-md text-left">
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-purple-200 fill-current" />
-              </div>
-              <h3 className="text-base font-extrabold leading-snug">Need Help Deciding?</h3>
-              <p className="text-xs text-purple-100 leading-relaxed">
-                Connect with our Health Manager to clarify requirements, test parameters, fasting guidelines, or home collection scheduling.
-              </p>
-              <button
-                onClick={() => openWhatsApp(whatsappMsg)}
-                className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
-              >
-                <MessageSquare className="w-4 h-4 fill-current" />
-                <span>Chat on WhatsApp</span>
-              </button>
-            </div>
-
-            {/* TRUST & GUARANTEES */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200/80 space-y-3 text-left">
-              <div className="text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
-                Health Express Assurance
+            <div className="bg-white rounded-2xl border border-purple-200/90 shadow-xl p-6 text-left space-y-5">
+              
+              {/* Trust Tag */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <span className="text-[11px] uppercase font-extrabold text-purple-700 tracking-wider">
+                  {isHomeNursing ? 'Home Nursing Care' : 'Transparent Pricing'}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  ✓ NABL Partnered
+                </span>
               </div>
 
-              <div className="space-y-3 text-xs font-semibold text-slate-700">
-                <div className="flex items-start gap-2.5">
-                  <Building2 className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-slate-900 font-extrabold">NABL Accredited Labs</div>
-                    <div className="text-[11px] text-slate-500 font-normal">Only verified top-tier diagnostic partners</div>
+              {/* Price Display */}
+              {!isHomeNursing && (
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-3xl font-black text-slate-900">₹{service.discount_price}</span>
+                    {service.price && service.price > service.discount_price && (
+                      <span className="text-base text-slate-400 line-through">₹{service.price}</span>
+                    )}
+                    {service.discount_percentage && (
+                      <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        {service.discount_percentage} OFF
+                      </span>
+                    )}
                   </div>
+                  <p className="text-[11px] text-slate-500 font-medium">All inclusive of taxes & home sample collection</p>
                 </div>
+              )}
 
-                <div className="flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-slate-900 font-extrabold">100% Privacy Preserved</div>
-                    <div className="text-[11px] text-slate-500 font-normal">Encrypted digital reports directly to you</div>
-                  </div>
+              {/* Action Buttons */}
+              <div className="space-y-2.5 pt-1">
+                {isHomeNursing ? (
+                  <button
+                    onClick={() => openWhatsApp(whatsappMsg)}
+                    className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4 fill-current" />
+                    <span>Contact Us on WhatsApp →</span>
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => addToCart(service)}
+                      className="w-full py-3.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>Book This Test Now</span>
+                    </button>
+
+                    <button
+                      onClick={onOpenUploadModal}
+                      className="w-full py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold text-xs flex items-center justify-center gap-2 transition-all border border-purple-200 active:scale-95 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-purple-700" />
+                      <span>Upload Doctor's Prescription</span>
+                    </button>
+
+                    <button
+                      onClick={() => openWhatsApp(whatsappMsg)}
+                      className="w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2 transition-all border border-emerald-200 active:scale-95 cursor-pointer"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 fill-current text-emerald-700" />
+                      <span>Chat with Health Advisor</span>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Health Express Assurance Checklist */}
+              <div className="space-y-2.5 pt-4 border-t border-slate-100 text-xs text-slate-600 font-medium">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>NABL & ISO Certified Diagnostic Labs</span>
                 </div>
-
-                <div className="flex items-start gap-2.5">
-                  <UserCheck className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-slate-900 font-extrabold">Expert Phlebotomists</div>
-                    <div className="text-[11px] text-slate-500 font-normal">Hygienic, certified & painless sample pickup</div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Hygienic & Painless Home Collection</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Verified Smart Digital PDF Report</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Free Doctor Consultation Support</span>
                 </div>
               </div>
+
+              {/* Direct Helpline */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Need immediate help?</span>
+                <a
+                  href={`tel:${HEALTH_MANAGER_PHONE}`}
+                  className="inline-flex items-center gap-1.5 text-purple-700 hover:text-purple-900 font-extrabold"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Call Support</span>
+                </a>
+              </div>
+
             </div>
 
           </div>
 
         </div>
 
-        {/* RELATED SERVICES SECTION (4 CARDS IN A ROW ON DESKTOP, NO IMAGES) */}
+        {/* RELATED SERVICES SECTION */}
         {relatedServices.length > 0 && (
-          <div className="pt-6 border-t border-slate-200/80 space-y-4 text-left">
+          <div className="pt-8 border-t border-slate-200/80 space-y-4 text-left">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold text-slate-900">
                 Related {category?.name || 'Services'}
@@ -552,64 +442,55 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
               </Link>
             </div>
 
-            {/* Grid of at least 3-4 cards visible per row on desktop */}
+            {/* Clean 4-column Related Tests Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {relatedServices.map((relItem) => {
                 const RelIcon = getCategoryIcon(relItem.category_id);
                 return (
                   <div 
                     key={relItem.id}
-                    className="bg-white rounded-2xl border border-slate-200/80 hover:border-purple-300 p-4 flex flex-col justify-between transition-all hover:shadow-md space-y-3 group"
+                    className="bg-white rounded-2xl border border-slate-200/80 hover:border-purple-300 hover:shadow-lg p-5 flex flex-col justify-between transition-all group shadow-xs hover:-translate-y-0.5"
                   >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
-                          <RelIcon className="w-4 h-4" />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100 flex items-center gap-1 w-fit">
+                          <RelIcon className="w-3 h-3 text-purple-700 shrink-0" />
+                          <span>{category?.name || 'Healthcare'}</span>
                         </span>
+                      </div>
+
+                      <div className="h-11 flex items-start">
+                        <Link
+                          to={`/services/${relItem.slug}`}
+                          className="font-extrabold text-sm text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug"
+                        >
+                          {relItem.name}
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 space-y-3 mt-3">
+                      <div className="flex items-baseline justify-between h-7">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-lg font-black text-slate-900">₹{relItem.discount_price}</span>
+                          {relItem.price && relItem.price > relItem.discount_price && (
+                            <span className="text-xs text-slate-400 line-through">₹{relItem.price}</span>
+                          )}
+                        </div>
                         {relItem.discount_percentage && (
-                          <span className="text-[10px] font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
+                          <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                             {relItem.discount_percentage} OFF
                           </span>
                         )}
                       </div>
 
-                      <h3 className="font-extrabold text-xs text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 min-h-[32px]">
-                        {relItem.name}
-                      </h3>
-
-                      <div className="flex items-center gap-3 text-[11px] text-slate-500 font-medium">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-purple-700" />
-                          {relItem.turnaround_time}
-                        </span>
-                        {relItem.parameters_count && (
-                          <span>{relItem.parameters_count} Tests</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <div>
-                        <div className="text-sm font-black text-slate-900">₹{relItem.discount_price}</div>
-                        {relItem.price && (
-                          <div className="text-[10px] text-slate-400 line-through">₹{relItem.price}</div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <Link
-                          to={`/services/${relItem.slug}`}
-                          className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-colors"
-                        >
-                          View
-                        </Link>
-                        <button
-                          onClick={() => addToCart(relItem)}
-                          className="px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-[11px] font-bold transition-colors cursor-pointer"
-                        >
-                          Book
-                        </button>
-                      </div>
+                      <Link
+                        to={`/services/${relItem.slug}`}
+                        className="w-full py-2 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 text-center cursor-pointer group-hover:bg-purple-800"
+                      >
+                        <span>Book Now</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
                     </div>
                   </div>
                 );
