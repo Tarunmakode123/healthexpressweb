@@ -36,10 +36,10 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="py-5 lg:py-10 bg-white relative overflow-hidden" id="faq-section">
+    <section className="py-6 lg:py-10 bg-white relative overflow-hidden font-sans" id="faq-section">
       
       <style>{`
-        /* Strongly Highlighted Sharp Edge FAQ Accordion Box */
+        /* Highlighted FAQ Accordion Box */
         .faq-card-box {
           background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(97, 44, 156, 0.06) 100%);
           border: 1.5px solid rgba(97, 44, 156, 0.28);
@@ -54,18 +54,18 @@ export default function FaqSection() {
         }
       `}</style>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-3">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
           <span 
-            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-none font-extrabold text-xs uppercase tracking-wider border"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-xs uppercase tracking-wider border"
             style={{ backgroundColor: 'rgba(97, 44, 156, 0.05)', borderColor: 'rgba(97, 44, 156, 0.2)', color: '#612c9c' }}
           >
             <Sparkles className="w-3.5 h-3.5" style={{ color: '#612c9c' }} />
             GOT QUESTIONS?
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight leading-snug">
             Frequently Asked <span style={{ color: '#612c9c' }}>Questions</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 font-medium">
@@ -74,16 +74,16 @@ export default function FaqSection() {
         </div>
 
         {/* 2-Column Layout: One Side Big Image, One Side FAQ Accordion */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* LEFT SIDE: Bigger Image Showcase */}
+          {/* LEFT SIDE: Image Showcase */}
           <div className="lg:col-span-5 relative flex items-center justify-center">
-            <div className="relative w-full max-w-lg bg-white p-4 rounded-none border-2 border-purple-100 shadow-2xl overflow-hidden group">
-              <div className="absolute top-6 left-6 z-10 bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-none flex items-center gap-1.5 shadow-md">
+            <div className="relative w-full max-w-lg bg-white p-3 sm:p-4 rounded-2xl border border-purple-100 shadow-xl overflow-hidden group">
+              <div className="absolute top-6 left-6 z-10 bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
                 <ShieldCheck className="w-4 h-4" style={{ color: '#612c9c' }} />
                 <span>Health Express Assistance</span>
               </div>
-              <div className="h-[420px] sm:h-[480px] w-full rounded-none overflow-hidden bg-slate-100">
+              <div className="h-[380px] sm:h-[440px] w-full rounded-xl overflow-hidden bg-slate-100">
                 <img 
                   src="/images/services/testimggnew.webp" 
                   alt="Health Express Support" 
@@ -91,50 +91,50 @@ export default function FaqSection() {
                 />
               </div>
               {/* Floating Trust Indicator Card */}
-              <div className="absolute bottom-6 left-6 right-6 z-20 bg-white/95 backdrop-blur-md p-4 rounded-none shadow-xl border border-purple-100 flex items-center gap-3">
+              <div className="absolute bottom-6 left-6 right-6 z-20 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-xl border border-purple-100 flex items-center gap-3">
                 <div 
-                  className="w-10 h-10 rounded-none flex items-center justify-center text-white shrink-0 shadow-md"
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md"
                   style={{ backgroundColor: '#612c9c' }}
                 >
                   <HelpCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">Need More Clarity?</h4>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">Need More Clarity?</h4>
                   <p className="text-[11px] text-slate-600 font-medium">Our health experts are available 24/7.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT SIDE: Open/Close Accordion FAQs (All Closed Initially) */}
-          <div className="lg:col-span-7 space-y-3.5 text-left">
+          {/* RIGHT SIDE: Open/Close Accordion FAQs */}
+          <div className="lg:col-span-7 space-y-3 text-left">
             {faqs.map((faq, index) => {
               const isOpen = openIndex === index;
               return (
                 <div 
                   key={index}
-                  className={`rounded-none transition-all duration-300 overflow-hidden ${
-                    isOpen ? 'faq-card-box shadow-md' : 'bg-white border-2 border-slate-200/80 hover:border-purple-300 shadow-2xs'
+                  className={`rounded-xl transition-all duration-300 overflow-hidden ${
+                    isOpen ? 'faq-card-box shadow-md' : 'bg-white border border-slate-200/80 hover:border-purple-300 shadow-2xs'
                   }`}
                 >
                   <button
                     onClick={() => toggleFaq(index)}
-                    className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 text-left font-extrabold text-slate-900 text-sm sm:text-base cursor-pointer focus:outline-none"
+                    className="w-full p-3.5 sm:p-4 flex items-center justify-between gap-4 text-left font-bold text-slate-900 text-xs sm:text-sm cursor-pointer focus:outline-none"
                   >
                     <span className={isOpen ? "text-[#612c9c]" : "text-slate-900"}>
                       {faq.question}
                     </span>
                     <div 
-                      className={`w-7 h-7 rounded-none flex items-center justify-center shrink-0 transition-transform duration-300 ${
+                      className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-300 ${
                         isOpen ? 'rotate-180 bg-[#612c9c] text-white' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-3.5 h-3.5" />
                     </div>
                   </button>
 
                   {isOpen && (
-                    <div className="px-4 sm:px-5 pb-5 pt-0 text-xs sm:text-sm text-slate-600 font-medium leading-relaxed border-t border-purple-100/60 pt-3">
+                    <div className="px-3.5 sm:px-4 pb-4 pt-0 text-xs sm:text-sm text-slate-600 font-medium leading-relaxed border-t border-purple-100/60 pt-3">
                       {faq.answer}
                     </div>
                   )}

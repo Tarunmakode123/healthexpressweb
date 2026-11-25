@@ -41,19 +41,19 @@ export default function HealthLibrarySection() {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-purple-50/20 border-t border-purple-100/40" id="health-library">
+    <section className="py-12 md:py-16 bg-purple-50/20 border-t border-purple-100/40 font-sans" id="health-library">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="max-w-2xl text-left">
-            <div className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
+            <div className="text-xs font-bold uppercase tracking-wider text-purple-700">
               HEALTH LIBRARY
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight mt-1">
               Understand your health better.
             </h2>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
               Practical, evidence-informed guides to help you understand tests, reports, conditions and everyday healthcare decisions.
             </p>
 
