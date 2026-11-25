@@ -52,6 +52,7 @@ export default function HealthCalculatorsPage({ onOpenCalculatorModal }) {
         supportingLine="Simple tools for smarter health choices."
         showSearch={false}
         ctaButton={{ label: "Explore Services", href: "/services" }}
+        bgImage="/images/services/testimggnew.webp"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">

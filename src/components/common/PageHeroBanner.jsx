@@ -51,10 +51,14 @@ export default function PageHeroBanner({
       
       {/* Optional Light Background Image (Faded from Left to Right) */}
       {bgImage && (
-        <div 
-          className="absolute inset-0 bg-right bg-no-repeat bg-contain opacity-10 pointer-events-none -z-10"
-          style={{ backgroundImage: `url('${bgImage}')` }}
-        />
+        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+          <img 
+            src={bgImage} 
+            alt="" 
+            className="w-full h-full object-cover object-right opacity-[0.07] sm:opacity-[0.09] mix-blend-multiply filter grayscale contrast-125" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent" />
+        </div>
       )}
 
       {/* Ambient Lighting Backdrop */}

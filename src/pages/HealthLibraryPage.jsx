@@ -66,6 +66,7 @@ export default function HealthLibraryPage() {
         searchPlaceholder="Search medical guides and health articles..."
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
+        bgImage="/images/services/recordimg.png"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12 relative z-10">

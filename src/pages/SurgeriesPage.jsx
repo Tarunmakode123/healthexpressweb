@@ -47,6 +47,7 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
         headline="Surgery, Simplified"
         supportingLine="Trusted care from consultation to recovery."
         searchPlaceholder="Search surgical procedures (e.g. Laser Piles, Hernia, Gallbladder, Knee)..."
+        bgImage="/images/services/surgeryicon.png"
         onOpenUploadModal={onOpenUploadModal}
       />
 
