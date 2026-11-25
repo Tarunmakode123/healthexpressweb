@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FlaskConical, Scan, ShieldCheck, Home, Dna, FileUp } from 'lucide-react';
 
 export default function HomeCategoryTiles({ onOpenUploadModal }) {
   const TILES = [
@@ -8,48 +7,42 @@ export default function HomeCategoryTiles({ onOpenUploadModal }) {
       title: 'Blood Tests',
       offer: 'Up to 70% OFF',
       bgClass: 'bg-[#d1f9fb] border-[#b2eff2]',
-      iconBg: 'bg-[#b6f3f6] text-[#00838f]',
-      icon: FlaskConical,
+      image: '/images/category-tiles/blood_tests.png',
       href: '/services?category=lab-tests'
     },
     {
       title: 'X-Rays & Scans',
       offer: 'MRI · CT · Ultrasound',
       bgClass: 'bg-[#e6ecff] border-[#d4deff]',
-      iconBg: 'bg-[#d5dffe] text-[#304ffe]',
-      icon: Scan,
+      image: '/images/category-tiles/scans_mri.png',
       href: '/services?category=imaging'
     },
     {
       title: 'Health Packages',
       offer: 'Full Body Checkups',
       bgClass: 'bg-[#fff0e6] border-[#ffd8bf]',
-      iconBg: 'bg-[#ffe4d1] text-[#d4380d]',
-      icon: ShieldCheck,
+      image: '/images/category-tiles/health_packages.png',
       href: '/services?category=health-packages'
     },
     {
       title: 'Home Nursing',
       offer: 'Certified Care',
       bgClass: 'bg-[#dcfce7] border-[#bbf7d0]',
-      iconBg: 'bg-[#bbf7d0] text-[#15803d]',
-      icon: Home,
+      image: '/images/category-tiles/home_nursing.png',
       href: '/home-nursing-care'
     },
     {
       title: 'Genomics DNA',
       offer: 'Hereditary Risk',
       bgClass: 'bg-[#ffe6f2] border-[#ffcce5]',
-      iconBg: 'bg-[#ffd6eb] text-[#c2185b]',
-      icon: Dna,
+      image: '/images/category-tiles/genomics_dna.png',
       href: '/services?category=genetics'
     },
     {
       title: 'Upload Prescription',
       offer: 'Fast Booking',
       bgClass: 'bg-[#e1f0ff] border-[#c2e0ff]',
-      iconBg: 'bg-[#cbe5ff] text-[#0284c7]',
-      icon: FileUp,
+      image: '/images/category-tiles/upload_prescription.png',
       action: onOpenUploadModal,
       isRx: true
     }
@@ -59,15 +52,14 @@ export default function HomeCategoryTiles({ onOpenUploadModal }) {
     <section aria-label="Quick Category Services" className="bg-white py-6 sm:py-8 font-sans border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* 6-Column Pastel Category Grid (Healthians Exact Style) */}
+        {/* 6-Column Pastel Category Grid (Healthians Exact Style with 3D Medical Icons) */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {TILES.map((tile, idx) => {
-            const Icon = tile.icon;
             const content = (
               <div className="flex flex-col items-center group cursor-pointer text-center">
                 
-                {/* Pastel Rounded Tile with Icon & Floating Offer Pill */}
-                <div className={`w-full h-28 sm:h-32 rounded-2xl border ${tile.bgClass} p-3 flex flex-col items-center justify-center relative transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md`}>
+                {/* Pastel Rounded Tile with 3D Icon & Floating Offer Pill */}
+                <div className={`w-full h-28 sm:h-32 rounded-2xl border ${tile.bgClass} p-2 flex flex-col items-center justify-center relative transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md`}>
                   
                   {/* Pulsing Dot on Prescription Upload Tile */}
                   {tile.isRx && (
@@ -77,9 +69,14 @@ export default function HomeCategoryTiles({ onOpenUploadModal }) {
                     </span>
                   )}
 
-                  {/* Centered Colorful Medical Icon */}
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-2xs ${tile.iconBg}`}>
-                    <Icon className="w-6 h-6" />
+                  {/* Centered 3D Medical Illustration Icon */}
+                  <div className="w-24 h-16 sm:w-28 sm:h-20 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <img
+                      src={tile.image}
+                      alt={tile.title}
+                      className="max-w-full max-h-full object-contain filter drop-shadow-xs pointer-events-none select-none"
+                      loading="eager"
+                    />
                   </div>
 
                   {/* Overlapping Floating Offer Pill at the bottom edge */}
