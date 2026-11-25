@@ -8,8 +8,10 @@ import {
 } from 'lucide-react';
 import { fetchServices } from '../services/catalogService';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { openWhatsApp } from '../utils/whatsapp';
 import WaitlistModal from '../components/common/WaitlistModal';
+import AuthModal from '../components/common/AuthModal';
 
 // Healthians-style Organ / Medical Icon Resolver for Cards
 function getServiceIconAndStyle(service) {
@@ -98,8 +100,33 @@ const SPECIALITIES = [
 
 export default function ServicesPage({ onOpenUploadModal }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { addToCart } = useCart();
+  const { addToCart, openCart } = useCart();
+  const { isLoggedIn, user, session } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [pendingService, setPendingService] = useState(null);
   const [isPending, startTransition] = useTransition();
+
+  const handleBookNow = (e, service, discountPrice) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    addToCart({
+      ...service,
+      price: discountPrice
+    });
+
+    if (session?.user || (isLoggedIn && user)) {
+      openCart();
+    } else {
+      setPendingService(service);
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleAuthModalSuccess = () => {
+    setIsAuthModalOpen(false);
+    openCart();
+  };
 
   // Read URL State parameters
   const initialCategory = searchParams.get('category') || 'all';
@@ -796,14 +823,15 @@ export default function ServicesPage({ onOpenUploadModal }) {
                           )}
                         </div>
 
-                        {/* Single Full-Width Book Now Action */}
-                        <Link
-                          to={`/services/${service.slug}`}
-                          className="w-full py-2.5 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 text-center cursor-pointer group-hover:bg-purple-800"
+                        {/* Single Full-Width Book Now Action (Direct OTP Login) */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleBookNow(e, service, discountPrice)}
+                          className="w-full py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-95 text-center cursor-pointer border border-purple-200/90 group-hover:border-purple-300 group-hover:bg-purple-100/90"
                         >
                           <span>Book Now</span>
                           <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
+                        </button>
                       </div>
 
                     </div>
@@ -1034,6 +1062,15 @@ export default function ServicesPage({ onOpenUploadModal }) {
         isOpen={isWaitlistOpen}
         onClose={() => setIsWaitlistOpen(false)}
         defaultCity={waitlistCity}
+      />
+
+      {/* PHONE NUMBER LOGIN-OTP MODAL DIRECTLY FROM BOOK NOW */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthModalSuccess}
+        title={pendingService ? `Book ${pendingService.name || 'Service'}` : "Login to Book"}
+        subtitle="Enter your mobile number to receive an instant verification OTP."
       />
 
     </div>
