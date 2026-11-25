@@ -7,6 +7,7 @@ import {
   Droplet, Syringe, Pill, TestTube
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import PageHeroBanner from '../components/common/PageHeroBanner';
 
 // 10 On-Demand Home Health Care Needs for Carousel 1
 const ON_DEMAND_SERVICES = [
@@ -158,72 +159,15 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
 
     
 
-<section className="relative text-white pt-20 pb-24 overflow-hidden bg-black">
-  {/* Big Background Image with minimal dark fade at edges */}
-  <div className="absolute inset-0 z-0">
-    <img
-      src="/images/services/nursingbanne.png"
-      alt="Home Nursing and Care Banner"
-      className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000"
-    />
-    {/* Very light gradient only at the left and bottom so text pops without hiding the image */}
-    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-  </div>
-
-  {/* Main Content Container */}
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-    <div className="max-w-3xl space-y-6">
-      
-      {/* Location Badge */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/30 text-white text-xs font-extrabold tracking-wide uppercase shadow-[0_4px_20px_rgba(255,255,255,0.15)]">
-        <MapPin className="w-3.5 h-3.5 text-purple-300 animate-pulse" />
-        <span>Bengaluru Care Coordination</span>
-      </div>
-
-      {/* Main Heading with White Glow Shadow */}
-      <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-[1.15] drop-shadow-[0_2px_16px_rgba(255,255,255,0.45)]">
-        Home Nursing <span className="text-purple-300">&</span> Care
-      </h1>
-
-      {/* Subheading with White Shadow */}
-      <p className="text-lg sm:text-xl font-bold text-gray-100 leading-snug drop-shadow-[0_2px_10px_rgba(255,255,255,0.35)]">
-        Professional care and caregiving support, where your family needs it.
-      </p>
-
-      {/* Description Paragraph with White-tinted Glass Overlay */}
-      <p className="text-sm sm:text-base text-gray-100 leading-relaxed font-normal max-w-2xl bg-black/50 backdrop-blur-md p-5 rounded-2xl border border-white/20 shadow-[0_8px_30px_rgba(255,255,255,0.1)]">
-        Tell Health Express what kind of support you need, where you need it and for how long. We help coordinate suitable home nursing and caregiving options for your family — starting with select areas in Bengaluru.
-      </p>
-
-      {/* Action Buttons */}
-      <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-        <button
-          onClick={() => handleWhatsAppAction()}
-          className="px-7 py-4 rounded-xl bg-white text-purple-950 font-black text-sm flex items-center justify-center gap-2.5 shadow-[0_6px_25px_rgba(255,255,255,0.25)] hover:bg-gray-100 hover:shadow-[0_8px_30px_rgba(255,255,255,0.4)] transition-all cursor-pointer touch-target active:scale-95 group"
-        >
-          <MessageSquare className="w-4.5 h-4.5 text-purple-700 fill-purple-700/20 transition-transform group-hover:scale-110" />
-          <span>Request Home Care</span>
-        </button>
-
-        <button
-          onClick={onOpenUploadModal}
-          className="px-7 py-4 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md text-white font-extrabold text-sm border border-white/30 flex items-center justify-center gap-2.5 shadow-[0_6px_25px_rgba(255,255,255,0.15)] transition-all cursor-pointer active:scale-95 group"
-        >
-          <span>Upload Doctor Prescription</span>
-          <ArrowRight className="w-4 h-4 text-purple-200 transition-transform group-hover:translate-x-1" />
-        </button>
-      </div>
-
-      {/* Trust / Service Area Indicator */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-gray-200 pt-2 drop-shadow-[0_1px_6px_rgba(255,255,255,0.3)]">
-        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-        <span>Currently serving select areas in Bengaluru.</span>
-      </div>
-
-    </div>
-  </div>
-</section>
+      {/* 1. HERO BANNER */}
+      <PageHeroBanner
+        badge="HOME NURSING CARE"
+        headline="Care at Home"
+        supportingLine="Skilled support. Familiar comfort."
+        searchPlaceholder="Search home nursing, eldercare & physiotherapy..."
+        onOpenUploadModal={onOpenUploadModal}
+        bgImage="/images/services/nursingbanne.png"
+      />
 
 
 

@@ -8,6 +8,7 @@ import {
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+import PageHeroBanner from '../components/common/PageHeroBanner';
 
 export default function HealthLibraryPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,41 +56,19 @@ export default function HealthLibraryPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 relative overflow-hidden text-left">
+    <div className="min-h-screen bg-slate-50/50 pb-20 relative text-left font-sans">
       
-      {/* Background ECG Heartbeat Accent */}
-      <div className="absolute top-20 left-0 right-0 h-48 opacity-10 pointer-events-none -z-10 flex items-center justify-center">
-        <svg viewBox="0 0 1200 120" className="w-full h-full text-purple-600 fill-none stroke-current stroke-[2] stroke-linecap-round">
-          <path d="M0,60 L250,60 L280,30 L300,90 L320,10 L340,110 L360,60 L390,60 L420,60 L1200,60" className="animate-ecg" />
-        </svg>
-      </div>
+      {/* 1. HERO BANNER */}
+      <PageHeroBanner
+        badge="HEALTH BLOGS & ARTICLES"
+        headline="Better Health, Daily"
+        supportingLine="Clear answers for healthier living."
+        searchPlaceholder="Search medical guides and health articles..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
 
-      {/* Decorative Glow Orbs */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-200/40 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-glow" />
-      <div className="absolute bottom-10 left-10 w-80 h-80 bg-indigo-200/30 rounded-full blur-2xl pointer-events-none -z-10" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-12 relative z-10">
-        
-        {/* Animated Hero Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <DiscountHeroBanner />
-
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-200 text-xs font-extrabold text-slate-800 shadow-2xs backdrop-blur-md">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span className="text-purple-900 uppercase tracking-wider text-[11px] font-extrabold">EVIDENCE-INFORMED HEALTH LIBRARY</span>
-            <span className="text-slate-300">|</span>
-            <span className="text-emerald-700 font-bold">Doctor Reviewed</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Clear Healthcare Knowledge,<br />
-            <span className="gradient-text-purple">Verified by Medical Board.</span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
-            Understand lab parameters, preparation requirements, and preventive health screenings with doctor-approved medical guides.
-          </p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12 relative z-10">
 
         {/* Interactive Symptom & Topic Finder Widget */}
         <div className="max-w-4xl mx-auto glass-card p-6 rounded-3xl border border-purple-200 shadow-lg space-y-4">

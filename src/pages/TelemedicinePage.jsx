@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Stethoscope, Video, MessageSquare, Clock, ShieldCheck, Sparkles, Send, CheckCircle2, ArrowRight, AlertCircle, Phone, MapPin, Award, Star } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import PageHeroBanner from '../components/common/PageHeroBanner';
 
 export default function TelemedicinePage() {
   const [formData, setFormData] = useState({ name: '', phone: '', specialty: 'General Physician', details: '' });
@@ -25,22 +26,16 @@ export default function TelemedicinePage() {
   ];
 
   return (
-    <div className="py-10 md:py-16 bg-white min-h-[85vh]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        
-        {/* Header Banner */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-100 text-purple-900 text-xs font-black uppercase tracking-wider border border-purple-200">
-            <Video className="w-3.5 h-3.5 text-purple-700" />
-            <span>Digital Doctor Consultations</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Telemedicine Care
-          </h1>
-          <p className="text-sm sm:text-base font-semibold text-slate-600 max-w-2xl mx-auto">
-            Connect with accredited specialists, get verified digital e-prescriptions, and coordinate home diagnostics across Bengaluru.
-          </p>
-        </div>
+    <div className="bg-white min-h-[85vh]">
+      {/* 1. HERO BANNER */}
+      <PageHeroBanner
+        badge="TELEMEDICINE & DOCTOR CONSULTATIONS"
+        headline="Care, Anywhere"
+        supportingLine="Speak to a doctor from home."
+        searchPlaceholder="Search specialties (e.g. General Physician, Cardiologist, Dermatologist)..."
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
 
         {/* 2-Column Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">

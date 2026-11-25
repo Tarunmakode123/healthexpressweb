@@ -11,6 +11,7 @@ import {
   Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, Calendar, Heart
 } from 'lucide-react';
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+import PageHeroBanner from '../components/common/PageHeroBanner';
 
 const iconMap = {
   Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, Calendar, Heart, Sparkles
@@ -44,51 +45,38 @@ export default function HealthCalculatorsPage({ onOpenCalculatorModal }) {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 relative text-left">
       
-      {/* Header Banner */}
-      <div className="bg-gradient-to-b from-purple-50/80 via-white to-slate-50/50 py-12 md:py-16 border-b border-purple-100/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-center">
-          
-          <DiscountHeroBanner />
-
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-xs font-extrabold text-purple-900 shadow-2xs">
-            ⚡ FREE HEALTH CALCULATORS LIBRARY
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-3xl mx-auto">
-            Free Health Calculators &<br />
-            <span className="gradient-text-purple">Clinical Assessment Tools.</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
-            Use our clinical reference calculators to understand your BMI, daily calorie needs, BMR, pregnancy due dates, blood pressure categories, and hydration targets.
-          </p>
-
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto relative pt-2">
-            <div className="relative flex items-center shadow-lg rounded-2xl overflow-hidden border border-purple-200 bg-white">
-              <Search className="w-5 h-5 text-purple-600 absolute left-4" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tools (e.g. BMI, Calorie, Due Date, BMR, Water Intake, Blood Pressure)..."
-                className="w-full pl-12 pr-10 py-4 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-4 text-xs font-bold text-slate-400 hover:text-purple-700"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-
-        </div>
-      </div>
+      {/* 1. HERO BANNER */}
+      <PageHeroBanner
+        badge="HEALTH CALCULATORS"
+        headline="Know Your Numbers"
+        supportingLine="Simple tools for smarter health choices."
+        showSearch={false}
+        ctaButton={{ label: "Explore Services", href: "/services" }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        
+        {/* In-Page Calculator Tool Search */}
+        <div className="max-w-2xl mx-auto relative">
+          <div className="relative flex items-center shadow-xs rounded-xl overflow-hidden border border-purple-200 bg-white">
+            <Search className="w-4 h-4 text-purple-600 absolute left-3.5" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Filter calculators (e.g. BMI, Calorie, Due Date, BMR, Water Intake)..."
+              className="w-full pl-10 pr-10 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3.5 text-xs font-bold text-slate-400 hover:text-purple-700 cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
         
         {/* Category Pill Filters */}
         <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 no-scrollbar">

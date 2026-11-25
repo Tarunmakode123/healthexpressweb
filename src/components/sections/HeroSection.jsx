@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 import { searchServicesQuery } from '../../services/serviceSearchEngine';
+import CareManagerBookingCard from '../common/CareManagerBookingCard';
 
 const ROTATING_PLACEHOLDERS = [
   "Search a healthcare service...",
@@ -87,21 +88,22 @@ export default function HeroSection({ onOpenUploadModal }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* 1. MANDATORY HIGHLY VISIBLE DISCOUNT & HEALTH MANAGER OFFER STRIP */}
+        {/* 1. TOP NOTICE: UP TO 70% OFF & CARE MANAGER WHATSAPP LINK */}
         <div className="mb-4 bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 text-white py-2 px-3.5 sm:px-5 rounded-xl shadow-xs border border-purple-800/40 flex flex-wrap items-center justify-between gap-2.5 text-xs font-medium">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-[10px] uppercase tracking-wider shrink-0">
-              EXCLUSIVE OFFER
+              OFFER
             </span>
-            <span className="font-extrabold text-amber-300 text-xs sm:text-sm">GET UP TO 70% DISCOUNT</span>
-            <span className="hidden sm:inline text-purple-300/80">•</span>
+            <span className="font-extrabold text-amber-300 text-xs sm:text-sm">Upto 70% off</span>
+            <span className="text-slate-300">on select services.</span>
           </div>
 
           <button
-            onClick={() => openWhatsApp("Hello Health Express! I would like to talk to my Health Manager regarding the up to 70% discount offer.")}
-            className="inline-flex items-center gap-1.5 text-slate-200 hover:text-amber-300 font-bold text-xs group cursor-pointer transition-colors active:scale-95"
+            onClick={() => openWhatsApp("Hello Health Express, I would like to connect with my Care Manager today for the up to 70% discount offer.")}
+            className="text-amber-300 hover:text-white font-bold underline transition-colors cursor-pointer inline-flex items-center gap-1 active:scale-95"
           >
-            <span>Talk to your Health Manager →</span>
+            <span>Connect with your Care Manager Today</span>
+            <span>→</span>
           </button>
         </div>
 
@@ -119,15 +121,14 @@ export default function HeroSection({ onOpenUploadModal }) {
             </div>
 
             {/* EDITORIAL BRAND HEADLINE */}
-            <h1 className="text-3xl sm:text-4xl lg:text-[48px] xl:text-[52px] font-extrabold text-slate-900 tracking-tight leading-[1.12]">
-              Your personal<br />
-              <span className="text-purple-700">health manager,</span><br />
-              for you and your family.
+            <h1 className="text-3xl sm:text-4xl lg:text-[46px] xl:text-[50px] font-extrabold text-slate-900 tracking-tight leading-[1.14]">
+              Your Personal <br className="hidden sm:inline" />
+              <span className="text-purple-700">Health Manager,</span> for You and Your Family
             </h1>
 
             {/* CONCISE SUPPORTING COPY */}
-            <p className="text-sm sm:text-base text-slate-600 font-normal leading-relaxed max-w-[580px]">
-              From diagnostics and home healthcare to specialist services and preventive care, Health Express helps you discover, coordinate and manage healthcare for you and your family.
+            <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-[580px]">
+              From tests to treatment, trusted healthcare made simple.
             </p>
 
             {/* UNIVERSAL HEALTHCARE COMMAND SEARCH */}
@@ -266,26 +267,31 @@ export default function HeroSection({ onOpenUploadModal }) {
                 ))}
               </div>
 
+              {/* MANDATORY MICROCOPY BELOW SEARCH BAR */}
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium italic pl-1 pt-1">
+                Book with confidence—your Health Manager will call with preparation instructions.
+              </p>
+
             </div>
 
-            {/* PRIMARY & SECONDARY ACTION BUTTONS (IMMEDIATELY VISIBLE ABOVE THE FOLD) */}
-            <div className="pt-1.5 space-y-1.5">
+            {/* PRIMARY & SECONDARY ACTION BUTTONS (BIGGER & WIDER CTA) */}
+            <div className="pt-2 space-y-1.5">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 
-                {/* PRIMARY CTA: Upload Prescription */}
+                {/* PRIMARY CTA: Upload Prescription (Bigger & Wider) */}
                 <button
                   onClick={onOpenUploadModal}
-                  className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm shadow-md shadow-purple-700/20 transition-all flex items-center justify-center gap-2.5 touch-target active:scale-95"
+                  className="w-full sm:w-auto px-9 py-4 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-purple-700/25 transition-all flex items-center justify-center gap-3 touch-target active:scale-95 cursor-pointer"
                 >
-                  <Upload className="w-4 h-4 text-purple-200" />
+                  <Upload className="w-5 h-5 text-purple-200" />
                   <span>Upload Prescription</span>
-                  <ArrowRight className="w-4 h-4 text-purple-200" />
+                  <ArrowRight className="w-4.5 h-4.5 text-purple-200" />
                 </button>
 
                 {/* SECONDARY CTA: Explore Services */}
                 <Link
                   to="/services"
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-sm shadow-2xs transition-all flex items-center justify-center gap-2 touch-target active:scale-95"
+                  className="w-full sm:w-auto px-7 py-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm shadow-2xs transition-all flex items-center justify-center gap-2 touch-target active:scale-95"
                 >
                   <span>Explore Services</span>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -363,6 +369,9 @@ export default function HeroSection({ onOpenUploadModal }) {
                   </div>
                 </div>
               </div>
+
+              {/* HASSLE-FREE HEALTHCARE BOOKING WHATSAPP CARD */}
+              <CareManagerBookingCard className="mt-4" />
 
             </div>
           </div>

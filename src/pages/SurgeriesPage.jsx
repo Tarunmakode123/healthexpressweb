@@ -11,6 +11,7 @@ import {
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import { HEALTH_MANAGER_PHONE } from '../config/constants';
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+import PageHeroBanner from '../components/common/PageHeroBanner';
 
 const iconMap = {
   Bone, Activity, Heart, Brain, Stethoscope, Shield, ShieldAlert, 
@@ -40,59 +41,14 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20 text-left relative">
       
-      {/* 1. HERO SECTION */}
-      <div className="bg-gradient-to-b from-purple-50/80 via-white to-slate-50/50 py-12 md:py-16 border-b border-purple-100/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-center">
-          
-          <DiscountHeroBanner />
-
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-xs font-extrabold text-purple-900 shadow-2xs">
-            ⚡ SURGICAL & SPECIALIST CARE DIRECTORY
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-4xl mx-auto">
-            Surgery & Treatment Options,<br />
-            <span className="gradient-text-purple">All in One Place.</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium">
-            Explore surgical options, find relevant specialists and hospitals, understand estimated treatment costs, and get help coordinating your surgery journey with Health Express.
-          </p>
-
-          {/* Hero Action Buttons */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a
-              href="#popular-surgeries"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-purple-700/20 transition-all hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Explore Surgery Options</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-
-            <button
-              onClick={onOpenUploadModal}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white hover:bg-purple-50 border border-slate-200 text-slate-800 font-extrabold text-xs sm:text-sm shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Upload className="w-4 h-4 text-purple-700" />
-              <span>Upload Medical Reports</span>
-            </button>
-          </div>
-
-          {/* Small Trust Line */}
-          <div className="pt-2 flex items-center justify-center gap-2 sm:gap-4 text-[11px] sm:text-xs font-bold text-slate-500">
-            <span>Specialists</span>
-            <span>•</span>
-            <span>Hospitals</span>
-            <span>•</span>
-            <span>Treatment Options</span>
-            <span>•</span>
-            <span>Cost Estimates</span>
-            <span>•</span>
-            <span>Care Coordination</span>
-          </div>
-
-        </div>
-      </div>
+      {/* 1. HERO BANNER */}
+      <PageHeroBanner
+        badge="SURGERIES & SPECIALIST CARE"
+        headline="Surgery, Simplified"
+        supportingLine="Trusted care from consultation to recovery."
+        searchPlaceholder="Search surgical procedures (e.g. Laser Piles, Hernia, Gallbladder, Knee)..."
+        onOpenUploadModal={onOpenUploadModal}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">
         

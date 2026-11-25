@@ -12,6 +12,46 @@ import { useAuth } from '../context/AuthContext';
 import { openWhatsApp } from '../utils/whatsapp';
 import WaitlistModal from '../components/common/WaitlistModal';
 import AuthModal from '../components/common/AuthModal';
+import CareManagerBookingCard from '../components/common/CareManagerBookingCard';
+
+const CATEGORY_HERO_DATA = {
+  'all': {
+    badge: 'ALL SERVICES',
+    headline: 'Complete Care, All in One Place',
+    supportingLine: 'From tests to treatment, care begins here.',
+    placeholder: 'Search all diagnostic tests, scans, packages & services...'
+  },
+  'lab-tests': {
+    badge: 'LAB TESTS',
+    headline: 'Tests Made Simple',
+    supportingLine: 'Accurate tests. Trusted reports.',
+    placeholder: 'Search blood tests (e.g. CBC, Lipid Profile, Thyroid, HbA1c)...'
+  },
+  'imaging': {
+    badge: 'RADIOLOGY',
+    headline: 'See Health Clearly',
+    supportingLine: 'Expert imaging, closer to you.',
+    placeholder: 'Search radiology scans (e.g. MRI Brain, CT Chest, Ultrasound, X-Ray)...'
+  },
+  'health-packages': {
+    badge: 'HEALTH PACKAGES',
+    headline: 'Health, Covered',
+    supportingLine: 'Smart checks for every need.',
+    placeholder: 'Search comprehensive full body health packages...'
+  },
+  'home-nursing': {
+    badge: 'HOME NURSING',
+    headline: 'Care at Home',
+    supportingLine: 'Skilled support. Familiar comfort.',
+    placeholder: 'Search home nursing, eldercare & physiotherapy...'
+  },
+  'genetics': {
+    badge: 'GENOMICS',
+    headline: 'Know Your DNA',
+    supportingLine: 'Insights tailored to you.',
+    placeholder: 'Search genetic testing & hereditary health risk panels...'
+  }
+};
 
 // Healthians-style Organ / Medical Icon Resolver for Cards
 function getServiceIconAndStyle(service) {
@@ -321,76 +361,110 @@ export default function ServicesPage({ onOpenUploadModal }) {
   const hasActiveFilters = selectedCategory !== 'all' || searchQuery || selectedPriceRange !== 'all' || selectedFulfillment !== 'all' || selectedLocation !== 'all' || selectedSpeciality !== 'all';
 
   const { services, totalMatches, totalPages, categories } = catalogData;
+  const currentHero = CATEGORY_HERO_DATA[selectedCategory] || CATEGORY_HERO_DATA['all'];
 
   return (
     <div className="min-h-screen bg-slate-50/70 pb-20 text-slate-900 text-left font-sans">
       
-      {/* 1. SLEEK COMPACT MARKETPLACE HEADER */}
-      <div className="bg-white border-b border-slate-200/80 pt-6 pb-6 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+      {/* 1. HERO BANNER: CATEGORY-ADAPTIVE HEADLINE + SEARCH + WHATSAPP CARD */}
+      <div className="bg-gradient-to-b from-slate-50 via-purple-50/15 to-white border-b border-slate-200/80 pt-3 pb-8 sm:pt-4 sm:pb-8 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-200">
-                  DIAGNOSTIC SERVICES
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1.5">
-                Book Diagnostic Tests, Scans & Health Checks
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
-                Compare trusted labs, radiology centers, and preventive-health packages—all in one place.
-              </p>
+          {/* Top Notice: Up to 70% off with WhatsApp link */}
+          <div className="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 text-white py-2 px-3.5 sm:px-5 rounded-xl shadow-xs border border-purple-800/40 flex flex-wrap items-center justify-between gap-2.5 text-xs font-medium">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-[10px] uppercase tracking-wider shrink-0">
+                OFFER
+              </span>
+              <span className="font-extrabold text-amber-300 text-xs sm:text-sm">Upto 70% off</span>
+              <span className="text-slate-300">on select services.</span>
             </div>
 
-            {/* Quick Upload CTA */}
             <button
-              onClick={onOpenUploadModal}
-              className="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all shrink-0 cursor-pointer"
+              onClick={() => openWhatsApp("Hello Health Express, I would like to connect with my Care Manager today for the up to 70% discount offer.")}
+              className="text-amber-300 hover:text-white font-bold underline transition-colors cursor-pointer inline-flex items-center gap-1 active:scale-95"
             >
-              <Upload className="w-3.5 h-3.5 text-purple-200" />
-              <span>Upload Prescription</span>
+              <span>Connect with your Care Manager Today</span>
+              <span>→</span>
             </button>
           </div>
 
-          {/* Focal Search Bar Section */}
-          <div className="space-y-2 pt-1 max-w-3xl">
-            <label className="block text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-              <Search className="w-3.5 h-3.5 text-purple-700" />
-              <span>Search for a test, scan, or health package</span>
-            </label>
-            <div className="relative">
-              <Search className="w-4 h-4 text-purple-700 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search for a test, scan, or health package"
-                className="w-full pl-10 pr-24 py-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all shadow-xs"
-              />
-              {searchQuery ? (
-                <button
-                  onClick={() => handleSearchChange('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 cursor-pointer"
-                >
-                  Clear
-                </button>
-              ) : (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">
-                  Search
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center pt-2">
+            
+            {/* Left Column: Headline, Supporting Line, Prominent Search, Microcopy, Upload Prescription */}
+            <div className="lg:col-span-7 space-y-3.5 text-left">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest">
+                  <Sparkles className="w-3 h-3 text-purple-700" />
+                  {currentHero.badge}
                 </span>
-              )}
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                {currentHero.headline}
+              </h1>
+
+              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-xl">
+                {currentHero.supportingLine}
+              </p>
+
+              {/* Prominent Search Bar */}
+              <div className="space-y-1.5 pt-1 max-w-xl">
+                <div className="relative flex items-center bg-white rounded-xl border-2 border-slate-200 hover:border-purple-300 focus-within:border-purple-600 focus-within:ring-3 focus-within:ring-purple-100 transition-all shadow-xs">
+                  <div className="pl-3.5 text-purple-700">
+                    <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    placeholder={currentHero.placeholder}
+                    className="w-full py-3 pl-2.5 pr-20 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 bg-transparent outline-none"
+                  />
+
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSearchChange('')}
+                      className="pr-3 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <div className="mr-2 hidden sm:flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+                      <span>Search</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Below Search Bar on every page */}
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium italic pl-1">
+                  Book with confidence—your Health Manager will call with preparation instructions.
+                </p>
+              </div>
+
+              {/* Upload Prescription Button (Bigger and Wider) */}
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onOpenUploadModal}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-sm shadow-md shadow-purple-700/20 transition-all flex items-center justify-center gap-2.5 active:scale-95 cursor-pointer"
+                >
+                  <Upload className="w-4.5 h-4.5 text-purple-200" />
+                  <span>Upload Prescription</span>
+                  <ArrowRight className="w-4 h-4 text-purple-200" />
+                </button>
+              </div>
+
             </div>
 
-            {/* Trust Strip below Search */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 pt-1 flex-wrap">
-              <span>Fast booking</span>
-              <span className="text-slate-300 font-normal">·</span>
-              <span>Accredited providers</span>
-              <span className="text-slate-300 font-normal">·</span>
-              <span>Reports in as little as 4 hours</span>
+            {/* Right Column: Hassle-Free Healthcare Booking WhatsApp Card */}
+            <div className="lg:col-span-5 flex justify-center pt-2 lg:pt-0">
+              <CareManagerBookingCard className="w-full max-w-md" />
             </div>
+
           </div>
 
           {/* Dynamic Horizontal Category Tabs */}
