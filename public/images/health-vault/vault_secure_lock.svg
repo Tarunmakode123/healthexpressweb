@@ -1,0 +1,18 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lockShackle" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#cbd5e1"/><stop offset="50%" stop-color="#ffffff"/><stop offset="100%" stop-color="#64748b"/></linearGradient>
+    <linearGradient id="lockGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="40%" stop-color="#facc15"/><stop offset="100%" stop-color="#ca8a04"/></linearGradient>
+    <linearGradient id="shieldGreenLock" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="58" rx="18" ry="3.5" fill="#000000" fill-opacity="0.12"/>
+  <!-- Hardened Steel Shackle -->
+  <path d="M22 28 L22 18 C22 12, 42 12, 42 18 L42 28" stroke="url(#lockShackle)" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Padlock Brass Body -->
+  <rect x="16" y="26" width="32" height="28" rx="6" fill="url(#lockGold)" stroke="#a16207" stroke-width="2"/>
+  <!-- Specular Highlight -->
+  <path d="M20 30 L44 30" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.8"/>
+  <!-- Keyhole with Emerald Verified Shield -->
+  <path d="M32 34 L38 37 C38 43, 35 46, 32 48 C29 46, 26 43, 26 37 Z" fill="url(#shieldGreenLock)"/>
+  <circle cx="32" cy="39" r="2" fill="#ffffff"/>
+  <path d="M32 41 L32 44" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

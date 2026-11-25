@@ -1,0 +1,17 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldCoin" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="40%" stop-color="#facc15"/><stop offset="100%" stop-color="#ca8a04"/></linearGradient>
+    <linearGradient id="emeraldTag" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="58" rx="20" ry="3.5" fill="#000000" fill-opacity="0.12"/>
+  <!-- Slanted Medical Discount Price Tag -->
+  <path d="M14 26 L28 12 L50 34 L36 48 Z" fill="url(#emeraldTag)" stroke="#047857" stroke-width="1.5"/>
+  <circle cx="23" cy="21" r="3" fill="#ffffff"/>
+  <!-- Large 3D Gold Discount Coin in foreground -->
+  <circle cx="38" cy="38" r="18" fill="url(#goldCoin)" stroke="#a16207" stroke-width="2"/>
+  <circle cx="38" cy="38" r="14.5" stroke="#ffffff" stroke-width="1.2" stroke-opacity="0.6"/>
+  <!-- Percent Symbol % -->
+  <text x="38" y="44" font-family="Arial, sans-serif" font-weight="900" font-size="16" fill="#78350f" text-anchor="middle">%</text>
+  <!-- Sparkles -->
+  <path d="M50 14 L51.5 18 L55 19.5 L51.5 21 L50 25 L48.5 21 L45 19.5 L48.5 18 Z" fill="#fbbf24"/>
+</svg>

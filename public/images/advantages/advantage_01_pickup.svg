@@ -1,0 +1,23 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="phlebSkin" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fed7aa"/><stop offset="100%" stop-color="#fba04b"/></linearGradient>
+    <linearGradient id="phlebCoat" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0f2fe"/></linearGradient>
+    <linearGradient id="tubeRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#991b1b"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="58" rx="20" ry="3.5" fill="#000000" fill-opacity="0.12"/>
+  <!-- Phlebotomist Silhouette Head & Coat -->
+  <circle cx="28" cy="20" r="10" fill="url(#phlebSkin)"/>
+  <path d="M14 48 C14 36, 42 36, 42 48 Z" fill="url(#phlebCoat)" stroke="#0284c7" stroke-width="1.5"/>
+  <rect x="26" y="30" width="4" height="18" fill="#0284c7"/>
+  <!-- Standing Vacuum Blood Collection Tube -->
+  <g transform="rotate(12 44 32)">
+    <rect x="40" y="14" width="8" height="28" rx="4" fill="#ffffff" fill-opacity="0.8" stroke="#cbd5e1" stroke-width="1"/>
+    <rect x="40" y="24" width="8" height="18" rx="3" fill="url(#tubeRed)"/>
+    <rect x="39" y="12" width="10" height="6" rx="2" fill="#ef4444"/>
+    <line x1="42" y1="28" x2="46" y2="28" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="42" y1="32" x2="45" y2="32" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+  <!-- Mini Green Checkmark -->
+  <circle cx="48" cy="48" r="8" fill="#10b981" stroke="#ffffff" stroke-width="1.5"/>
+  <path d="M45 48 L47 50 L51 46" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

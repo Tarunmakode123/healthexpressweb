@@ -1,11 +1,6 @@
 import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowRight, ChevronLeft, ChevronRight, ShieldCheck,
-  Droplets, Activity, Sparkles, Heart, HeartHandshake,
-  Stethoscope, Footprints, ShieldAlert, Brain, Waves,
-  Disc, Crosshair, Zap
-} from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 
 const CATEGORY_ROWS = [
   {
@@ -14,10 +9,10 @@ const CATEGORY_ROWS = [
     subtitle: "Accurate blood screening and comprehensive health packages delivered at home.",
     reverse: false,
     items: [
-      { name: "Complete Blood Count (CBC)", desc: "Essential screening test detecting anemia, infections, and blood disorders.", brand: "Health Express Diagnostics", icon: Droplets, iconStyle: "bg-rose-50 text-rose-600 border-rose-200" },
-      { name: "Thyroid Profile (T3 T4 TSH)", desc: "Hormone level evaluation to monitor thyroid function and metabolism.", brand: "Health Express Labs", icon: Activity, iconStyle: "bg-purple-50 text-purple-600 border-purple-200" },
-      { name: "HbA1c Diabetes Test", desc: "Reliable 3-month average blood sugar monitoring report for diabetes control.", brand: "Health Express Care", icon: Sparkles, iconStyle: "bg-amber-50 text-amber-600 border-amber-200" },
-      { name: "Lipid Profile Test", desc: "Advanced heart health and cholesterol screening for HDL, LDL, and triglycerides.", brand: "Health Express Wellness", icon: Heart, iconStyle: "bg-red-50 text-red-600 border-red-200" }
+      { name: "Complete Blood Count (CBC)", desc: "Essential screening test detecting anemia, infections, and blood disorders.", brand: "Health Express Diagnostics", image: "/images/service-icons/service_cbc.svg", iconStyle: "bg-rose-50 border-rose-200" },
+      { name: "Thyroid Profile (T3 T4 TSH)", desc: "Hormone level evaluation to monitor thyroid function and metabolism.", brand: "Health Express Labs", image: "/images/service-icons/service_thyroid.svg", iconStyle: "bg-purple-50 border-purple-200" },
+      { name: "HbA1c Diabetes Test", desc: "Reliable 3-month average blood sugar monitoring report for diabetes control.", brand: "Health Express Care", image: "/images/service-icons/service_diabetes.svg", iconStyle: "bg-amber-50 border-amber-200" },
+      { name: "Lipid Profile Test", desc: "Advanced heart health and cholesterol screening for HDL, LDL, and triglycerides.", brand: "Health Express Wellness", image: "/images/service-icons/service_heart.svg", iconStyle: "bg-red-50 border-red-200" }
     ]
   },
   {
@@ -26,10 +21,10 @@ const CATEGORY_ROWS = [
     subtitle: "Professional nursing, elder care, and medical assistance right at the comfort of your home.",
     reverse: true,
     items: [
-      { name: "Trained Attendant & Elder Care", desc: "Compassionate caregivers assisting seniors with daily living and medication.", brand: "Health Express Home Care", icon: HeartHandshake, iconStyle: "bg-emerald-50 text-emerald-600 border-emerald-200" },
-      { name: "Professional Nursing Care", desc: "Certified nurses providing wound dressing, injections, and post-surgical care.", brand: "Health Express Nursing", icon: Stethoscope, iconStyle: "bg-purple-50 text-purple-600 border-purple-200" },
-      { name: "Physiotherapy at Home", desc: "Expert therapists for joint pain relief, stroke rehab, and mobility recovery.", brand: "Health Express Rehab", icon: Footprints, iconStyle: "bg-blue-50 text-blue-600 border-blue-200" },
-      { name: "Critical & ICU Care at Home", desc: "24/7 dedicated setup with oxygen support, monitors, and medical staff.", brand: "Health Express Critical", icon: ShieldAlert, iconStyle: "bg-orange-50 text-orange-600 border-orange-200" }
+      { name: "Trained Attendant & Elder Care", desc: "Compassionate caregivers assisting seniors with daily living and medication.", brand: "Health Express Home Care", image: "/images/service-icons/service_elder_care.svg", iconStyle: "bg-emerald-50 border-emerald-200" },
+      { name: "Professional Nursing Care", desc: "Certified nurses providing wound dressing, injections, and post-surgical care.", brand: "Health Express Nursing", image: "/images/service-icons/service_nursing_care.svg", iconStyle: "bg-purple-50 border-purple-200" },
+      { name: "Physiotherapy at Home", desc: "Expert therapists for joint pain relief, stroke rehab, and mobility recovery.", brand: "Health Express Rehab", image: "/images/service-icons/service_physio.svg", iconStyle: "bg-blue-50 border-blue-200" },
+      { name: "Critical & ICU Care at Home", desc: "24/7 dedicated setup with oxygen support, monitors, and medical staff.", brand: "Health Express Critical", image: "/images/service-icons/service_icu.svg", iconStyle: "bg-orange-50 border-orange-200" }
     ]
   },
   {
@@ -38,10 +33,10 @@ const CATEGORY_ROWS = [
     subtitle: "High-precision imaging scans powered by cutting-edge technology and expert radiologists.",
     reverse: false,
     items: [
-      { name: "MRI Brain Scan", desc: "High-resolution neurological imaging for precise diagnosis of brain structures.", brand: "Health Express Imaging", icon: Brain, iconStyle: "bg-indigo-50 text-indigo-600 border-indigo-200" },
-      { name: "CT Chest Scan", desc: "Detailed thoracic imaging for clear visualization of lung and pulmonary health.", brand: "Health Express Scans", icon: Waves, iconStyle: "bg-cyan-50 text-cyan-600 border-cyan-200" },
-      { name: "Ultrasound Whole Abdomen", desc: "Non-invasive internal organ screening for liver, kidneys, and pancreas.", brand: "Health Express Diagnostics", icon: Disc, iconStyle: "bg-teal-50 text-teal-600 border-teal-200" },
-      { name: "Digital X-Ray", desc: "Instant low-radiation skeletal and chest imaging for bone and joint injuries.", brand: "Health Express Radiology", icon: Crosshair, iconStyle: "bg-slate-100 text-slate-700 border-slate-300" }
+      { name: "MRI Brain Scan", desc: "High-resolution neurological imaging for precise diagnosis of brain structures.", brand: "Health Express Imaging", image: "/images/service-icons/service_mri_brain.svg", iconStyle: "bg-indigo-50 border-indigo-200" },
+      { name: "CT Chest Scan", desc: "Detailed thoracic imaging for clear visualization of lung and pulmonary health.", brand: "Health Express Scans", image: "/images/service-icons/service_ct_chest.svg", iconStyle: "bg-cyan-50 border-cyan-200" },
+      { name: "Ultrasound Whole Abdomen", desc: "Non-invasive internal organ screening for liver, kidneys, and pancreas.", brand: "Health Express Diagnostics", image: "/images/service-icons/service_ultrasound.svg", iconStyle: "bg-teal-50 border-teal-200" },
+      { name: "Digital X-Ray", desc: "Instant low-radiation skeletal and chest imaging for bone and joint injuries.", brand: "Health Express Radiology", image: "/images/service-icons/service_xray.svg", iconStyle: "bg-slate-100 border-slate-300" }
     ]
   },
   {
@@ -50,10 +45,10 @@ const CATEGORY_ROWS = [
     subtitle: "Advanced minimally invasive procedures performed by expert surgeons with fast recovery.",
     reverse: true,
     items: [
-      { name: "Laser Piles Surgery", desc: "Advanced pain-free modern procedure ensuring exceptionally fast recovery.", brand: "Health Express Surgical", icon: Zap, iconStyle: "bg-amber-50 text-amber-600 border-amber-200" },
-      { name: "Laparoscopic Hernia Repair", desc: "State-of-the-art mesh surgery performed by leading surgical specialists.", brand: "Health Express Care", icon: ShieldCheck, iconStyle: "bg-blue-50 text-blue-600 border-blue-200" },
-      { name: "Gallbladder Removal", desc: "Safe and effective keyhole laparoscopic procedure ensuring minimal scarring.", brand: "Health Express Surgery", icon: Stethoscope, iconStyle: "bg-emerald-50 text-emerald-600 border-emerald-200" },
-      { name: "Knee Replacement", desc: "Advanced orthopedic solutions and rehabilitation to restore full mobility.", brand: "Health Express Orthopedics", icon: Activity, iconStyle: "bg-purple-50 text-purple-600 border-purple-200" }
+      { name: "Laser Piles Surgery", desc: "Advanced pain-free modern procedure ensuring exceptionally fast recovery.", brand: "Health Express Surgical", image: "/images/service-icons/service_laser_piles.svg", iconStyle: "bg-amber-50 border-amber-200" },
+      { name: "Laparoscopic Hernia Repair", desc: "State-of-the-art mesh surgery performed by leading surgical specialists.", brand: "Health Express Care", image: "/images/service-icons/service_hernia.svg", iconStyle: "bg-blue-50 border-blue-200" },
+      { name: "Gallbladder Removal", desc: "Safe and effective keyhole laparoscopic procedure ensuring minimal scarring.", brand: "Health Express Surgery", image: "/images/service-icons/service_gallbladder.svg", iconStyle: "bg-emerald-50 border-emerald-200" },
+      { name: "Knee Replacement", desc: "Advanced orthopedic solutions and rehabilitation to restore full mobility.", brand: "Health Express Orthopedics", image: "/images/service-icons/service_knee.svg", iconStyle: "bg-purple-50 border-purple-200" }
     ]
   }
 ];
@@ -226,8 +221,8 @@ export default function NewServicesSection() {
 
                           {/* Sub-Service Name with Beautiful Healthians-Style Medical Icon Badge */}
                           <div className="flex items-start gap-3 pt-1">
-                            <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-110 transition-transform ${item.iconStyle || 'bg-purple-50 text-purple-700 border-purple-200'}`}>
-                              {React.createElement(item.icon, { className: "w-5 h-5" })}
+                            <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-110 transition-transform p-1.5 ${item.iconStyle || 'bg-purple-50 border-purple-200'}`}>
+                              <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                             </div>
                             <div className="space-y-1 min-w-0">
                               <h4 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-purple-800 transition-colors">

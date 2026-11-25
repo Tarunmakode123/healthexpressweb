@@ -1,0 +1,16 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lungGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="50%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="56" rx="18" ry="3.5" fill="#000000" fill-opacity="0.1"/>
+  <!-- Trachea / Bronchial Tree -->
+  <rect x="30" y="14" width="4" height="14" rx="1" fill="#e2e8f0"/>
+  <path d="M32 26 L24 34 M32 26 L40 34" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Left Lung Lobe -->
+  <path d="M29 27 C24 25, 16 30, 16 40 C16 48, 22 50, 27 48 C29 44, 29 36, 29 27 Z" fill="url(#lungGrad)"/>
+  <!-- Right Lung Lobe -->
+  <path d="M35 27 C40 25, 48 30, 48 40 C48 48, 42 50, 37 48 C35 44, 35 36, 35 27 Z" fill="url(#lungGrad)"/>
+  <!-- Bronchial Branch Highlights -->
+  <path d="M22 36 L20 42 M24 38 L25 44" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.6"/>
+  <path d="M42 36 L44 42 M40 38 L39 44" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>

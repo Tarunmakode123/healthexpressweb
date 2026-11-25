@@ -1,48 +1,47 @@
 import React from 'react';
-import { UserCheck, Stethoscope, PhoneCall, ShieldCheck, Tag, FileText } from 'lucide-react';
 
 const ADVANTAGES = [
   {
     num: '01',
-    icon: UserCheck,
+    image: '/images/advantages/advantage_01_pickup.svg',
     title: 'Free & On-Time Sample Collection',
     desc: 'Doorstep pickup by certified phlebotomists',
-    iconBg: 'bg-[#d1f9fb] text-[#00838f] border-[#b2eff2]'
+    iconBg: 'bg-[#d1f9fb] border-[#b2eff2]'
   },
   {
     num: '02',
-    icon: Stethoscope,
+    image: '/images/advantages/advantage_02_nursing.svg',
     title: 'Professional Home Nursing Care',
     desc: 'Doctor-prescribed home nursing & eldercare',
-    iconBg: 'bg-[#ffe6f2] text-[#c2185b] border-[#ffcce5]'
+    iconBg: 'bg-[#ffe6f2] border-[#ffcce5]'
   },
   {
     num: '03',
-    icon: PhoneCall,
+    image: '/images/advantages/advantage_03_manager.svg',
     title: 'Free Dedicated Health Manager',
     desc: '1-on-1 assistance on WhatsApp & phone',
-    iconBg: 'bg-[#fff0e6] text-[#d4380d] border-[#ffd8bf]'
+    iconBg: 'bg-[#fff0e6] border-[#ffd8bf]'
   },
   {
     num: '04',
-    icon: ShieldCheck,
+    image: '/images/advantages/advantage_04_microscope.svg',
     title: '100% NABL Accredited Labs',
     desc: 'High-precision partner diagnostic testing',
-    iconBg: 'bg-[#e6ecff] text-[#304ffe] border-[#d4deff]'
+    iconBg: 'bg-[#e6ecff] border-[#d4deff]'
   },
   {
     num: '05',
-    icon: Tag,
+    image: '/images/advantages/advantage_05_pricing.svg',
     title: 'Transparent Pricing',
     desc: 'Save up to 70% off with zero hidden fees',
-    iconBg: 'bg-[#dcfce7] text-[#15803d] border-[#bbf7d0]'
+    iconBg: 'bg-[#dcfce7] border-[#bbf7d0]'
   },
   {
     num: '06',
-    icon: FileText,
+    image: '/images/advantages/advantage_06_reports.svg',
     title: 'Fast Smart Digital Reports',
     desc: 'Verified PDF reports delivered in hours',
-    iconBg: 'bg-[#f3e8ff] text-[#7e22ce] border-[#e9d5ff]'
+    iconBg: 'bg-[#f3e8ff] border-[#e9d5ff]'
   }
 ];
 
@@ -64,17 +63,16 @@ export default function HealthExpressAdvantage() {
         {/* 6-Column Borderless Icon Row (Exact Healthians Style: Numeral + Icon + Caption, ZERO Box Cards) */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-4 lg:gap-6 pt-2">
           {ADVANTAGES.map((item, idx) => {
-            const Icon = item.icon;
             return (
               <div key={idx} className="flex flex-col items-start text-left space-y-2 group">
                 
-                {/* Large Italic Numeral + Monochrome Line Icon */}
+                {/* Large Italic Numeral + 3D Vector Icon */}
                 <div className="flex items-center gap-2 min-h-[50px]">
                   <span className="text-2xl sm:text-3xl font-black text-slate-300 italic tracking-tighter select-none">
                     {item.num}
                   </span>
-                  <div className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xs ${item.iconBg}`}>
-                    <Icon className="w-5 h-5" />
+                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs p-1.5 ${item.iconBg}`}>
+                    <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
                   </div>
                 </div>
 

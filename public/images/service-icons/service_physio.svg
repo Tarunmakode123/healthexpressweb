@@ -1,0 +1,15 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="jointGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="56" rx="18" ry="3.5" fill="#000000" fill-opacity="0.1"/>
+  <!-- Upper Leg Bone (Femur) -->
+  <rect x="29" y="12" width="6" height="18" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- Articulated Knee Joint Orb -->
+  <circle cx="32" cy="32" r="8" fill="url(#jointGrad)" stroke="#1d4ed8" stroke-width="1.5"/>
+  <!-- Mobility Wave Rings around Knee -->
+  <path d="M20 28 A14 14 0 0 1 44 28" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M20 36 A14 14 0 0 0 44 36" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Lower Leg Bone (Tibia) -->
+  <rect x="29" y="36" width="6" height="18" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+</svg>

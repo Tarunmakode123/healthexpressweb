@@ -1,0 +1,17 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="thyroidGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#c084fc"/><stop offset="50%" stop-color="#9333ea"/><stop offset="100%" stop-color="#6b21a8"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="56" rx="18" ry="3.5" fill="#000000" fill-opacity="0.1"/>
+  <!-- Trachea Cartilage Rings (Windpipe) -->
+  <rect x="29" y="14" width="6" height="36" rx="2" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="29" y1="20" x2="35" y2="20" stroke="#94a3b8" stroke-width="1.2"/>
+  <line x1="29" y1="26" x2="35" y2="26" stroke="#94a3b8" stroke-width="1.2"/>
+  <line x1="29" y1="32" x2="35" y2="32" stroke="#94a3b8" stroke-width="1.2"/>
+  <line x1="29" y1="38" x2="35" y2="38" stroke="#94a3b8" stroke-width="1.2"/>
+  <!-- Butterfly-Shaped Thyroid Gland (Left and Right Lobes + Isthmus) -->
+  <path d="M32 30 C30 24, 18 20, 14 26 C10 32, 14 44, 22 46 C26 47, 30 42, 32 38 C34 42, 38 47, 42 46 C50 44, 54 32, 50 26 C46 20, 34 24, 32 30 Z" fill="url(#thyroidGrad)" stroke="#581c87" stroke-width="1.5"/>
+  <!-- Lobe Highlights -->
+  <ellipse cx="18" cy="30" rx="3.5" ry="6" fill="#ffffff" fill-opacity="0.35" transform="rotate(-15 18 30)"/>
+  <ellipse cx="46" cy="30" rx="3.5" ry="6" fill="#ffffff" fill-opacity="0.35" transform="rotate(15 46 30)"/>
+</svg>

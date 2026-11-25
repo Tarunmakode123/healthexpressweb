@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderHeart, FileText, ArrowRight, ShieldCheck, Globe } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { openWhatsApp } from '../../utils/whatsapp';
 
 export default function HealthRecordsSection() {
@@ -17,8 +17,8 @@ export default function HealthRecordsSection() {
         <div className="bg-white/95 backdrop-blur-md p-8 sm:p-10 max-w-xl w-full shadow-2xl shadow-black/25 rounded-none border border-white/20 space-y-5 text-left">
           
           {/* Eyebrow Tag */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold uppercase tracking-wide">
-            <FolderHeart className="w-4 h-4 text-purple-700" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold uppercase tracking-wide">
+            <img src="/images/health-vault/vault_locker.svg" alt="Digital Vault" className="w-4 h-4 object-contain" />
             <span>Smart Digital Vault</span>
           </div>
 
@@ -33,13 +33,17 @@ export default function HealthRecordsSection() {
           </p>
 
           {/* Key Benefit Points */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-3 text-sm font-semibold text-slate-900">
-              <Globe className="w-5 h-5 text-purple-700 shrink-0" />
+          <div className="space-y-3.5 pt-2">
+            <div className="flex items-center gap-3.5 text-sm font-semibold text-slate-900">
+              <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0 p-1 shadow-2xs">
+                <img src="/images/health-vault/vault_cloud_globe.svg" alt="Global Access" className="w-full h-full object-contain" />
+              </div>
               <span>Access from anywhere, anytime instantly</span>
             </div>
-            <div className="flex items-center gap-3 text-sm font-semibold text-slate-900">
-              <ShieldCheck className="w-5 h-5 text-purple-700 shrink-0" />
+            <div className="flex items-center gap-3.5 text-sm font-semibold text-slate-900">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 p-1 shadow-2xs">
+                <img src="/images/health-vault/vault_secure_lock.svg" alt="Encrypted Vault" className="w-full h-full object-contain" />
+              </div>
               <span>100% Secure & Private digital storage</span>
             </div>
           </div>

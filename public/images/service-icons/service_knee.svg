@@ -1,0 +1,13 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="implant" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#7e22ce"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="56" rx="18" ry="3.5" fill="#000000" fill-opacity="0.1"/>
+  <!-- Upper Femoral Component -->
+  <rect x="28" y="12" width="8" height="16" rx="3" fill="#cbd5e1" stroke="#475569" stroke-width="1.2"/>
+  <!-- 3D Titanium Knee Joint Implant -->
+  <circle cx="32" cy="32" r="8" fill="url(#implant)" stroke="#581c87" stroke-width="1.5"/>
+  <path d="M22 32 A10 10 0 0 1 42 32" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <!-- Lower Tibial Tray Base -->
+  <rect x="28" y="36" width="8" height="16" rx="3" fill="#cbd5e1" stroke="#475569" stroke-width="1.2"/>
+</svg>

@@ -1,0 +1,21 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glucometer" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="50%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0369a1"/></linearGradient>
+    <linearGradient id="dropRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#991b1b"/></linearGradient>
+  </defs>
+  <ellipse cx="32" cy="56" rx="18" ry="3.5" fill="#000000" fill-opacity="0.1"/>
+  <!-- Test Strip sticking out bottom -->
+  <rect x="29" y="44" width="6" height="14" rx="1" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="30" y="52" width="4" height="4" rx="0.5" fill="#f59e0b"/>
+  <!-- Blood Droplet on Strip -->
+  <path d="M32 46 C32 46, 29 50, 29 52 C29 54, 30.5 55, 32 55 C33.5 55, 35 54, 35 52 C35 50, 32 46, 32 46 Z" fill="url(#dropRed)"/>
+  <!-- Digital Device Body -->
+  <rect x="18" y="12" width="28" height="38" rx="8" fill="url(#glucometer)" stroke="#0369a1" stroke-width="1.5"/>
+  <!-- LCD Screen -->
+  <rect x="22" y="16" width="20" height="16" rx="3" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <!-- Glucose Digits -->
+  <text x="32" y="27" font-family="Arial, sans-serif" font-weight="900" font-size="8.5" fill="#047857" text-anchor="middle">98</text>
+  <text x="32" y="31" font-family="Arial, sans-serif" font-weight="700" font-size="3.5" fill="#047857" text-anchor="middle">mg/dL</text>
+  <!-- Power Button -->
+  <circle cx="32" cy="40" r="3.5" fill="#0369a1" stroke="#ffffff" stroke-width="1"/>
+</svg>
