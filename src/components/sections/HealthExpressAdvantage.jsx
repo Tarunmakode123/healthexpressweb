@@ -2,42 +2,36 @@ import React from 'react';
 
 const ADVANTAGES = [
   {
-    num: '01',
     image: '/images/advantages/advantage_01_pickup.svg',
     title: 'Free & On-Time Sample Collection',
     desc: 'Doorstep pickup by certified phlebotomists',
     iconBg: 'bg-[#d1f9fb] border-[#b2eff2]'
   },
   {
-    num: '02',
     image: '/images/advantages/advantage_02_nursing.svg',
     title: 'Professional Home Nursing Care',
     desc: 'Doctor-prescribed home nursing & eldercare',
     iconBg: 'bg-[#ffe6f2] border-[#ffcce5]'
   },
   {
-    num: '03',
     image: '/images/advantages/advantage_03_manager.svg',
     title: 'Free Dedicated Health Manager',
     desc: '1-on-1 assistance on WhatsApp & phone',
     iconBg: 'bg-[#fff0e6] border-[#ffd8bf]'
   },
   {
-    num: '04',
     image: '/images/advantages/advantage_04_microscope.svg',
     title: '100% NABL Accredited Labs',
     desc: 'High-precision partner diagnostic testing',
     iconBg: 'bg-[#e6ecff] border-[#d4deff]'
   },
   {
-    num: '05',
     image: '/images/advantages/advantage_05_pricing.svg',
     title: 'Transparent Pricing',
     desc: 'Save up to 70% off with zero hidden fees',
     iconBg: 'bg-[#dcfce7] border-[#bbf7d0]'
   },
   {
-    num: '06',
     image: '/images/advantages/advantage_06_reports.svg',
     title: 'Fast Smart Digital Reports',
     desc: 'Verified PDF reports delivered in hours',
@@ -60,20 +54,15 @@ export default function HealthExpressAdvantage() {
           </p>
         </div>
 
-        {/* 6-Column Borderless Icon Row (Exact Healthians Style: Numeral + Icon + Caption, ZERO Box Cards) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-4 lg:gap-6 pt-2">
+        {/* 6-Column Icon Row: Prominent 3D Icons without Numbers */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-5 lg:gap-6 pt-2">
           {ADVANTAGES.map((item, idx) => {
             return (
-              <div key={idx} className="flex flex-col items-start text-left space-y-2 group">
+              <div key={idx} className="flex flex-col items-start text-left space-y-3 group">
                 
-                {/* Large Italic Numeral + 3D Vector Icon */}
-                <div className="flex items-center gap-2 min-h-[50px]">
-                  <span className="text-2xl sm:text-3xl font-black text-slate-300 italic tracking-tighter select-none">
-                    {item.num}
-                  </span>
-                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs p-1.5 ${item.iconBg}`}>
-                    <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
-                  </div>
+                {/* Enlarged 3D Vector Icon Box */}
+                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-xs p-2.5 sm:p-3 ${item.iconBg}`}>
+                  <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
                 </div>
 
                 {/* Caption below */}
