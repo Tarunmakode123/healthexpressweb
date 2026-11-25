@@ -1,0 +1,36 @@
+<svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="scannerBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <radialGradient id="boreInner" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="60%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </radialGradient>
+    <linearGradient id="scanBeam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#818cf8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#c084fc" stop-opacity="0.1"/>
+    </linearGradient>
+    <linearGradient id="bedGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="48" cy="85" rx="32" ry="5" fill="#000000" fill-opacity="0.1"/>
+  <rect x="18" y="18" width="60" height="60" rx="30" fill="url(#scannerBody)" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="48" cy="48" r="22" fill="url(#boreInner)" stroke="#6366f1" stroke-width="2.5"/>
+  <polygon points="48,26 32,56 64,56" fill="url(#scanBeam)"/>
+  <circle cx="48" cy="27" r="2.5" fill="#38bdf8"/>
+  <circle cx="48" cy="27" r="4.5" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.6"/>
+  <rect x="22" y="52" width="52" height="7" rx="3.5" fill="url(#bedGrad)" stroke="#64748b" stroke-width="1"/>
+  <rect x="30" y="49" width="36" height="4" rx="2" fill="#38bdf8" fill-opacity="0.85"/>
+  <path d="M42 59 L54 59 L56 78 L40 78 Z" fill="#94a3b8"/>
+  <path d="M26 30 A28 28 0 0 1 70 30" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-opacity="0.9"/>
+  <circle cx="28" cy="62" r="2" fill="#10b981"/>
+  <circle cx="34" cy="62" r="2" fill="#38bdf8"/>
+</svg>

@@ -7,42 +7,42 @@ export default function HomeCategoryTiles({ onOpenUploadModal }) {
       title: 'Blood Tests',
       offer: 'Up to 70% OFF',
       bgClass: 'bg-[#d1f9fb] border-[#b2eff2]',
-      image: '/images/category-tiles/blood_tests.png',
+      image: '/images/category-tiles/blood_tests.svg',
       href: '/services?category=lab-tests'
     },
     {
       title: 'X-Rays & Scans',
       offer: 'MRI · CT · Ultrasound',
       bgClass: 'bg-[#e6ecff] border-[#d4deff]',
-      image: '/images/category-tiles/scans_mri.png',
+      image: '/images/category-tiles/scans_mri.svg',
       href: '/services?category=imaging'
     },
     {
       title: 'Health Packages',
       offer: 'Full Body Checkups',
       bgClass: 'bg-[#fff0e6] border-[#ffd8bf]',
-      image: '/images/category-tiles/health_packages.png',
+      image: '/images/category-tiles/health_packages.svg',
       href: '/services?category=health-packages'
     },
     {
       title: 'Home Nursing',
       offer: 'Certified Care',
       bgClass: 'bg-[#dcfce7] border-[#bbf7d0]',
-      image: '/images/category-tiles/home_nursing.png',
+      image: '/images/category-tiles/home_nursing.svg',
       href: '/home-nursing-care'
     },
     {
       title: 'Genomics DNA',
       offer: 'Hereditary Risk',
       bgClass: 'bg-[#ffe6f2] border-[#ffcce5]',
-      image: '/images/category-tiles/genomics_dna.png',
+      image: '/images/category-tiles/genomics_dna.svg',
       href: '/services?category=genetics'
     },
     {
       title: 'Upload Prescription',
       offer: 'Fast Booking',
       bgClass: 'bg-[#e1f0ff] border-[#c2e0ff]',
-      image: '/images/category-tiles/upload_prescription.png',
+      image: '/images/category-tiles/upload_prescription.svg',
       action: onOpenUploadModal,
       isRx: true
     }
