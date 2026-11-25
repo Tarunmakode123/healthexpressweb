@@ -205,7 +205,11 @@ export default function ServiceDetailPage({ onOpenUploadModal }) {
               </h2>
               
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                {service.overview || service.description || service.shortDesc || "Comprehensive medical investigation carried out by accredited diagnostic partner laboratories with verified digital reporting."}
+                {(service.overview || service.description || service.shortDesc || '')
+                  .replace(/diagnostic radiology procedure performed by cadabams\.?/gi, "High-precision diagnostic imaging scan conducted at accredited radiology centers with digital report delivery.")
+                  .replace(/cadabams/gi, "accredited partner centers")
+                  .replace(/labspring/gi, "accredited partner laboratories")
+                  .trim() || "Comprehensive medical investigation carried out by accredited diagnostic partner laboratories with verified digital reporting."}
               </p>
 
               {service.why_it_is_done && (

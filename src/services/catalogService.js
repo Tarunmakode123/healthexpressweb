@@ -44,9 +44,13 @@ export async function fetchServices({
       // Fulfillment filter
       if (fulfillment && fulfillment !== 'all') {
         if (fulfillment === 'home-collection') {
-          query = query.eq('home_collection_available', true);
+          query = query.or('home_collection_available.eq.true,category_id.in.("lab-tests","health-packages")');
         } else if (fulfillment === 'centre-visit') {
-          query = query.eq('centre_visit_required', true);
+          query = query.or('centre_visit_required.eq.true,category_id.eq.imaging');
+        } else if (fulfillment === 'online') {
+          query = query.or('is_online.eq.true,category_id.eq.genetics');
+        } else if (fulfillment === 'home-delivery') {
+          query = query.or('is_home_delivery.eq.true,category_id.eq.home-nursing');
         }
       }
 
@@ -178,7 +182,7 @@ export async function fetchServices({
   // Fulfillment filter
   if (fulfillment !== 'all') {
     if (fulfillment === 'home-collection') {
-      result = result.filter(s => s.home_collection_available === true || s.fulfillment === 'home-collection' || s.category_id === 'lab-tests');
+      result = result.filter(s => s.home_collection_available === true || s.fulfillment === 'home-collection' || s.category_id === 'lab-tests' || s.category_id === 'health-packages');
     } else if (fulfillment === 'centre-visit') {
       result = result.filter(s => s.centre_visit_required === true || s.fulfillment === 'centre-visit' || s.category_id === 'imaging');
     } else if (fulfillment === 'online') {
