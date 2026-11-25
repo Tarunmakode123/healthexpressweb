@@ -6,37 +6,43 @@ const ADVANTAGES = [
     num: '01',
     icon: UserCheck,
     title: 'Free & On-Time Sample Collection',
-    desc: 'Doorstep pickup by certified phlebotomists'
+    desc: 'Doorstep pickup by certified phlebotomists',
+    iconBg: 'bg-[#d1f9fb] text-[#00838f] border-[#b2eff2]'
   },
   {
     num: '02',
     icon: Stethoscope,
     title: 'Professional Home Nursing Care',
-    desc: 'Doctor-prescribed home nursing & eldercare'
+    desc: 'Doctor-prescribed home nursing & eldercare',
+    iconBg: 'bg-[#ffe6f2] text-[#c2185b] border-[#ffcce5]'
   },
   {
     num: '03',
     icon: PhoneCall,
     title: 'Free Dedicated Health Manager',
-    desc: '1-on-1 assistance on WhatsApp & phone'
+    desc: '1-on-1 assistance on WhatsApp & phone',
+    iconBg: 'bg-[#fff0e6] text-[#d4380d] border-[#ffd8bf]'
   },
   {
     num: '04',
     icon: ShieldCheck,
     title: '100% NABL Accredited Labs',
-    desc: 'High-precision partner diagnostic testing'
+    desc: 'High-precision partner diagnostic testing',
+    iconBg: 'bg-[#e6ecff] text-[#304ffe] border-[#d4deff]'
   },
   {
     num: '05',
     icon: Tag,
     title: 'Transparent Pricing',
-    desc: 'Save up to 70% off with zero hidden fees'
+    desc: 'Save up to 70% off with zero hidden fees',
+    iconBg: 'bg-[#dcfce7] text-[#15803d] border-[#bbf7d0]'
   },
   {
     num: '06',
     icon: FileText,
     title: 'Fast Smart Digital Reports',
-    desc: 'Verified PDF reports delivered in hours'
+    desc: 'Verified PDF reports delivered in hours',
+    iconBg: 'bg-[#f3e8ff] text-[#7e22ce] border-[#e9d5ff]'
   }
 ];
 
@@ -67,8 +73,8 @@ export default function HealthExpressAdvantage() {
                   <span className="text-2xl sm:text-3xl font-black text-slate-300 italic tracking-tighter select-none">
                     {item.num}
                   </span>
-                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center transition-transform group-hover:scale-110">
-                    <Icon className="w-5 h-5 text-purple-700" />
+                  <div className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xs ${item.iconBg}`}>
+                    <Icon className="w-5 h-5" />
                   </div>
                 </div>
 

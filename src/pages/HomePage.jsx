@@ -1,7 +1,8 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
-import NewServicesSection from '../components/sections/NewServicesSection';
+import HomeCategoryTiles from '../components/sections/HomeCategoryTiles';
 import HealthiansTrustStrip from '../components/sections/HealthiansTrustStrip';
+import NewServicesSection from '../components/sections/NewServicesSection';
 import HealthCheckupJourney from '../components/sections/HealthCheckupJourney';
 import HealthExpressAdvantage from '../components/sections/HealthExpressAdvantage';
 import HealthRecordsSection from '../components/sections/HealthRecordsSection';
@@ -16,16 +17,19 @@ export default function HomePage({ onOpenUploadModal, onOpenCalculatorModal }) {
       {/* 1. HERO SECTION */}
       <HeroSection onOpenUploadModal={onOpenUploadModal} />
 
-      {/* 2. SERVICES SLIDER */}
-      <NewServicesSection />
+      {/* 2. HEALTHIANS-STYLE 6 PASTEL CATEGORY TILES (EVERY BOX HAS ICON) */}
+      <HomeCategoryTiles onOpenUploadModal={onOpenUploadModal} />
 
       {/* 3. HEALTHIANS-STYLE COMPACT TRUST STRIP */}
       <HealthiansTrustStrip />
 
-      {/* 4. PATIENT HEALTH CHECKUP JOURNEY (3 CONNECTED STEPS + DUAL CTAs) */}
+      {/* 4. SERVICES SLIDER (EVERY CARD BOX HAS MEDICAL ICON BADGE) */}
+      <NewServicesSection />
+
+      {/* 5. PATIENT HEALTH CHECKUP JOURNEY (TIMELINE CIRCULAR ICON BADGES) */}
       <HealthCheckupJourney onOpenUploadModal={onOpenUploadModal} />
 
-      {/* 5. THE HEALTH EXPRESS ADVANTAGE */}
+      {/* 6. THE HEALTH EXPRESS ADVANTAGE (6-COLUMN BORDERLESS ICONS) */}
       <HealthExpressAdvantage />
 
       {/* 6. HEALTH RECORDS & SMART REPORTS */}

@@ -3,12 +3,51 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { 
   FlaskConical, Scan, Dna, Home, ShieldCheck, 
   Search, ChevronRight, MessageSquare, Upload, SlidersHorizontal, 
-  X, ChevronDown, ChevronUp, ShoppingBag, RefreshCw, Filter, MapPin, Stethoscope, ArrowRight
+  X, ChevronDown, ChevronUp, ShoppingBag, RefreshCw, Filter, MapPin, Stethoscope, ArrowRight,
+  Heart, Droplets, Activity, Sparkles, Brain, Crosshair, Clock, Zap
 } from 'lucide-react';
 import { fetchServices } from '../services/catalogService';
 import { useCart } from '../context/CartContext';
 import { openWhatsApp } from '../utils/whatsapp';
 import WaitlistModal from '../components/common/WaitlistModal';
+
+// Healthians-style Organ / Medical Icon Resolver for Cards
+function getServiceIconAndStyle(service) {
+  const name = (service.name || service.service_name || '').toLowerCase();
+  const cat = service.category_id || '';
+
+  if (name.includes('lipid') || name.includes('cholesterol') || name.includes('heart') || name.includes('cardiac')) {
+    return { icon: Heart, style: 'bg-red-50 text-red-600 border-red-200' };
+  }
+  if (name.includes('blood') || name.includes('cbc') || name.includes('hemogram') || name.includes('iron') || name.includes('ferritin')) {
+    return { icon: Droplets, style: 'bg-rose-50 text-rose-600 border-rose-200' };
+  }
+  if (name.includes('thyroid') || name.includes('tsh') || name.includes('t3')) {
+    return { icon: Activity, style: 'bg-purple-50 text-purple-600 border-purple-200' };
+  }
+  if (name.includes('glucose') || name.includes('sugar') || name.includes('diabetes') || name.includes('hba1c')) {
+    return { icon: Sparkles, style: 'bg-amber-50 text-amber-600 border-amber-200' };
+  }
+  if (name.includes('mri') || name.includes('scan') || name.includes('ct ') || name.includes('brain')) {
+    return { icon: Brain, style: 'bg-indigo-50 text-indigo-600 border-indigo-200' };
+  }
+  if (name.includes('x-ray') || name.includes('bone') || name.includes('joint')) {
+    return { icon: Crosshair, style: 'bg-slate-100 text-slate-700 border-slate-300' };
+  }
+  if (cat === 'home-nursing') {
+    return { icon: Home, style: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+  }
+  if (cat === 'genetics') {
+    return { icon: Dna, style: 'bg-pink-50 text-pink-600 border-pink-200' };
+  }
+  if (cat === 'health-packages') {
+    return { icon: ShieldCheck, style: 'bg-amber-50 text-amber-600 border-amber-200' };
+  }
+  if (cat === 'imaging') {
+    return { icon: Scan, style: 'bg-blue-50 text-blue-600 border-blue-200' };
+  }
+  return { icon: FlaskConical, style: 'bg-purple-50 text-purple-700 border-purple-200' };
+}
 
 // Category Icon Mapping
 const categoryIconMap = {
@@ -678,6 +717,8 @@ export default function ServicesPage({ onOpenUploadModal }) {
                     .replace('Imaging & Radiology', 'Radiology')
                     .replace('Pathology & Diagnostics', 'Pathology');
 
+                  const { icon: CardIcon, style: cardIconStyle } = getServiceIconAndStyle(service);
+
                   return (
                     <div
                       key={service.id || service.slug}
@@ -703,15 +744,36 @@ export default function ServicesPage({ onOpenUploadModal }) {
                           )}
                         </div>
 
-                        {/* Test Name (Fixed height container for perfect grid alignment) */}
-                        <div className="h-11 sm:h-12 flex items-start">
-                          <Link
-                            to={`/services/${service.slug}`}
-                            className="text-sm sm:text-[15px] font-bold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug block"
-                            title={service.name}
-                          >
-                            {service.name}
-                          </Link>
+                        {/* Test Name with Prominent Healthians-Style Medical Icon Badge */}
+                        <div className="flex items-start gap-3 pt-0.5">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs group-hover:scale-105 transition-transform ${cardIconStyle}`}>
+                            <CardIcon className="w-5 h-5" />
+                          </div>
+                          <div className="h-11 sm:h-12 flex items-start flex-1 min-w-0">
+                            <Link
+                              to={`/services/${service.slug}`}
+                              className="text-sm sm:text-[15px] font-bold text-slate-900 group-hover:text-purple-800 transition-colors line-clamp-2 leading-snug block"
+                              title={service.name}
+                            >
+                              {service.name}
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Healthians-Style 3 Mini Metadata Row with Icons */}
+                        <div className="pt-2 grid grid-cols-2 gap-2 text-[11px] text-slate-500 font-medium border-t border-slate-100/80">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Clock className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                            <span className="truncate">{requiresFasting ? '10-12 hrs Fasting' : 'No Fasting Req.'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <span className="truncate">Reports in 6-24 hrs</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 truncate col-span-2">
+                            <Home className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span className="truncate">{isHomeNursing ? 'Home Nursing Care' : 'Free Doorstep Sample Pickup'}</span>
+                          </div>
                         </div>
 
                       </div>
