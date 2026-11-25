@@ -1,85 +1,87 @@
 import React from 'react';
-import { UserCheck, Home, PhoneCall, ShieldCheck, Tag, Zap } from 'lucide-react';
+import { UserCheck, Stethoscope, PhoneCall, ShieldCheck, Tag, FileText } from 'lucide-react';
 
 const ADVANTAGES = [
   {
     num: '01',
-    title: 'Free Doorstep Sample Pickup',
-    description: 'Certified phlebotomists collect samples safely at home using single-use vacuum collection tubes.',
-    icon: UserCheck
+    icon: UserCheck,
+    title: 'Free & On-Time Sample Collection',
+    desc: 'Doorstep pickup by certified phlebotomists'
   },
   {
     num: '02',
-    title: 'Professional Home Nursing',
-    description: 'Home nursing and eldercare built around your convenience, recovery, and absolute trust.',
-    icon: Home
+    icon: Stethoscope,
+    title: 'Professional Home Nursing Care',
+    desc: 'Doctor-prescribed home nursing & eldercare'
   },
   {
     num: '03',
-    title: 'Dedicated Health Manager',
-    description: 'Free 1-on-1 personal assistance on WhatsApp & phone to guide your tests, reports, and appointments.',
-    icon: PhoneCall
+    icon: PhoneCall,
+    title: 'Free Dedicated Health Manager',
+    desc: '1-on-1 assistance on WhatsApp & phone'
   },
   {
     num: '04',
+    icon: ShieldCheck,
     title: '100% NABL Accredited Labs',
-    description: 'Partnered with premier accredited diagnostic centers for clinical accuracy and verified results.',
-    icon: ShieldCheck
+    desc: 'High-precision partner diagnostic testing'
   },
   {
     num: '05',
+    icon: Tag,
     title: 'Transparent Pricing',
-    description: 'Up to 70% off standard hospital MRP with zero hidden charges or extra convenience fees.',
-    icon: Tag
+    desc: 'Save up to 70% off with zero hidden fees'
   },
   {
     num: '06',
-    title: 'Fast Digital Report Delivery',
-    description: 'Secure, verified smart digital PDF reports delivered straight to your WhatsApp and Email in hours.',
-    icon: Zap
+    icon: FileText,
+    title: 'Fast Smart Digital Reports',
+    desc: 'Verified PDF reports delivered in hours'
   }
 ];
 
 export default function HealthExpressAdvantage() {
   return (
-    <section className="bg-white border-b border-slate-200/70 py-8 sm:py-10 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-center">
+    <section aria-label="Why Choose Health Express" className="bg-white border-b border-slate-200/80 py-10 sm:py-14 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         
-        {/* Shallow Section Header */}
-        <div className="space-y-1.5 max-w-2xl mx-auto">
-          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 inline-block">
-            WHY CHOOSE US
-          </span>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            The Health Express Advantage
+        {/* Borderless Centered Healthians Heading */}
+        <div className="text-center space-y-1.5 max-w-xl mx-auto">
+          <h2 className="text-xl sm:text-2xl font-bold text-purple-700 tracking-tight">
+            Why Choose Health Express
           </h2>
+          <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
+            The Health Express Advantage
+          </p>
         </div>
 
-        {/* Healthians-Style Shallow 6-Pillar Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 text-left pt-1">
+        {/* 6-Column Borderless Icon Row (Exact Healthians Style: Numeral + Icon + Caption, ZERO Box Cards) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-4 lg:gap-6 pt-2">
           {ADVANTAGES.map((item, idx) => {
             const Icon = item.icon;
             return (
-              <div 
-                key={idx}
-                className="p-4 rounded-2xl bg-slate-50/70 hover:bg-purple-50/40 border border-slate-200/80 hover:border-purple-200 transition-all flex items-start gap-3.5 group shadow-2xs"
-              >
-                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                  <Icon className="w-4.5 h-4.5 text-purple-700" />
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black text-purple-700">
-                      {item.num}
-                    </span>
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
-                      {item.title}
-                    </h3>
+              <div key={idx} className="flex flex-col items-start text-left space-y-2 group">
+                
+                {/* Large Italic Numeral + Monochrome Line Icon */}
+                <div className="flex items-center gap-2 min-h-[50px]">
+                  <span className="text-2xl sm:text-3xl font-black text-slate-300 italic tracking-tighter select-none">
+                    {item.num}
+                  </span>
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center transition-transform group-hover:scale-110">
+                    <Icon className="w-5 h-5 text-purple-700" />
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                    {item.description}
+                </div>
+
+                {/* Caption below */}
+                <div className="space-y-1">
+                  <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 leading-snug">
+                    {item.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-medium leading-normal">
+                    {item.desc}
                   </p>
                 </div>
+
               </div>
             );
           })}
