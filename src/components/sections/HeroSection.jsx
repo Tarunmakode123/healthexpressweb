@@ -334,48 +334,61 @@ export default function HeroSection({ onOpenUploadModal }) {
 
           </div>
 
-          {/* RIGHT COLUMN: SINGLE PREMIUM HEALTHCARE VISUAL (ZERO FLOATING CARDS) */}
+          {/* RIGHT COLUMN: HASSLE-FREE HEALTHCARE BOOKING WHATSAPP CARD */}
           <div className="lg:col-span-5 flex justify-center pt-2 lg:pt-0">
             <div className="relative w-full max-w-md">
-              
               {/* Subtle Ambient Glow Backdrop */}
-              <div className="absolute -inset-3 bg-gradient-to-tr from-purple-200/30 via-indigo-100/20 to-slate-100/50 rounded-[32px] blur-xl -z-10" />
-
-
-
-              {/* MAIN HEALTHCARE VIDEO CONTAINER */}
-              <div className="relative bg-slate-950 rounded-3xl overflow-hidden shadow-xl border-4 border-white text-left">
-                <div className="relative h-72 sm:h-[360px] lg:h-[390px] w-full overflow-hidden">
-                  <video
-                    autoPlay
-                    muted
-                    playsInline
-                    loop
-                    preload="auto"
-                    className="w-full h-full object-cover object-center"
-                  >
-                    <source src="/videos/healthexpress.mp4" type="video/mp4" />
-                    Your browser does not support video playback.
-                  </video>
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
-                  
-                  <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-purple-700/90 text-white shadow-sm">
-                      Personalized Patient Care
-                    </span>
-                    <h3 className="text-xs sm:text-sm font-bold text-white/95 mt-1.5">
-                      Coordinated healthcare for you and your family.
-                    </h3>
-                  </div>
-                </div>
-              </div>
+              <div className="absolute -inset-3 bg-gradient-to-tr from-purple-200/30 via-emerald-100/20 to-slate-100/50 rounded-[32px] blur-xl -z-10" />
 
               {/* HASSLE-FREE HEALTHCARE BOOKING WHATSAPP CARD */}
-              <CareManagerBookingCard className="mt-4" />
-
+              <CareManagerBookingCard className="w-full shadow-lg" />
             </div>
           </div>
 
+        </div>
+
+        {/* FULL-WIDTH CINEMA THEATER SHOWCASE (1150px WIDE, PURE 16:9 WIDESCREEN) */}
+        <div className="mt-8 sm:mt-12 max-w-6xl mx-auto">
+          <div className="relative group rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-950">
+            {/* Ambient Lighting Backdrop */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-purple-500/10 rounded-[36px] blur-2xl pointer-events-none -z-10" />
+
+            <div className="relative aspect-video w-full overflow-hidden">
+              <video
+                autoPlay
+                muted
+                playsInline
+                loop
+                preload="auto"
+                className="w-full h-full object-cover object-center"
+              >
+                <source src="/videos/healthexpress.mp4" type="video/mp4" />
+                Your browser does not support video playback.
+              </video>
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+
+              {/* Top Status Pill */}
+              <div className="absolute top-3.5 left-3.5 sm:top-5 sm:left-5 flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  PATIENT CARE IN ACTION
+                </span>
+              </div>
+
+              {/* Bottom Caption Overlay */}
+              <div className="absolute bottom-3.5 left-3.5 right-3.5 sm:bottom-6 sm:left-6 sm:right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3 text-white pointer-events-none">
+                <div className="max-w-2xl text-left">
+                  <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded bg-purple-700/90 text-white shadow-sm inline-block mb-1.5">
+                    The Health Express Experience
+                  </span>
+                  <h3 className="text-sm sm:text-lg lg:text-xl font-bold text-white/95 drop-shadow-sm leading-snug">
+                    From doorstep sample collection to verified doctor reviews—see how we care for your family.
+                  </h3>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
