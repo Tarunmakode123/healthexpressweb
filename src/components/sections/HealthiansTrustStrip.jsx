@@ -29,11 +29,11 @@ const FEATURES = [
 
 export default function HealthiansTrustStrip() {
   return (
-    <section aria-label="Why Patients Trust Us" className="py-3 sm:py-4 font-sans bg-slate-50/50">
+    <section aria-label="Why Patients Trust Us" className="py-6 sm:py-8 font-sans bg-slate-50/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Single Unified Healthians-Style Ribbon Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs py-3.5 px-4 sm:py-4 sm:px-6 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-shadow py-4 px-4 sm:py-5 sm:px-6 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6">
           
           {/* Left Heading with dashed divider */}
           <div className="shrink-0 lg:border-r lg:border-dashed lg:border-slate-300 lg:pr-6 text-center lg:text-left">

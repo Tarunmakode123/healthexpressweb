@@ -49,7 +49,7 @@ export default function HomeCategoryTiles({ onOpenUploadModal }) {
   ];
 
   return (
-    <section aria-label="Quick Category Services" className="bg-white py-6 sm:py-8 font-sans border-b border-slate-100">
+    <section aria-label="Quick Category Services" className="bg-white pt-6 pb-10 sm:pt-8 sm:pb-12 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* 6-Column Pastel Category Grid (Healthians Exact Style with 3D Medical Icons) */}
