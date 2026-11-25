@@ -1,76 +1,46 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import NewServicesSection from '../components/sections/NewServicesSection';
-import Newwhychooseus from '../components/sections/Newwhychooseus';
-import Newsectionvideoabout from '../components/sections/Newsectionvideoabout';
-import HowItWorksSection from '../components/sections/HowItWorksSection';
-import Sixpointsection from '../components/sections/Sixpointsection';
+import HealthiansTrustStrip from '../components/sections/HealthiansTrustStrip';
+import HealthCheckupJourney from '../components/sections/HealthCheckupJourney';
+import HealthExpressAdvantage from '../components/sections/HealthExpressAdvantage';
 import HealthRecordsSection from '../components/sections/HealthRecordsSection';
 import Newreviewsection from '../components/sections/Newreviewsection';
 import Newfaqsection from '../components/sections/Newfaqsection';
 import HealthLibrarySection from '../components/sections/HealthLibrarySection';
-import Homecontactsection from '../components/sections/Homecontactsection';
 import StickyMobileCTA from '../components/layout/StickyMobileCTA';
 
 export default function HomePage({ onOpenUploadModal, onOpenCalculatorModal }) {
   return (
     <div className="space-y-0 relative font-healthians">
-      {/* 1. WHO ARE YOU? -> Hero */}
+      {/* 1. HERO SECTION */}
       <HeroSection onOpenUploadModal={onOpenUploadModal} />
 
-       {/* 1. WHO ARE YOU? -> Hero */}
+      {/* 2. SERVICES SLIDER */}
       <NewServicesSection />
 
-       {/* 1. WHO ARE YOU? -> Hero */}
-      <Newwhychooseus />
+      {/* 3. HEALTHIANS-STYLE COMPACT TRUST STRIP */}
+      <HealthiansTrustStrip />
 
-      {/* 1. WHO ARE YOU? -> Hero */}
-      <Newsectionvideoabout />
+      {/* 4. PATIENT HEALTH CHECKUP JOURNEY (3 CONNECTED STEPS + DUAL CTAs) */}
+      <HealthCheckupJourney onOpenUploadModal={onOpenUploadModal} />
 
+      {/* 5. THE HEALTH EXPRESS ADVANTAGE */}
+      <HealthExpressAdvantage />
 
-      {/* WHAT HEALTH EXPRESS DOES & PATIENT JOURNEY -> One Connected Platform & 4-Step Journey */}
-      <HowItWorksSection onOpenUploadModal={onOpenUploadModal} />
-
-
-      {/* 1. WHO ARE YOU? -> Hero */}
-      <Sixpointsection />
- 
-      
- 
-  
-
-      {/* HEALTH RECORDS AND REPORTS */}
+      {/* 6. HEALTH RECORDS & SMART REPORTS */}
       <HealthRecordsSection />
 
-
-
-{/* HEALTH RECORDS AND REPORTS */}
+      {/* 7. PATIENT REVIEWS & TESTIMONIALS */}
       <Newreviewsection />
 
-
-
-
-
-      
- {/* HEALTH RECORDS AND REPORTS */}
+      {/* 8. FREQUENTLY ASKED QUESTIONS */}
       <Newfaqsection />
 
-      
- 
-
-
-{/* HEALTH LIBRARY -> Evidence-informed guides */}
+      {/* 9. HEALTH LIBRARY */}
       <HealthLibrarySection />
 
-
-
-{/* HEALTH LIBRARY -> Evidence-informed guides */}
-      <Homecontactsection />
-
-
-
-
-      {/* Floating Sticky Mobile WhatsApp CTA */}
+      {/* 10. FLOATING STICKY MOBILE CTA */}
       <StickyMobileCTA onOpenUploadModal={onOpenUploadModal} />
     </div>
   );
