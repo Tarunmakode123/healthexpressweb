@@ -1,30 +1,29 @@
 import React from 'react';
-import { Award, Clock, FileText, PhoneCall } from 'lucide-react';
 
 const FEATURES = [
   {
-    icon: Award,
+    image: '/images/trust-strip/nabl_accredited.svg',
     title: 'CAP & NABL',
     subtitle: 'Accredited Labs',
-    iconBg: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    iconBg: 'bg-emerald-50 border-emerald-200'
   },
   {
-    icon: Clock,
+    image: '/images/trust-strip/ontime_sample.svg',
     title: 'On-Time Sample',
     subtitle: 'Doorstep Collection',
-    iconBg: 'bg-amber-50 text-amber-700 border-amber-200'
+    iconBg: 'bg-amber-50 border-amber-200'
   },
   {
-    icon: FileText,
+    image: '/images/trust-strip/smart_reports.svg',
     title: 'Smart Reports',
     subtitle: 'Fast in 6 Hours',
-    iconBg: 'bg-blue-50 text-blue-700 border-blue-200'
+    iconBg: 'bg-blue-50 border-blue-200'
   },
   {
-    icon: PhoneCall,
+    image: '/images/trust-strip/doctor_consult.svg',
     title: 'Free Report',
     subtitle: 'Doctor Consultation',
-    iconBg: 'bg-purple-50 text-purple-700 border-purple-200'
+    iconBg: 'bg-purple-50 border-purple-200'
   }
 ];
 
@@ -46,26 +45,23 @@ export default function HealthiansTrustStrip() {
             </h3>
           </div>
 
-          {/* 4 Inline Features (Zero inner card boxes!) */}
+          {/* 4 Inline Features (With 100% Custom 3D Medical Icons) */}
           <div className="flex-1 w-full grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 items-center">
-            {FEATURES.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <div key={idx} className="flex items-center gap-2.5 sm:gap-3">
-                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs transition-transform hover:scale-105 ${item.iconBg}`}>
-                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+            {FEATURES.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2.5 sm:gap-3 group">
+                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs transition-transform duration-300 group-hover:scale-110 p-1.5 ${item.iconBg}`}>
+                  <img src={item.image} alt={item.title} className="w-full h-full object-contain filter drop-shadow-2xs select-none pointer-events-none" />
+                </div>
+                <div className="space-y-0.5 text-left min-w-0">
+                  <div className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight truncate">
+                    {item.title}
                   </div>
-                  <div className="space-y-0.5 text-left min-w-0">
-                    <div className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight truncate">
-                      {item.title}
-                    </div>
-                    <div className="text-[11px] sm:text-xs font-medium text-slate-500 truncate">
-                      {item.subtitle}
-                    </div>
+                  <div className="text-[11px] sm:text-xs font-medium text-slate-500 truncate">
+                    {item.subtitle}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
         </div>

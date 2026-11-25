@@ -1,0 +1,45 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="stopwatchCase" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="dialGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="speedOrange" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Speed Motion Trails behind stopwatch -->
+  <path d="M8 24 L20 24" stroke="url(#speedOrange)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M4 32 L16 32" stroke="url(#speedOrange)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M7 40 L19 40" stroke="url(#speedOrange)" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Top Crown Button -->
+  <rect x="33" y="6" width="6" height="6" rx="1.5" fill="#64748b"/>
+  <rect x="31" y="4" width="10" height="3" rx="1" fill="#94a3b8"/>
+  <rect x="44" y="11" width="5" height="3" rx="1" fill="#94a3b8" transform="rotate(45 44 11)"/>
+
+  <!-- Stopwatch Body -->
+  <circle cx="36" cy="34" r="20" fill="url(#stopwatchCase)" stroke="#64748b" stroke-width="1.5"/>
+  <circle cx="36" cy="34" r="16" fill="url(#dialGrad)" stroke="#f59e0b" stroke-width="1.5"/>
+
+  <!-- Dial Tick Marks -->
+  <line x1="36" y1="20" x2="36" y2="23" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+  <line x1="50" y1="34" x2="47" y2="34" stroke="#b45309" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="36" y1="48" x2="36" y2="45" stroke="#b45309" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="22" y1="34" x2="25" y2="34" stroke="#b45309" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Stopwatch Needle Hand (Pointing to top with speed arc) -->
+  <path d="M36 34 L43 23" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="36" cy="34" r="3" fill="#dc2626"/>
+  <circle cx="36" cy="34" r="1.2" fill="#ffffff"/>
+
+  <!-- Dial Glass Glare -->
+  <path d="M25 25 A15 15 0 0 1 45 23" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-opacity="0.8"/>
+</svg>

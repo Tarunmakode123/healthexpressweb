@@ -1,0 +1,59 @@
+<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vanBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f0f9ff"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+    <linearGradient id="vanCabin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="snowGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shadow -->
+  <ellipse cx="40" cy="71" rx="28" ry="4.5" fill="#000000" fill-opacity="0.12"/>
+
+  <!-- Van Cargo Body (Insulated Cold-Chain) -->
+  <rect x="14" y="26" width="34" height="34" rx="5" fill="url(#vanBody)" stroke="#0284c7" stroke-width="1.8"/>
+
+  <!-- Van Front Cabin -->
+  <path d="M48 35 L58 35 C62 35, 66 40, 66 45 L66 60 L48 60 Z" fill="url(#vanCabin)"/>
+  
+  <!-- Cabin Windshield -->
+  <path d="M50 38 L58 38 C60 38, 62 41, 62 44 L62 47 L50 47 Z" fill="#e0f2fe"/>
+
+  <!-- Cold-Chain Snowflake Badge on Cargo Box -->
+  <circle cx="31" cy="43" r="9" fill="#e0f2fe"/>
+  <!-- Snowflake branches -->
+  <line x1="31" y1="37" x2="31" y2="49" stroke="url(#snowGrad)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="25" y1="43" x2="37" y2="43" stroke="url(#snowGrad)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="27" y1="39" x2="35" y2="47" stroke="url(#snowGrad)" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="27" y1="47" x2="35" y2="39" stroke="url(#snowGrad)" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Medical Cross on Door -->
+  <rect x="56" y="50" width="2" height="6" rx="0.5" fill="#ef4444"/>
+  <rect x="54" y="52" width="6" height="2" rx="0.5" fill="#ef4444"/>
+
+  <!-- Headlight -->
+  <circle cx="65" cy="53" r="2" fill="#facc15"/>
+
+  <!-- 3D Wheels -->
+  <!-- Rear Wheel -->
+  <circle cx="26" cy="62" r="7" fill="#1e293b"/>
+  <circle cx="26" cy="62" r="3.5" fill="#94a3b8"/>
+  <circle cx="26" cy="62" r="1.5" fill="#ffffff"/>
+
+  <!-- Front Wheel -->
+  <circle cx="56" cy="62" r="7" fill="#1e293b"/>
+  <circle cx="56" cy="62" r="3.5" fill="#94a3b8"/>
+  <circle cx="56" cy="62" r="1.5" fill="#ffffff"/>
+
+  <!-- Speed Dust Streaks -->
+  <line x1="6" y1="62" x2="14" y2="62" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+  <line x1="10" y1="57" x2="16" y2="57" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
