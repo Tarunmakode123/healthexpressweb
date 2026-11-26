@@ -319,36 +319,35 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
           </div>
 
           {/* Heading */}
-       
-<h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-  Expert Home Nursing Care, <span className="text-purple-700">Right at Your Doorstep</span>
-</h2>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+            Expert Home Nursing Care, <span className="text-purple-700">Right at Your Doorstep</span>
+          </h2>
 
         </div>
 
         {/* Eye-Catching Styled Content Container */}
-        <div className="space-y-4 text-sm sm:text-base text-slate-700 font-medium leading-relaxed bg-gradient-to-br from-slate-50 via-white to-purple-50/30 p-6 sm:p-8 rounded-[2.5rem] border border-purple-100/80 shadow-[0_12px_35px_rgba(126,34,206,0.04)] text-left flex flex-col justify-center">
+        <div className="space-y-3.5 text-xs sm:text-sm text-slate-600 font-medium leading-relaxed bg-gradient-to-br from-slate-50 via-white to-purple-50/30 p-5 sm:p-6 rounded-3xl border border-purple-100/80 shadow-xs text-left flex flex-col justify-center">
           
           {/* Paragraph 1 */}
-          <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/80 border border-slate-100 shadow-2xs transition-all hover:border-purple-200">
-            <span className="w-2 h-2 rounded-full bg-purple-600 mt-2 shrink-0 shadow-xs" />
-            <p>
+          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/70 shadow-2xs transition-all hover:border-purple-200">
+            <span className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0 shadow-xs" />
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
               Finding the right support for a loved one can be <strong className="text-slate-900 font-bold">time-consuming</strong> — especially after a hospital stay, surgery, childbirth, illness or when an elderly family member needs help at home.
             </p>
           </div>
 
           {/* Paragraph 2 */}
-          <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/80 border border-slate-100 shadow-2xs transition-all hover:border-purple-200">
-            <span className="w-2 h-2 rounded-full bg-purple-600 mt-2 shrink-0 shadow-xs" />
-            <p>
+          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/70 shadow-2xs transition-all hover:border-purple-200">
+            <span className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0 shadow-xs" />
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
               <strong className="text-purple-900 font-extrabold">Health Express</strong> helps make the process simpler. Tell us about your care requirement, location, preferred duration and the type of support you need to coordinate suitable options.
             </p>
           </div>
 
           {/* Paragraph 3 */}
-          <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/80 border border-slate-100 shadow-2xs transition-all hover:border-purple-200">
-            <span className="w-2 h-2 rounded-full bg-purple-600 mt-2 shrink-0 shadow-xs" />
-            <p>
+          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-slate-200/70 shadow-2xs transition-all hover:border-purple-200">
+            <span className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0 shadow-xs" />
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
               From home nursing and elderly care to post-operative support, patient caregiving, and postpartum assistance, Health Express gives your family <strong className="text-slate-900 font-bold">one place to start</strong>.
             </p>
           </div>
