@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  X, Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, 
-  Calendar, Heart, Sparkles, MessageSquare, ShieldCheck, ArrowRight, RefreshCw 
+  X, MessageSquare, ShieldCheck, ArrowRight, RefreshCw 
 } from 'lucide-react';
 import { CALCULATORS } from '../../data/calculators';
 import { openWhatsApp } from '../../utils/whatsapp';
-
-const iconMap = {
-  Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, Calendar, Heart, Sparkles
-};
+import CalculatorIcon from './CalculatorIcons';
 
 export default function CalculatorModal({ isOpen, calculatorSlug, onClose }) {
   const [currentCalc, setCurrentCalc] = useState(null);
@@ -34,8 +30,6 @@ export default function CalculatorModal({ isOpen, calculatorSlug, onClose }) {
   }, [currentCalc]);
 
   if (!isOpen || !currentCalc) return null;
-
-  const IconComp = iconMap[currentCalc.iconName] || Scale;
 
   const handleInputChange = (id, val) => {
     setFormValues(prev => ({ ...prev, [id]: val }));
@@ -65,8 +59,8 @@ export default function CalculatorModal({ isOpen, calculatorSlug, onClose }) {
         {/* Modal Header */}
         <div className="p-5 sm:p-6 bg-gradient-to-r from-purple-900 via-slate-900 to-purple-950 text-white flex items-center justify-between shrink-0 shadow-md">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-purple-700/80 border border-purple-500/40 flex items-center justify-center text-purple-200 shrink-0">
-              <IconComp className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-purple-400/30 p-1.5 flex items-center justify-center shrink-0 shadow-inner">
+              <CalculatorIcon slug={currentCalc.slug} className="w-8 h-8" />
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-purple-800/80 text-purple-200 border border-purple-600/40">

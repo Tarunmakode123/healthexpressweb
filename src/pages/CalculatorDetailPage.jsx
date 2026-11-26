@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
-  Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, 
-  Calendar, Heart, Sparkles, ChevronRight, ShieldCheck, MessageSquare, 
+  ChevronRight, ShieldCheck, MessageSquare, 
   ArrowRight, BookOpen, ExternalLink, PhoneCall
 } from 'lucide-react';
 import { CALCULATORS, getCalculatorBySlug } from '../data/calculators';
 import { openWhatsApp } from '../utils/whatsapp';
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
-
-const iconMap = {
-  Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, Calendar, Heart, Sparkles
-};
+import CalculatorIcon from '../components/common/CalculatorIcons';
 
 export default function CalculatorDetailPage({ onOpenUploadModal }) {
   const { slug } = useParams();
@@ -28,8 +24,6 @@ export default function CalculatorDetailPage({ onOpenUploadModal }) {
       setFormValues(initial);
     }
   }, [calculator]);
-
-  const IconComp = iconMap[calculator.iconName] || Scale;
 
   const handleInputChange = (id, val) => {
     setFormValues(prev => ({ ...prev, [id]: val }));
@@ -62,9 +56,9 @@ export default function CalculatorDetailPage({ onOpenUploadModal }) {
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-purple-100 shadow-xl shadow-purple-900/5 space-y-4">
           <DiscountHeroBanner />
 
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-700/20">
-              <IconComp className="w-6 h-6" />
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-purple-50/80 border border-purple-100 p-2.5 flex items-center justify-center shrink-0 shadow-md">
+              <CalculatorIcon slug={calculator.slug} className="w-11 h-11" />
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">

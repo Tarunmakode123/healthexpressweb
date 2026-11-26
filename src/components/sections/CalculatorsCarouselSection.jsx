@@ -1,14 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Sparkles, ArrowRight, Scale, Flame, Zap, Target, Activity, Droplet, 
-  HeartPulse, Calendar, Heart, ChevronLeft, ChevronRight, Calculator 
+  Sparkles, ArrowRight, ChevronLeft, ChevronRight, Calculator 
 } from 'lucide-react';
 import { CALCULATORS, CALCULATOR_CATEGORIES } from '../../data/calculators';
-
-const iconMap = {
-  Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, Calendar, Heart, Sparkles
-};
+import CalculatorIcon from '../common/CalculatorIcons';
 
 export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -143,8 +139,6 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {filteredCalculators.map((calc) => {
-            const IconComponent = iconMap[calc.iconName] || Calculator;
-
             return (
               <div
                 key={calc.id}
@@ -153,8 +147,8 @@ export default function CalculatorsCarouselSection({ onOpenCalculatorModal }) {
               >
                 <div className="space-y-4 flex-1 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-colors shadow-2xs">
-                      <IconComponent className="w-6 h-6" />
+                    <div className="w-13 h-13 rounded-2xl bg-purple-50/70 border border-purple-100 p-2 flex items-center justify-center group-hover:bg-purple-100/80 group-hover:scale-105 transition-all shadow-2xs">
+                      <CalculatorIcon slug={calc.slug} className="w-9 h-9" />
                     </div>
                     <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-50 text-purple-800 border border-purple-100">
                       {calc.categoryName}

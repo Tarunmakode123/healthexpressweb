@@ -7,14 +7,22 @@ import {
   CALCULATORS, CALCULATOR_CATEGORIES 
 } from '../data/calculators';
 import { 
-  Search, Sparkles, ArrowRight, ShieldCheck, CheckCircle2, ChevronRight, Calculator,
-  Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, Calendar, Heart
+  Search, Sparkles, ArrowRight, ShieldCheck, CheckCircle2, ChevronRight, Calculator
 } from 'lucide-react';
+import CalculatorIcon, {
+  CategoryAllToolsIcon,
+  CategoryBodyFitnessIcon,
+  CategoryHeartHealthIcon,
+  CategoryWomensHealthIcon
+} from '../components/common/CalculatorIcons';
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
 import PageHeroBanner from '../components/common/PageHeroBanner';
 
-const iconMap = {
-  Scale, Flame, Zap, Target, Activity, Droplet, HeartPulse, Calendar, Heart, Sparkles
+const categoryIconMap = {
+  'all': CategoryAllToolsIcon,
+  'body-fitness': CategoryBodyFitnessIcon,
+  'heart-health': CategoryHeartHealthIcon,
+  'womens-health': CategoryWomensHealthIcon,
 };
 
 export default function HealthCalculatorsPage({ onOpenCalculatorModal }) {
@@ -83,27 +91,30 @@ export default function HealthCalculatorsPage({ onOpenCalculatorModal }) {
         <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 no-scrollbar">
           <button
             onClick={() => setActiveCategory('all')}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer ${
+            className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               activeCategory === 'all'
                 ? 'bg-purple-700 text-white shadow-md scale-105'
                 : 'bg-white hover:bg-purple-50 text-slate-700 border border-slate-200'
             }`}
           >
-            All Tools ({CALCULATORS.length})
+            <CategoryAllToolsIcon className="w-3.5 h-3.5" />
+            <span>All Tools ({CALCULATORS.length})</span>
           </button>
 
           {CALCULATOR_CATEGORIES.map((cat) => {
             const count = CALCULATORS.filter(c => c.category === cat.id).length;
+            const CatIcon = categoryIconMap[cat.id];
             return (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                   activeCategory === cat.id
                     ? 'bg-purple-700 text-white shadow-md scale-105'
                     : 'bg-white hover:bg-purple-50 text-slate-700 border border-slate-200'
                 }`}
               >
+                {CatIcon && <CatIcon className="w-3.5 h-3.5" />}
                 <span>{cat.name} ({count})</span>
               </button>
             );
@@ -122,32 +133,34 @@ export default function HealthCalculatorsPage({ onOpenCalculatorModal }) {
         {/* TOOL CARDS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCalculators.map((calc) => {
-            const IconComp = iconMap[calc.iconName] || Calculator;
-
             return (
               <div 
                 key={calc.id}
-                className="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-purple-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left group"
+                className="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-purple-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-left group hover:-translate-y-1"
               >
                 <div className="space-y-4">
                   
-                  {/* Badge & Category */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] uppercase font-black px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
-                      <IconComp className="w-3 h-3" />
-                      {calc.categoryName}
-                    </span>
+                  {/* Card Header: Bespoke Vector Icon & Badges */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-50/50 border border-purple-100/80 p-2 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-purple-100/60 group-hover:border-purple-200 group-hover:shadow-md transition-all duration-300">
+                      <CalculatorIcon slug={calc.slug} className="w-10 h-10" />
+                    </div>
 
-                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Free Tool
-                    </span>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                        Free Tool
+                      </span>
+                      <span className="text-[10px] uppercase font-black px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                        {calc.categoryName}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Title & Desc */}
                   <div>
                     <Link 
                       to={`/health-calculators/${calc.slug}`}
-                      className="text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors line-clamp-1"
+                      className="text-lg font-bold text-slate-900 group-hover:text-purple-900 transition-colors line-clamp-1 block"
                     >
                       {calc.title}
                     </Link>
