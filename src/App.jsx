@@ -131,6 +131,7 @@ function MainLayout() {
             <Route path="/" element={<HomePage onOpenUploadModal={handleOpenUploadModal} onOpenCalculatorModal={handleOpenCalcModal} />} />
             <Route path="/services" element={<ServicesPage onOpenUploadModal={handleOpenUploadModal} />} />
             <Route path="/home-nursing-care" element={<HomeNursingCarePage onOpenUploadModal={handleOpenUploadModal} />} />
+            <Route path="/home-nursing" element={<Navigate to="/home-nursing-care" replace />} />
             <Route path="/services/:slug" element={<ServiceDetailPage onOpenUploadModal={handleOpenUploadModal} />} />
             <Route path="/surgeries" element={<SurgeriesPage onOpenUploadModal={handleOpenUploadModal} />} />
             <Route path="/surgeries/:slug" element={<SurgeryDetailPage onOpenUploadModal={handleOpenUploadModal} />} />

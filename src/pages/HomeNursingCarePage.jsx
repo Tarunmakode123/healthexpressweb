@@ -8,19 +8,42 @@ import {
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import PageHeroBanner from '../components/common/PageHeroBanner';
+import {
+  InjectionNursingIcon,
+  IvDripNursingIcon,
+  WoundDressingNursingIcon,
+  CatheterCareNursingIcon,
+  NebulizationNursingIcon,
+  VitalChecksNursingIcon,
+  BloodSugarNursingIcon,
+  BloodPressureNursingIcon,
+  SampleCollectionNursingIcon,
+  MedicationNursingIcon,
+  ClinicalNursingCareIcon,
+  PostHospitalRecoveryIcon,
+  PostOperativeCareIcon,
+  ElderlyCareIcon,
+  BedsideCaregiverIcon,
+  RespiteCareIcon,
+  JapaCaregiverIcon,
+  DementiaCareProgramIcon,
+  CompanionCareProgramIcon,
+  DisabilityCareProgramIcon,
+  LiveInCareProgramIcon
+} from '../components/common/NursingIcons';
 
 // 10 On-Demand Home Health Care Needs for Carousel 1
 const ON_DEMAND_SERVICES = [
-  { id: 'injection', title: 'Injection Administration', desc: 'Single dose IM/IV/SC injections administered by trained staff.', icon: Syringe },
-  { id: 'iv-drip', title: 'IV Drip / Infusion', desc: 'Saline, IV fluids, and prescribed intravenous infusion administration.', icon: Activity },
-  { id: 'dressing', title: 'Dressing Change', desc: 'Sterile surgical wound care, bed leg ulcers, and burn dressing changes.', icon: ShieldCheck },
-  { id: 'catheter', title: 'Catheter-Related Care', desc: 'Foley catheter insertion, flushing, bag change, and hygiene care.', icon: Stethoscope },
-  { id: 'nebulization', title: 'Nebulization', desc: 'Inhalation therapy and respiratory nebulizer administration at home.', icon: Activity },
-  { id: 'vitals', title: 'Vital Checks', desc: 'Comprehensive monitoring of Pulse, SpO2, Temperature, and Respiration.', icon: Heart },
-  { id: 'blood-sugar', title: 'Blood Sugar Check', desc: 'Fasting and postprandial glucose level check with glucometer.', icon: Droplet },
-  { id: 'bp-check', title: 'Blood Pressure Check', desc: 'Digital and manual BP monitoring with record keeping.', icon: Activity },
-  { id: 'sample-col', title: 'Sample Collection', desc: 'Home blood, urine, and specimen collection for lab testing.', icon: TestTube },
-  { id: 'medication', title: 'Medication Administration', desc: 'Oral, topical, and scheduled prescription drug administration.', icon: Pill }
+  { id: 'injection', title: 'Injection Administration', desc: 'Single dose IM/IV/SC injections administered by trained staff.', icon: InjectionNursingIcon },
+  { id: 'iv-drip', title: 'IV Drip / Infusion', desc: 'Saline, IV fluids, and prescribed intravenous infusion administration.', icon: IvDripNursingIcon },
+  { id: 'dressing', title: 'Dressing Change', desc: 'Sterile surgical wound care, bed leg ulcers, and burn dressing changes.', icon: WoundDressingNursingIcon },
+  { id: 'catheter', title: 'Catheter-Related Care', desc: 'Foley catheter insertion, flushing, bag change, and hygiene care.', icon: CatheterCareNursingIcon },
+  { id: 'nebulization', title: 'Nebulization', desc: 'Inhalation therapy and respiratory nebulizer administration at home.', icon: NebulizationNursingIcon },
+  { id: 'vitals', title: 'Vital Checks', desc: 'Comprehensive monitoring of Pulse, SpO2, Temperature, and Respiration.', icon: VitalChecksNursingIcon },
+  { id: 'blood-sugar', title: 'Blood Sugar Check', desc: 'Fasting and postprandial glucose level check with glucometer.', icon: BloodSugarNursingIcon },
+  { id: 'bp-check', title: 'Blood Pressure Check', desc: 'Digital and manual BP monitoring with record keeping.', icon: BloodPressureNursingIcon },
+  { id: 'sample-col', title: 'Sample Collection', desc: 'Home blood, urine, and specimen collection for lab testing.', icon: SampleCollectionNursingIcon },
+  { id: 'medication', title: 'Medication Administration', desc: 'Oral, topical, and scheduled prescription drug administration.', icon: MedicationNursingIcon }
 ];
 
 // Running Carousel / Strip Items
@@ -28,22 +51,26 @@ const RUNNING_CARE_STRIP = [
   {
     id: 'dementia',
     title: 'Dementia Care',
-    desc: 'Focused on safety, daily routines, companionship and family support.'
+    desc: 'Focused on safety, daily routines, companionship and family support.',
+    icon: DementiaCareProgramIcon
   },
   {
     id: 'companion',
     title: 'Companion Care',
-    desc: 'Non-medical companionship and everyday assistance.'
+    desc: 'Non-medical companionship and everyday assistance.',
+    icon: CompanionCareProgramIcon
   },
   {
     id: 'disability',
     title: 'Disability Care',
-    desc: 'Personalized home support helping with daily activities, mobility and independent living.'
+    desc: 'Personalized home support helping with daily activities, mobility and independent living.',
+    icon: DisabilityCareProgramIcon
   },
   {
     id: 'livein',
     title: 'Live-In Care',
-    desc: 'Extended support for individuals who need ongoing assistance and supervision at home.'
+    desc: 'Extended support for individuals who need ongoing assistance and supervision at home.',
+    icon: LiveInCareProgramIcon
   }
 ];
 
@@ -226,8 +253,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
                   className="min-w-[240px] max-w-[260px] bg-slate-50 rounded-2xl p-4 border border-slate-200/90 hover:border-purple-300 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
                 >
                   <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <IconComp className="w-5 h-5" />
+                    <div className="w-11 h-11 rounded-xl p-0.5 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <IconComp className="w-10 h-10" />
                     </div>
                     <div>
                       <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-purple-900 transition-colors">
@@ -369,8 +396,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-purple-300 transition-all space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
-                  <Stethoscope className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                  <ClinicalNursingCareIcon className="w-12 h-12" />
                 </div>
                 <h4 className="text-base font-extrabold text-slate-900">Home Nursing Care</h4>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -379,8 +406,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
               </div>
 
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-purple-300 transition-all space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
-                  <Activity className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                  <PostHospitalRecoveryIcon className="w-12 h-12" />
                 </div>
                 <h4 className="text-base font-extrabold text-slate-900">Post-Hospital & Recovery Care</h4>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -389,8 +416,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
               </div>
 
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-purple-300 transition-all space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                  <PostOperativeCareIcon className="w-12 h-12" />
                 </div>
                 <h4 className="text-base font-extrabold text-slate-900">Post-Operative Care at Home</h4>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -413,8 +440,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-purple-300 transition-all space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
-                  <Users className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                  <ElderlyCareIcon className="w-12 h-12" />
                 </div>
                 <h4 className="text-base font-extrabold text-slate-900">Elderly Care</h4>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -423,8 +450,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
               </div>
 
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-purple-300 transition-all space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
-                  <UserCheck className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                  <BedsideCaregiverIcon className="w-12 h-12" />
                 </div>
                 <h4 className="text-base font-extrabold text-slate-900">Patient Caregivers</h4>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -433,8 +460,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
               </div>
 
               <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-purple-300 transition-all space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center">
-                  <Heart className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                  <RespiteCareIcon className="w-12 h-12" />
                 </div>
                 <h4 className="text-base font-extrabold text-slate-900">Respite Care - Care for Caregivers</h4>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -468,8 +495,8 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
 
             <div className="bg-gradient-to-r from-purple-50 to-pink-50/50 rounded-3xl p-6 sm:p-8 border border-purple-200 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-800 text-white flex items-center justify-center shrink-0">
-                  <Baby className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0">
+                  <JapaCaregiverIcon className="w-14 h-14" />
                 </div>
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded">
@@ -542,38 +569,45 @@ export default function HomeNursingCarePage({ onOpenUploadModal }) {
 
     {/* Cards Grid */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {RUNNING_CARE_STRIP.map((strip) => (
-        <div
-          key={strip.id}
-          className="bg-purple-900/40 hover:bg-purple-900/80 backdrop-blur-md p-7 rounded-3xl border border-purple-700/50 
-                     shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] 
-                     hover:border-purple-400 
-                     hover:shadow-[0_20px_50px_-10px_rgba(168,85,247,0.4)] 
-                     transition-all duration-500 space-y-3 text-left group transform hover:-translate-y-1.5"
-        >
-          {/* Animated Icon Area */}
-          <div className="w-12 h-12 rounded-2xl bg-purple-800/80 border border-purple-600/60 flex items-center justify-center text-purple-200 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500 shadow-inner group-hover:scale-105">
-            <svg 
-              className="w-6 h-6 transition-transform duration-500 group-hover:rotate-[360deg]" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
+      {RUNNING_CARE_STRIP.map((strip) => {
+        const StripIcon = strip.icon;
+        return (
+          <div
+            key={strip.id}
+            className="bg-purple-900/40 hover:bg-purple-900/80 backdrop-blur-md p-7 rounded-3xl border border-purple-700/50 
+                       shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] 
+                       hover:border-purple-400 
+                       hover:shadow-[0_20px_50px_-10px_rgba(168,85,247,0.4)] 
+                       transition-all duration-500 space-y-3 text-left group transform hover:-translate-y-1.5"
+          >
+            {/* Animated Icon Area */}
+            <div className="w-12 h-12 rounded-2xl bg-purple-800/80 border border-purple-600/60 flex items-center justify-center text-purple-200 group-hover:bg-purple-600 group-hover:text-white transition-all duration-500 shadow-inner group-hover:scale-105">
+              {StripIcon ? (
+                <StripIcon className="w-6 h-6 transition-transform duration-500 group-hover:scale-110" />
+              ) : (
+                <svg 
+                  className="w-6 h-6 transition-transform duration-500 group-hover:rotate-[360deg]" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
 
-          <h4 className="text-lg font-black text-white tracking-tight group-hover:text-purple-200 transition-colors duration-300 pt-1">
-            {strip.title}
-          </h4>
-          <p className="text-sm text-purple-200/90 leading-relaxed font-medium">
-            {strip.desc}
-          </p>
-          
-          {/* Decorative hover line */}
-          <div className="h-1 w-0 bg-gradient-to-r from-purple-400 to-indigo-300 rounded-full group-hover:w-full transition-all duration-500 mt-4"></div>
-        </div>
-      ))}
+            <h4 className="text-lg font-black text-white tracking-tight group-hover:text-purple-200 transition-colors duration-300 pt-1">
+              {strip.title}
+            </h4>
+            <p className="text-sm text-purple-200/90 leading-relaxed font-medium">
+              {strip.desc}
+            </p>
+            
+            {/* Decorative hover line */}
+            <div className="h-1 w-0 bg-gradient-to-r from-purple-400 to-indigo-300 rounded-full group-hover:w-full transition-all duration-500 mt-4"></div>
+          </div>
+        );
+      })}
     </div>
 
   </div>
