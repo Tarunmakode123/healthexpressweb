@@ -391,17 +391,6 @@ export default function Navbar({ onOpenUploadModal }) {
                 </div>
               </a>
 
-              {/* WhatsApp Quick Contact */}
-              {!showCustomerAccount && (
-                <button
-                  onClick={() => openWhatsApp(DEFAULT_MESSAGES.general)}
-                  className="font-bold text-slate-700 hover:text-emerald-700 px-2.5 py-1.5 rounded-xl hover:bg-emerald-50 transition-colors flex items-center gap-1.5"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>WhatsApp Us</span>
-                </button>
-              )}
-
               {/* Logged-in Account Dropdown vs Logged-out Sign In */}
               {showCustomerAccount ? (
                 <div className="relative">
