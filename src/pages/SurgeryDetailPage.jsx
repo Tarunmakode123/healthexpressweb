@@ -7,6 +7,7 @@ import {
 import { getSurgeryBySlug } from '../data/surgeries';
 import { openWhatsApp } from '../utils/whatsapp';
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+import { SurgeryCategoryIcon } from '../components/common/SurgeryIcons';
 
 export default function SurgeryDetailPage({ onOpenUploadModal }) {
   const { slug } = useParams();
@@ -35,8 +36,9 @@ export default function SurgeryDetailPage({ onOpenUploadModal }) {
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
-                {surgery.category}
+              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1.5">
+                <SurgeryCategoryIcon category={surgery.category} className="w-3.5 h-3.5 shrink-0" />
+                <span>{surgery.category}</span>
               </span>
               <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80">
                 🏥 Custom Estimate & Insurance Assistance

@@ -12,6 +12,13 @@ import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import { HEALTH_MANAGER_PHONE } from '../config/constants';
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
 import PageHeroBanner from '../components/common/PageHeroBanner';
+import SurgerySpecialityIcon, {
+  SurgeryCategoryIcon,
+  SpecialistMatchIcon,
+  HospitalCompareIcon,
+  CostTransparencyIcon,
+  CareDeskCoordinationIcon
+} from '../components/common/SurgeryIcons';
 
 const iconMap = {
   Bone, Activity, Heart, Brain, Stethoscope, Shield, ShieldAlert, 
@@ -70,15 +77,14 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
           {/* 16 Clean Interactive Cards Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {SURGERY_SPECIALITIES.map((spec) => {
-              const IconComp = iconMap[spec.iconName] || Stethoscope;
               return (
                 <div
                   key={spec.id}
                   onClick={() => setSelectedSpeciality(spec)}
                   className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 hover:border-purple-300 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col items-start justify-between group space-y-3"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-colors">
-                    <IconComp className="w-5 h-5" />
+                  <div className="w-11 h-11 rounded-xl bg-purple-50 p-1 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-purple-100 transition-all shadow-2xs">
+                    <SurgerySpecialityIcon id={spec.id} name={spec.name} className="w-9 h-9" />
                   </div>
                   
                   <div className="w-full space-y-1.5">
@@ -140,8 +146,8 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Pillar 1 */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                <UserCheck className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 p-1 flex items-center justify-center shrink-0">
+                <SpecialistMatchIcon className="w-10 h-10" />
               </div>
               <h3 className="text-base font-extrabold text-slate-900">Find the Right Specialist</h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
@@ -151,8 +157,8 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
 
             {/* Pillar 2 */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                <Building2 className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-2xl bg-sky-50 p-1 flex items-center justify-center shrink-0">
+                <HospitalCompareIcon className="w-10 h-10" />
               </div>
               <h3 className="text-base font-extrabold text-slate-900">Explore Hospital Options</h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
@@ -162,8 +168,8 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
 
             {/* Pillar 3 */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 p-1 flex items-center justify-center shrink-0">
+                <CostTransparencyIcon className="w-10 h-10" />
               </div>
               <h3 className="text-base font-extrabold text-slate-900">Understand Treatment Costs</h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
@@ -173,8 +179,8 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
 
             {/* Pillar 4 */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                <Clock className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 p-1 flex items-center justify-center shrink-0">
+                <CareDeskCoordinationIcon className="w-10 h-10" />
               </div>
               <h3 className="text-base font-extrabold text-slate-900">Coordinate Your Care</h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
@@ -217,7 +223,10 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-base font-extrabold text-purple-900">{catGroup.category}</h3>
+                    <div className="flex items-center gap-2.5">
+                      <SurgeryCategoryIcon category={catGroup.category} className="w-6 h-6 shrink-0" />
+                      <h3 className="text-base font-extrabold text-purple-900">{catGroup.category}</h3>
+                    </div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
                       {catGroup.items.length} Procedures
                     </span>
@@ -344,8 +353,8 @@ export default function SurgeriesPage({ onOpenUploadModal }) {
 
             {/* Header */}
             <div className="flex items-start gap-4 pr-8">
-              <div className="w-14 h-14 rounded-2xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-700/20">
-                {React.createElement(iconMap[selectedSpeciality.iconName] || Stethoscope, { className: 'w-7 h-7' })}
+              <div className="w-14 h-14 rounded-2xl bg-purple-50 p-2 flex items-center justify-center shrink-0 shadow-md border border-purple-100">
+                <SurgerySpecialityIcon id={selectedSpeciality.id} name={selectedSpeciality.name} className="w-10 h-10" />
               </div>
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200">
