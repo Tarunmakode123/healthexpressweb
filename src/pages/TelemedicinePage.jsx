@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 import { Stethoscope, Video, MessageSquare, Clock, ShieldCheck, Sparkles, Send, CheckCircle2, ArrowRight, AlertCircle, Phone, MapPin, Award, Star } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import PageHeroBanner from '../components/common/PageHeroBanner';
+import {
+  HdVideoConsultIcon,
+  LabIntegrationIcon,
+  DigitalPrescriptionVaultIcon,
+  GeneralMedicineSpecialtyIcon,
+  DiabetologySpecialtyIcon,
+  CardiologySpecialtyIcon,
+  DermatologySpecialtyIcon,
+  DoctorSpecialtyIcon
+} from '../components/common/TelemedicineIcons';
 
 export default function TelemedicinePage() {
   const [formData, setFormData] = useState({ name: '', phone: '', specialty: 'General Physician', details: '' });
@@ -94,20 +104,20 @@ export default function TelemedicinePage() {
                 Specialties Handled
               </h4>
               <div className="grid grid-cols-2 gap-2.5 text-xs font-bold text-slate-700">
-                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-purple-700 shrink-0" />
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2.5 shadow-2xs">
+                  <GeneralMedicineSpecialtyIcon className="w-5 h-5 shrink-0" />
                   <span>General Medicine</span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-purple-700 shrink-0" />
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2.5 shadow-2xs">
+                  <DiabetologySpecialtyIcon className="w-5 h-5 shrink-0" />
                   <span>Diabetology & Lipid</span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-purple-700 shrink-0" />
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2.5 shadow-2xs">
+                  <CardiologySpecialtyIcon className="w-5 h-5 shrink-0" />
                   <span>Cardiology Second Opinion</span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-purple-700 shrink-0" />
+                <div className="p-3 rounded-2xl bg-white border border-slate-200/80 flex items-center gap-2.5 shadow-2xs">
+                  <DermatologySpecialtyIcon className="w-5 h-5 shrink-0" />
                   <span>Dermatology & Skin</span>
                 </div>
               </div>
@@ -138,16 +148,16 @@ export default function TelemedicinePage() {
               </div>
 
               <div className="space-y-2.5 pt-2 border-t border-purple-800/80">
-                <div className="flex items-center gap-2 text-xs font-bold text-purple-100">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                <div className="flex items-center gap-2.5 text-xs font-bold text-purple-100">
+                  <HdVideoConsultIcon className="w-4 h-4 shrink-0 text-amber-400" />
                   <span>1-on-1 HD Video & Audio Consultations</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-purple-100">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                <div className="flex items-center gap-2.5 text-xs font-bold text-purple-100">
+                  <LabIntegrationIcon className="w-4 h-4 shrink-0 text-amber-400" />
                   <span>NABL Lab Test Order Direct Integration</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-purple-100">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                <div className="flex items-center gap-2.5 text-xs font-bold text-purple-100">
+                  <DigitalPrescriptionVaultIcon className="w-4 h-4 shrink-0 text-amber-400" />
                   <span>Verified E-Prescriptions Saved to Health Vault</span>
                 </div>
               </div>
@@ -230,9 +240,12 @@ export default function TelemedicinePage() {
                 </div>
 
                 <div className="p-5 flex flex-col flex-grow text-left space-y-2">
-                  <span className="text-xs font-bold text-purple-700 uppercase tracking-wide">
-                    {doc.designation}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <DoctorSpecialtyIcon designation={doc.designation} className="w-4 h-4 shrink-0" />
+                    <span className="text-xs font-bold text-purple-700 uppercase tracking-wide">
+                      {doc.designation}
+                    </span>
+                  </div>
 
                   <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
                     {doc.name}
