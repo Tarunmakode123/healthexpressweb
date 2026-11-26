@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { 
   Building2, ShieldCheck, TrendingUp, Handshake, Send, Mail, CheckCircle2, 
-  MessageSquare, Sparkles, Zap, FlaskConical, Camera, Home, Dna, ArrowRight, Activity, Clock, Pill, HeartPulse
+  MessageSquare, Sparkles, Zap, ArrowRight, Activity, Clock
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import CitySearchSelect from '../components/common/CitySearchSelect';
+import {
+  ProviderLabIcon, ProviderImagingIcon, ProviderNursingIcon, ProviderPharmacyIcon,
+  ProviderPreventiveIcon, ProviderGenomicsIcon, ProviderClinicIcon,
+  ZeroCacIcon, CareManagerPartnerIcon, PartnerTrustBadgeIcon,
+  DispatchClockIcon, ColdChainTempIcon, ZeroFeeIcon, Desk247Icon
+} from '../components/common/ProviderIcons';
 
 export default function ProvidersPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -25,7 +31,7 @@ export default function ProvidersPage() {
   const providerTypesData = [
     {
       id: 'Diagnostic Lab',
-      icon: FlaskConical,
+      icon: ProviderLabIcon,
       title: 'Diagnostic Laboratories & Pathology',
       highlight: 'Home Sample Collection Logistics & Automated Digital Reporting',
       benefits: [
@@ -36,7 +42,7 @@ export default function ProvidersPage() {
     },
     {
       id: 'Imaging Center',
-      icon: Camera,
+      icon: ProviderImagingIcon,
       title: 'Imaging & Radiology Centers',
       highlight: 'Prioritized Appointment Scheduling & Fast DICOM Delivery',
       benefits: [
@@ -47,7 +53,7 @@ export default function ProvidersPage() {
     },
     {
       id: 'Home Nursing Agency',
-      icon: Home,
+      icon: ProviderNursingIcon,
       title: 'Home Healthcare & Nursing Agencies',
       highlight: 'Continuous Care Deployment & Verified Nurse Matching',
       benefits: [
@@ -58,7 +64,7 @@ export default function ProvidersPage() {
     },
     {
       id: 'Pharmacy Partner',
-      icon: Pill,
+      icon: ProviderPharmacyIcon,
       title: 'Medicines & Pharmacy Partners',
       highlight: 'Prescription Order Fulfillment & Express Local Delivery',
       benefits: [
@@ -69,7 +75,7 @@ export default function ProvidersPage() {
     },
     {
       id: 'Preventive Health',
-      icon: HeartPulse,
+      icon: ProviderPreventiveIcon,
       title: 'Preventive Health & Wellness Centers',
       highlight: 'Comprehensive Health Screening & Executive Packages',
       benefits: [
@@ -80,7 +86,7 @@ export default function ProvidersPage() {
     },
     {
       id: 'Genomics Lab',
-      icon: Dna,
+      icon: ProviderGenomicsIcon,
       title: 'Genomics & Precision Medicine Labs',
       highlight: 'Saliva & Blood Specimen Logistics & Genetic Counselor Review',
       benefits: [
@@ -91,7 +97,7 @@ export default function ProvidersPage() {
     },
     {
       id: 'Specialist Clinic',
-      icon: Activity,
+      icon: ProviderClinicIcon,
       title: 'Specialist & Surgical Guidance Centers',
       highlight: 'Coordinated Surgical Guidance & Patient Referral Routing',
       benefits: [
@@ -162,24 +168,44 @@ export default function ProvidersPage() {
 
         {/* Live Partner Telemetry Metrics Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-1 text-center">
-            <div className="text-2xl font-black text-purple-900">30 Mins</div>
-            <div className="text-[11px] font-extrabold text-slate-500 uppercase">Avg Phlebotomist Dispatch</div>
+          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-2 text-center flex flex-col items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center">
+              <DispatchClockIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-purple-900">30 Mins</div>
+              <div className="text-[11px] font-extrabold text-slate-500 uppercase">Avg Phlebotomist Dispatch</div>
+            </div>
           </div>
 
-          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-1 text-center">
-            <div className="text-2xl font-black text-emerald-700">100%</div>
-            <div className="text-[11px] font-extrabold text-slate-500 uppercase">Cold-Chain Temperature Log</div>
+          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-2 text-center flex flex-col items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center">
+              <ColdChainTempIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-emerald-700">100%</div>
+              <div className="text-[11px] font-extrabold text-slate-500 uppercase">Cold-Chain Temperature Log</div>
+            </div>
           </div>
 
-          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-1 text-center">
-            <div className="text-2xl font-black text-purple-900">0%</div>
-            <div className="text-[11px] font-extrabold text-slate-500 uppercase">Partner Setup Fee</div>
+          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-2 text-center flex flex-col items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
+              <ZeroFeeIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-purple-900">0%</div>
+              <div className="text-[11px] font-extrabold text-slate-500 uppercase">Partner Setup Fee</div>
+            </div>
           </div>
 
-          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-1 text-center">
-            <div className="text-2xl font-black text-emerald-700">24/7</div>
-            <div className="text-[11px] font-extrabold text-slate-500 uppercase">Dedicated Care Desk</div>
+          <div className="glass-card p-5 rounded-3xl border border-purple-200/80 shadow-sm space-y-2 text-center flex flex-col items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-sky-100 flex items-center justify-center">
+              <Desk247Icon className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-emerald-700">24/7</div>
+              <div className="text-[11px] font-extrabold text-slate-500 uppercase">Dedicated Care Desk</div>
+            </div>
           </div>
         </div>
 
@@ -213,13 +239,13 @@ export default function ProvidersPage() {
                     setActiveProviderType(pt.id);
                     setFormData(prev => ({ ...prev, providerType: pt.id }));
                   }}
-                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2.5 ${
                     isSelected
                       ? 'bg-purple-900 text-white border-purple-800 shadow-md scale-105'
                       : 'bg-white hover:bg-purple-50 text-slate-900 border-purple-100'
                   }`}
                 >
-                  <IconComp className={`w-5 h-5 ${isSelected ? 'text-emerald-400' : 'text-purple-700'}`} />
+                  <IconComp className="w-6 h-6" isSelected={isSelected} />
                   <div className="text-[11px] font-extrabold leading-tight">{pt.id}</div>
                 </button>
               );
@@ -247,7 +273,7 @@ export default function ProvidersPage() {
         </div>
 
         {/* Interactive Partner Capacity Calculator */}
-        <div className="max-w-4xl mx-auto glass-card p-6 md:p-8 rounded-3xl border border-purple-200 shadow-lg space-y-6">
+        <div className="max-w-5xl mx-auto glass-card p-6 md:p-8 rounded-3xl border border-purple-200 shadow-lg space-y-6">
           <div className="flex items-center justify-between border-b border-purple-100 pb-3">
             <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-600" />
@@ -287,33 +313,33 @@ export default function ProvidersPage() {
         </div>
 
         {/* Benefits Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           
-          <div className="bento-card p-8 rounded-3xl border border-purple-200 shadow-sm space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md">
-              <TrendingUp className="w-6 h-6" />
+          <div className="bento-card p-7 rounded-3xl border border-purple-200 shadow-sm space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center shadow-xs">
+              <ZeroCacIcon className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900">Zero Customer Acquisition Cost</h3>
+            <h3 className="text-lg font-extrabold text-slate-900 leading-snug">Zero Customer Acquisition Cost</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Health Express drives patient volume directly to your lab, nursing unit, or pharmacy without expensive marketing expenditure.
             </p>
           </div>
 
-          <div className="bento-card p-8 rounded-3xl border border-purple-200 shadow-sm space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md">
-              <Handshake className="w-6 h-6" />
+          <div className="bento-card p-7 rounded-3xl border border-purple-200 shadow-sm space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200/80 flex items-center justify-center shadow-xs">
+              <CareManagerPartnerIcon className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900">Seamless Care Manager Desk</h3>
+            <h3 className="text-lg font-extrabold text-slate-900 leading-snug">Seamless Care Manager Desk</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Our care coordinators validate prescriptions, handle patient queries, and ensure smooth post-report delivery.
             </p>
           </div>
 
-          <div className="bento-card p-8 rounded-3xl border border-purple-200 shadow-sm space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md">
-              <ShieldCheck className="w-6 h-6" />
+          <div className="bento-card p-7 rounded-3xl border border-purple-200 shadow-sm space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200/80 flex items-center justify-center shadow-xs">
+              <PartnerTrustBadgeIcon className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900">Verified Partner Trust Badge</h3>
+            <h3 className="text-lg font-extrabold text-slate-900 leading-snug">Verified Partner Trust Badge</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Showcase your NABL, ISO, or ICMR accreditation to build trust among patients across Bengaluru.
             </p>
@@ -322,7 +348,7 @@ export default function ProvidersPage() {
         </div>
 
         {/* Provider Contact Form Section */}
-        <div className="max-w-4xl mx-auto glass-card p-8 sm:p-10 rounded-3xl border border-purple-200 shadow-2xl space-y-6">
+        <div className="max-w-5xl mx-auto glass-card p-8 sm:p-10 rounded-3xl border border-purple-200 shadow-2xl space-y-6">
           
           <div className="flex items-center gap-4 border-b border-purple-100 pb-5">
             <div className="w-14 h-14 rounded-2xl bg-purple-700 text-white flex items-center justify-center shadow-md">
