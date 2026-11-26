@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { HEALTH_ARTICLES } from '../data/articles';
 import { ArrowLeft, Clock, Calendar, Share2, MessageSquare, ShieldCheck } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import { ArticleTopicIcon, DoctorApprovedSealIcon } from '../components/common/LibraryIcons';
 
 export default function ArticleDetailPage({ onOpenUploadModal }) {
   const { slug } = useParams();
@@ -23,8 +24,9 @@ export default function ArticleDetailPage({ onOpenUploadModal }) {
 
         {/* Article Meta Header */}
         <div className="space-y-4">
-          <div className="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase">
-            {article.category}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase">
+            <ArticleTopicIcon slug={article.slug} category={article.category} className="w-4 h-4 shrink-0" />
+            <span>{article.category}</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -40,8 +42,9 @@ export default function ArticleDetailPage({ onOpenUploadModal }) {
               <Calendar className="w-4 h-4 text-purple-600" />
               <span>Published {article.publishedDate}</span>
             </div>
-            <div className="ml-auto text-purple-700 font-semibold">
-              Health Express Medical Review
+            <div className="ml-auto text-emerald-700 font-semibold flex items-center gap-1.5">
+              <DoctorApprovedSealIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Health Express Medical Review</span>
             </div>
           </div>
         </div>

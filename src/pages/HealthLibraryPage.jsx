@@ -6,9 +6,33 @@ import {
   CheckCircle2, ChevronDown, ChevronUp, MessageSquare, Upload, Zap, Activity
 } from 'lucide-react';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
+import {
+  BloodTestConcernIcon,
+  DiabetesConcernIcon,
+  HeartLipidConcernIcon,
+  FullBodyConcernIcon,
+  PrepareTestConcernIcon,
+  LibraryAllIcon,
+  LibraryDiagnosticsIcon,
+  LibraryPreventiveIcon,
+  LibraryWellnessIcon,
+  LibraryPatientGuideIcon,
+  ArticleTopicIcon,
+  DoctorApprovedSealIcon,
+  FeaturedGuideStarIcon,
+  MedicalReportConsultIcon
+} from '../components/common/LibraryIcons';
 
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
 import PageHeroBanner from '../components/common/PageHeroBanner';
+
+const categoryIconMap = {
+  'All': LibraryAllIcon,
+  'Diagnostics': LibraryDiagnosticsIcon,
+  'Preventive Health': LibraryPreventiveIcon,
+  'Wellness & Screening': LibraryWellnessIcon,
+  'Patient Guide': LibraryPatientGuideIcon,
+};
 
 export default function HealthLibraryPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,11 +43,11 @@ export default function HealthLibraryPage() {
   const categories = ['All', 'Diagnostics', 'Preventive Health', 'Wellness & Screening', 'Patient Guide'];
 
   const concerns = [
-    { label: '🩸 Blood Test Basics', term: 'cbc' },
-    { label: '🍬 Diabetes & HbA1c', term: 'hba1c' },
-    { label: '❤️ Heart & Cholesterol', term: 'lipid' },
-    { label: '⚡ Fatigue & Full Body Checkup', term: 'full-body' },
-    { label: '📋 Preparing for Test', term: 'prepare' }
+    { label: 'Blood Test Basics', term: 'cbc', Icon: BloodTestConcernIcon },
+    { label: 'Diabetes & HbA1c', term: 'hba1c', Icon: DiabetesConcernIcon },
+    { label: 'Heart & Cholesterol', term: 'lipid', Icon: HeartLipidConcernIcon },
+    { label: 'Fatigue & Full Body Checkup', term: 'full-body', Icon: FullBodyConcernIcon },
+    { label: 'Preparing for Test', term: 'prepare', Icon: PrepareTestConcernIcon }
   ];
 
   const handleConcernClick = (term) => {
@@ -82,19 +106,23 @@ export default function HealthLibraryPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {concerns.map((c) => (
-              <button
-                key={c.term}
-                onClick={() => handleConcernClick(c.term)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                  activeConcernPill === c.term
-                    ? 'bg-purple-700 text-white shadow-md scale-105'
-                    : 'bg-white hover:bg-purple-50 text-slate-700 border border-purple-100'
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
+            {concerns.map((c) => {
+              const ConcernIcon = c.Icon;
+              return (
+                <button
+                  key={c.term}
+                  onClick={() => handleConcernClick(c.term)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
+                    activeConcernPill === c.term
+                      ? 'bg-purple-700 text-white shadow-md scale-105'
+                      : 'bg-white hover:bg-purple-50 text-slate-700 border border-purple-100 hover:border-purple-200'
+                  }`}
+                >
+                  <ConcernIcon className="w-4 h-4 shrink-0" />
+                  <span>{c.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -103,22 +131,26 @@ export default function HealthLibraryPage() {
           
           {/* Category Filter Pills */}
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setActiveConcernPill(null);
-                }}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
-                  selectedCategory === cat
-                    ? 'bg-purple-700 text-white shadow-md shadow-purple-700/20 scale-105'
-                    : 'bg-slate-100 hover:bg-purple-50 text-slate-600 hover:text-purple-900'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const CatIcon = categoryIconMap[cat];
+              return (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setActiveConcernPill(null);
+                  }}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    selectedCategory === cat
+                      ? 'bg-purple-700 text-white shadow-md shadow-purple-700/20 scale-105'
+                      : 'bg-slate-100 hover:bg-purple-50 text-slate-600 hover:text-purple-900'
+                  }`}
+                >
+                  {CatIcon && <CatIcon className="w-3.5 h-3.5 shrink-0" />}
+                  <span>{cat}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Search Input */}
@@ -146,14 +178,18 @@ export default function HealthLibraryPage() {
                   alt={featuredArticle.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-purple-700 text-white text-[10px] font-black uppercase tracking-wider">
-                  ⭐ FEATURED GUIDE
+                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-purple-700 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md">
+                  <FeaturedGuideStarIcon className="w-3.5 h-3.5" />
+                  <span>FEATURED GUIDE</span>
                 </div>
               </div>
 
               <div className="lg:col-span-6 space-y-4">
                 <div className="flex items-center gap-3 text-xs font-extrabold text-purple-700">
-                  <span className="px-3 py-1 rounded-full bg-purple-100 border border-purple-200">{featuredArticle.category}</span>
+                  <span className="px-3 py-1 rounded-full bg-purple-100 border border-purple-200 flex items-center gap-1.5">
+                    <ArticleTopicIcon slug={featuredArticle.slug} category={featuredArticle.category} className="w-4 h-4 shrink-0" />
+                    <span>{featuredArticle.category}</span>
+                  </span>
                   <span className="flex items-center gap-1 text-slate-500">
                     <Clock className="w-3.5 h-3.5" />
                     {featuredArticle.readTime}
@@ -210,7 +246,10 @@ export default function HealthLibraryPage() {
         {/* Articles Grid Header */}
         <div className="flex items-center justify-between text-xs font-bold text-slate-500 border-b border-purple-100 pb-3">
           <span>Found <strong className="text-purple-900">{filteredArticles.length}</strong> Evidence-Informed Guides</span>
-          <span className="text-emerald-700 font-extrabold">✓ 100% Doctor Approved</span>
+          <span className="text-emerald-700 font-extrabold flex items-center gap-1.5">
+            <DoctorApprovedSealIcon className="w-4 h-4 text-emerald-600" />
+            <span>100% Doctor Approved</span>
+          </span>
         </div>
 
         {/* Articles Bento Grid */}
@@ -233,8 +272,9 @@ export default function HealthLibraryPage() {
                     />
                     
                     <div className="absolute top-3 left-3 flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-extrabold text-purple-900 shadow-2xs">
-                        {article.category}
+                      <span className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-extrabold text-purple-900 shadow-2xs flex items-center gap-1.5">
+                        <ArticleTopicIcon slug={article.slug} category={article.category} className="w-3.5 h-3.5" />
+                        <span>{article.category}</span>
                       </span>
                     </div>
 
@@ -248,7 +288,7 @@ export default function HealthLibraryPage() {
                   <div className="p-6 space-y-3">
                     
                     <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-bold">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <DoctorApprovedSealIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>{article.author || 'Medical Care Board'}</span>
                     </div>
 
@@ -316,16 +356,22 @@ export default function HealthLibraryPage() {
 
         {/* Bottom Healthcare Assistance Banner */}
         <div className="bg-gradient-to-r from-purple-900 via-purple-950 to-slate-950 rounded-3xl p-8 md:p-12 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 text-left mt-16">
-          <div className="space-y-3 max-w-xl">
-            <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-emerald-500 text-slate-950">
-              Personalized Medical Guidance
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Have questions about your diagnostic report?
-            </h3>
-            <p className="text-xs sm:text-sm text-purple-200 leading-relaxed">
-              Upload your lab report or prescription to have our certified care managers assist you with next steps and doctor consultation.
-            </p>
+          <div className="flex items-start gap-5 max-w-xl">
+            <div className="hidden sm:flex shrink-0 p-1 bg-white/10 rounded-2xl border border-purple-400/30">
+              <MedicalReportConsultIcon className="w-14 h-14" />
+            </div>
+            <div className="space-y-3">
+              <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-emerald-500 text-slate-950 inline-flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-slate-950" />
+                Personalized Medical Guidance
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                Have questions about your diagnostic report?
+              </h3>
+              <p className="text-xs sm:text-sm text-purple-200 leading-relaxed">
+                Upload your lab report or prescription to have our certified care managers assist you with next steps and doctor consultation.
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">

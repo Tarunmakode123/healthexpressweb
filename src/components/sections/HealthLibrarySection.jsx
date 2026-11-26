@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { HEALTH_ARTICLES } from '../../data/articles';
+import { ArticleTopicIcon } from '../common/LibraryIcons';
 
 export default function HealthLibrarySection() {
   const [isHovered, setIsHovered] = useState(false);
@@ -123,8 +124,9 @@ export default function HealthLibrarySection() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                   />
-                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-bold text-purple-800 border border-white/50">
-                    {article.category}
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-xs text-[10px] font-bold text-purple-800 border border-white/50 flex items-center gap-1.5 shadow-2xs">
+                    <ArticleTopicIcon slug={article.slug} category={article.category} className="w-3.5 h-3.5" />
+                    <span>{article.category}</span>
                   </div>
                 </div>
 
