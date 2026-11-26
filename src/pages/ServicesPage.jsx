@@ -13,6 +13,14 @@ import { openWhatsApp } from '../utils/whatsapp';
 import WaitlistModal from '../components/common/WaitlistModal';
 import AuthModal from '../components/common/AuthModal';
 import CareManagerBookingCard from '../components/common/CareManagerBookingCard';
+import {
+  GenomicsDnaHelixIcon,
+  DnaSampleCollectionIcon,
+  NgsSequencingIcon,
+  GeneticCounselorSessionIcon,
+  HealthVaultDnaIcon,
+  GenomicsServiceIcon
+} from '../components/common/GenomicsIcons';
 
 const CATEGORY_HERO_DATA = {
   'all': {
@@ -79,8 +87,8 @@ function getServiceIconAndStyle(service) {
   if (cat === 'home-nursing') {
     return { icon: Home, style: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
   }
-  if (cat === 'genetics') {
-    return { icon: Dna, style: 'bg-pink-50 text-pink-600 border-pink-200' };
+  if (cat === 'genetics' || service.source === 'Genomics' || service.service_type === 'genomics' || name.startsWith('genetics')) {
+    return { isGenomics: true, style: 'bg-pink-50 text-pink-600 border-pink-200' };
   }
   if (cat === 'health-packages') {
     return { icon: ShieldCheck, style: 'bg-amber-50 text-amber-600 border-amber-200' };
@@ -95,7 +103,7 @@ function getServiceIconAndStyle(service) {
 const categoryIconMap = {
   'lab-tests': FlaskConical,
   'imaging': Scan,
-  'genetics': Dna,
+  'genetics': GenomicsDnaHelixIcon,
   'home-nursing': Home,
   'health-packages': ShieldCheck
 };
@@ -502,6 +510,40 @@ export default function ServicesPage({ onOpenUploadModal }) {
             })}
           </div>
 
+          {/* Dedicated Genomics Trust & Technology Highlights Strip */}
+          {selectedCategory === 'genetics' && (
+            <div className="bg-gradient-to-r from-pink-50/90 via-purple-50/70 to-indigo-50/90 rounded-2xl p-4 sm:p-5 border border-pink-200/80 mt-3 grid grid-cols-2 lg:grid-cols-4 gap-4 text-left shadow-2xs">
+              <div className="flex items-center gap-3">
+                <DnaSampleCollectionIcon className="w-10 h-10 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-black text-slate-900">Painless Sample Collection</h4>
+                  <p className="text-[11px] text-slate-600 font-medium">Buccal Swab or Doorstep Blood Draw</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <NgsSequencingIcon className="w-10 h-10 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-black text-slate-900">Next-Gen NGS Technology</h4>
+                  <p className="text-[11px] text-slate-600 font-medium">NABL & CAP Accredited Genomics Labs</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <GeneticCounselorSessionIcon className="w-10 h-10 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-black text-slate-900">Expert Genetic Counseling</h4>
+                  <p className="text-[11px] text-slate-600 font-medium">1-on-1 Pre & Post Test Clinical Guidance</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <HealthVaultDnaIcon className="w-10 h-10 shrink-0" />
+                <div>
+                  <h4 className="text-xs font-black text-slate-900">Lifetime Genetic Privacy</h4>
+                  <p className="text-[11px] text-slate-600 font-medium">100% Encrypted Patient Health Vault</p>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -818,7 +860,7 @@ export default function ServicesPage({ onOpenUploadModal }) {
                     .replace('Imaging & Radiology', 'Radiology')
                     .replace('Pathology & Diagnostics', 'Pathology');
 
-                  const { icon: CardIcon, style: cardIconStyle } = getServiceIconAndStyle(service);
+                  const { icon: CardIcon, style: cardIconStyle, isGenomics } = getServiceIconAndStyle(service);
 
                   return (
                     <div
@@ -848,7 +890,11 @@ export default function ServicesPage({ onOpenUploadModal }) {
                         {/* Test Name with Prominent Healthians-Style Medical Icon Badge */}
                         <div className="flex items-start gap-3 pt-0.5">
                           <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs group-hover:scale-105 transition-transform ${cardIconStyle}`}>
-                            <CardIcon className="w-5 h-5" />
+                            {isGenomics ? (
+                              <GenomicsServiceIcon service={service} className="w-6 h-6" />
+                            ) : (
+                              <CardIcon className="w-5 h-5" />
+                            )}
                           </div>
                           <div className="h-11 sm:h-12 flex items-start flex-1 min-w-0">
                             <Link

@@ -142,6 +142,7 @@ function MainLayout() {
             <Route path="/providers" element={<ProvidersPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/telemedicine" element={<TelemedicinePage />} />
+            <Route path="/genomics" element={<Navigate to="/services?category=genetics" replace />} />
             <Route path="/legal/:type" element={<LegalPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/login" element={<AuthPage />} />
