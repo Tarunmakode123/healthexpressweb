@@ -255,4 +255,61 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ==========================================================================
+   TRANSLATION SYSTEM (Google Translate Reset & Medical Safeguards)
+   ========================================================================== */
+
+/* 1. Reset Body Offset & Suppress Google Top Banner */
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+iframe.skiptranslate {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0px !important;
+  width: 0px !important;
+  border: none !important;
+}
+
+/* 2. Hide Google Gadgets & Tooltips */
+#google_translate_element,
+.goog-te-gadget,
+#goog-gt-tt,
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 3. Remove Yellow Highlight on Translated Text */
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* 4. Strict Medical Safeguards: Protect Medical Codes, Prices & Brand */
+.notranslate,
+[translate="no"],
+.currency-symbol,
+.medical-code {
+  -webkit-translate: no !important;
+  translate: no !important;
+}
+
+/* Preserve Native Font Rendering in Indic Scripts (Kannada & Hindi) */
+[lang="kn"],
+[lang="hi"] {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+
 

@@ -10,6 +10,7 @@ import { HEALTH_MANAGER_PHONE, HEALTH_MANAGER_DISPLAY_PHONE } from '../../config
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import WaitlistModal from '../common/WaitlistModal';
+import LanguageSelector from '../common/LanguageSelector';
 
 const CITIES_LIST = [
   { name: 'Bengaluru', isLive: true, badge: 'LIVE' },
@@ -225,7 +226,7 @@ export default function Navbar({ onOpenUploadModal }) {
             
             {/* Left: Brand Logo & Location Selector */}
             <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-              <Link to="/" onClick={(e) => handleLinkClick(e, '/')} className="flex items-center group py-0.5">
+              <Link to="/" onClick={(e) => handleLinkClick(e, '/')} className="flex items-center group py-0.5 notranslate" translate="no">
                 <img 
                   src="/logo.png" 
                   alt="Health Express - Everything Health Fast Tracked" 
@@ -317,6 +318,11 @@ export default function Navbar({ onOpenUploadModal }) {
                   </div>
                 )}
               </div>
+
+              {/* Desktop / Tablet Language Selector */}
+              <div className="hidden sm:block">
+                <LanguageSelector />
+              </div>
             </div>
 
             {/* Center: Prominent Search Bar (Desktop/Tablet) */}
@@ -368,7 +374,8 @@ export default function Navbar({ onOpenUploadModal }) {
               {/* Customer Support Phone Display (Healthians Style - Image 3) */}
               <a
                 href={`tel:${HEALTH_MANAGER_PHONE}`}
-                className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-slate-800 border border-purple-200/90 transition-all group"
+                className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-slate-800 border border-purple-200/90 transition-all group notranslate"
+                translate="no"
                 title={`Call Customer Support (${HEALTH_MANAGER_DISPLAY_PHONE})`}
               >
                 <div className="w-7 h-7 rounded-lg bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
@@ -460,6 +467,7 @@ export default function Navbar({ onOpenUploadModal }) {
 
             {/* Mobile Actions Header Bar */}
             <div className="md:hidden flex items-center gap-1.5 sm:gap-2">
+              <LanguageSelector className="scale-90 origin-right" />
               <a
                 href={`tel:${HEALTH_MANAGER_PHONE}`}
                 className="p-2.5 min-w-[40px] min-h-[40px] rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 flex items-center justify-center active:scale-95 transition-transform"
@@ -553,6 +561,14 @@ export default function Navbar({ onOpenUploadModal }) {
             {/* Mobile Location & Language Selectors */}
             <div className="space-y-2 pt-1 border-t border-slate-100 text-xs">
               
+              {/* Mobile Language Selector Box */}
+              <div className="bg-purple-50/60 p-2.5 rounded-xl border border-purple-100 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                  <span>Language / ಭಾಷೆ / भाषा:</span>
+                </div>
+                <LanguageSelector />
+              </div>
+
               {/* Location Box with "Use Current Location" */}
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
