@@ -8,6 +8,12 @@ import {
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 
 import DiscountHeroBanner from '../components/common/DiscountHeroBanner';
+import {
+  PeopleFirstIcon, TrustShieldIcon, ZeroFrictionIcon, TransparentPricingIcon, FamilyCareIcon,
+  WaitingRoomIcon, FragmentedRecordsIcon, UncertainFollowupIcon,
+  ColdChainPickupIcon, AutoSyncedEHRIcon, CareManagerDeskIcon,
+  BpScreeningIcon, DoctorConsultIcon, OnsiteTestTubeIcon
+} from '../components/common/AboutIcons';
 
 export default function AboutPage({ onOpenUploadModal }) {
   const [activeTab, setActiveTab] = useState('health-express');
@@ -217,19 +223,34 @@ export default function AboutPage({ onOpenUploadModal }) {
               </div>
 
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 space-y-1 shadow-2xs">
-                  <div className="text-xs font-extrabold text-slate-900">1. Crowded Waiting Rooms</div>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed">Traveling in traffic, early fasting queues, and manual paperwork registration.</p>
+                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+                  <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <WaitingRoomIcon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-extrabold text-slate-900">1. Crowded Waiting Rooms</div>
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">Traveling in traffic, early fasting queues, and manual paperwork registration.</p>
+                  </div>
                 </div>
                 
-                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 space-y-1 shadow-2xs">
-                  <div className="text-xs font-extrabold text-slate-900">2. Fragmented Records</div>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed">Scattered PDF files on WhatsApp, lost paper receipts, and duplicate blood tests.</p>
+                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <FragmentedRecordsIcon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-extrabold text-slate-900">2. Fragmented Records</div>
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">Scattered PDF files on WhatsApp, lost paper receipts, and duplicate blood tests.</p>
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 space-y-1 shadow-2xs">
-                  <div className="text-xs font-extrabold text-slate-900">3. Uncertain Follow-Ups</div>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed">Chasing diagnostic labs for report delays without a dedicated point of contact.</p>
+                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <UncertainFollowupIcon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-extrabold text-slate-900">3. Uncertain Follow-Ups</div>
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">Chasing diagnostic labs for report delays without a dedicated point of contact.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -250,19 +271,34 @@ export default function AboutPage({ onOpenUploadModal }) {
               </div>
 
               <div className="space-y-4 relative z-10">
-                <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
-                  <div className="text-xs font-black text-amber-300">1. 30-Min Home Sample Pickup</div>
-                  <p className="text-xs text-purple-100 font-medium leading-relaxed">Certified phlebotomists arrive at your doorstep with temperature-controlled cold chain kits.</p>
+                <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <ColdChainPickupIcon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-black text-amber-300">1. 30-Min Home Sample Pickup</div>
+                    <p className="text-xs text-purple-100 font-medium leading-relaxed">Certified phlebotomists arrive at your doorstep with temperature-controlled cold chain kits.</p>
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
-                  <div className="text-xs font-black text-amber-300">2. Auto-Synced Digital EHR</div>
-                  <p className="text-xs text-purple-100 font-medium leading-relaxed">All family medical records auto-saved in your secure account with post-report guidance.</p>
+                <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <AutoSyncedEHRIcon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-black text-amber-300">2. Auto-Synced Digital EHR</div>
+                    <p className="text-xs text-purple-100 font-medium leading-relaxed">All family medical records auto-saved in your secure account with post-report guidance.</p>
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
-                  <div className="text-xs font-black text-amber-300">3. 24/7 Care Manager Desk</div>
-                  <p className="text-xs text-purple-100 font-medium leading-relaxed">A dedicated healthcare coordinator handles your appointments, orders, and questions.</p>
+                <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-teal-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <CareManagerDeskIcon className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-black text-amber-300">3. 24/7 Care Manager Desk</div>
+                    <p className="text-xs text-purple-100 font-medium leading-relaxed">A dedicated healthcare coordinator handles your appointments, orders, and questions.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -298,8 +334,8 @@ export default function AboutPage({ onOpenUploadModal }) {
                 <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700"></div>
                 
                 <div className="relative z-10 space-y-4 text-left">
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 text-amber-300 flex items-center justify-center backdrop-blur-md shadow-inner border border-white/10">
-                    <Users className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md shadow-inner border border-white/15">
+                    <PeopleFirstIcon className="w-8 h-8" />
                   </div>
                   <div className="space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-amber-400 text-purple-950">Primary Focus</span>
@@ -313,8 +349,8 @@ export default function AboutPage({ onOpenUploadModal }) {
 
               {/* Card 2: Uncompromising Trust */}
               <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-purple-100 shadow-lg shadow-purple-950/5 hover:shadow-xl hover:border-purple-300 transition-all duration-300 text-left flex flex-col justify-between space-y-5 group">
-                <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
-                  <Shield className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center transition-all duration-300 shadow-2xs">
+                  <TrustShieldIcon className="w-7 h-7" />
                 </div>
                 <div className="space-y-1.5">
                   <h4 className="text-base font-black text-slate-900">Uncompromising Trust</h4>
@@ -326,8 +362,8 @@ export default function AboutPage({ onOpenUploadModal }) {
 
               {/* Card 3: Zero Friction */}
               <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-purple-100 shadow-lg shadow-purple-950/5 hover:shadow-xl hover:border-purple-300 transition-all duration-300 text-left flex flex-col justify-between space-y-5 group">
-                <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:bg-purple-700 group-hover:text-white transition-all duration-300">
-                  <Sparkles className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center transition-all duration-300 shadow-2xs">
+                  <ZeroFrictionIcon className="w-7 h-7" />
                 </div>
                 <div className="space-y-1.5">
                   <h4 className="text-base font-black text-slate-900">Zero Friction</h4>
@@ -339,8 +375,8 @@ export default function AboutPage({ onOpenUploadModal }) {
 
               {/* Card 4: Transparent Pricing */}
               <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-purple-100 shadow-lg shadow-purple-950/5 hover:shadow-xl hover:border-purple-300 transition-all duration-300 text-left flex flex-col justify-between space-y-5 group">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:bg-emerald-700 group-hover:text-white transition-all duration-300">
-                  <span className="font-black text-lg">₹</span>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center transition-all duration-300 shadow-2xs">
+                  <TransparentPricingIcon className="w-7 h-7" />
                 </div>
                 <div className="space-y-1.5">
                   <h4 className="text-base font-black text-slate-900">Transparent Pricing</h4>
@@ -352,8 +388,8 @@ export default function AboutPage({ onOpenUploadModal }) {
 
               {/* Card 5: Family Care */}
               <div className="bg-purple-50/70 backdrop-blur-xl p-6 rounded-3xl border border-purple-200/80 shadow-lg shadow-purple-950/5 hover:shadow-xl transition-all duration-300 text-left flex flex-col justify-between space-y-5 group">
-                <div className="w-11 h-11 rounded-2xl bg-purple-200 text-purple-900 flex items-center justify-center group-hover:bg-purple-900 group-hover:text-white transition-all duration-300">
-                  <Heart className="w-5 h-5 text-emerald-600 fill-emerald-600/30" />
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center transition-all duration-300 shadow-2xs">
+                  <FamilyCareIcon className="w-7 h-7" />
                 </div>
                 <div className="space-y-1.5">
                   <h4 className="text-base font-black text-slate-900">Unified Family Care</h4>
@@ -448,22 +484,22 @@ export default function AboutPage({ onOpenUploadModal }) {
               {/* Key Camp Highlights */}
               <div className="space-y-2.5 pt-1">
                 <div className="flex items-center gap-3 text-xs font-bold text-slate-800 bg-white p-3 rounded-2xl border border-purple-100 shadow-xs">
-                  <div className="w-6 h-6 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                    <Calendar className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                    <BpScreeningIcon className="w-5 h-5" />
                   </div>
                   <span>Free Blood Sugar, BP & Basic Health Screening</span>
                 </div>
 
                 <div className="flex items-center gap-3 text-xs font-bold text-slate-800 bg-white p-3 rounded-2xl border border-purple-100 shadow-xs">
-                  <div className="w-6 h-6 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                    <Users className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                    <DoctorConsultIcon className="w-5 h-5" />
                   </div>
                   <span>Expert Doctor Consultations at Societies & Offices</span>
                 </div>
 
                 <div className="flex items-center gap-3 text-xs font-bold text-slate-800 bg-white p-3 rounded-2xl border border-purple-100 shadow-xs">
-                  <div className="w-6 h-6 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                    <MapPin className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center shrink-0">
+                    <OnsiteTestTubeIcon className="w-5 h-5" />
                   </div>
                   <span>On-site Sample Collection with Instant Digital Reports</span>
                 </div>
