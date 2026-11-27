@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, 
-  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw, Truck, Tag, Percent, Coins
+  CheckCircle2, Sparkles, MessageSquare, CreditCard, AlertCircle, RefreshCw, Truck, Tag, Percent, Coins,
+  Calendar, Clock, MapPin, ExternalLink
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -48,19 +50,63 @@ export default function CartDrawer() {
   } = useCart();
 
   const { user, session, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   const [promoInput, setPromoInput] = useState('');
   const [checkoutStep, setCheckoutStep] = useState('cart'); // 'cart' | 'checkout' | 'success'
   const [paymentMethodChoice, setPaymentMethodChoice] = useState('cod'); // 'cod' | 'online'
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
+  // Dynamic Date Options for Sample Collection (Next 4 days)
+  const collectionDateOptions = useMemo(() => {
+    const list = [];
+    const now = new Date();
+    for (let i = 0; i < 4; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+      const isoDate = d.toISOString().split('T')[0];
+      const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-IN', { weekday: 'short' });
+      const formattedDate = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+      list.push({
+        iso: isoDate,
+        label: `${dayName} (${formattedDate})`
+      });
+    }
+    return list;
+  }, []);
+
+  const collectionSlotOptions = useMemo(() => [
+    '06:30 AM - 07:30 AM (Early Fasting)',
+    '07:30 AM - 08:30 AM (Fasting Preferred)',
+    '08:30 AM - 09:30 AM',
+    '09:30 AM - 10:30 AM',
+    '10:30 AM - 12:00 PM',
+    '12:00 PM - 02:00 PM',
+    '04:00 PM - 06:00 PM (Evening Collection)'
+  ], []);
+
   // Checkout Form State
   const [patientData, setPatientData] = useState({
     name: '',
     phone: '',
     email: '',
-    address: 'Bengaluru'
+    flatBuilding: '',
+    streetArea: '',
+    landmark: '',
+    pincode: '',
+    scheduledDate: '',
+    scheduledSlot: '07:30 AM - 08:30 AM (Fasting Preferred)'
   });
+
+  // Set default scheduledDate to tomorrow (or today if morning)
+  useEffect(() => {
+    if (collectionDateOptions.length > 0 && !patientData.scheduledDate) {
+      // If current hour < 17 (before 5pm), allow today as default; otherwise tomorrow
+      const nowHour = new Date().getHours();
+      const defaultDate = nowHour < 17 ? collectionDateOptions[0].iso : collectionDateOptions[1].iso;
+      setPatientData(prev => ({ ...prev, scheduledDate: defaultDate }));
+    }
+  }, [collectionDateOptions]);
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -132,6 +178,24 @@ export default function CartDrawer() {
       return;
     }
 
+    if (!patientData.flatBuilding.trim() && !patientData.streetArea.trim()) {
+      setErrorMessage('Please enter your house/flat number or area address.');
+      return;
+    }
+
+    if (!patientData.pincode.trim()) {
+      setErrorMessage('Please enter your 6-digit Bengaluru pincode.');
+      return;
+    }
+
+    const fullDeliveryAddress = [
+      patientData.flatBuilding?.trim(),
+      patientData.streetArea?.trim(),
+      patientData.landmark?.trim() ? `Landmark: ${patientData.landmark.trim()}` : null,
+      patientData.pincode?.trim() ? `Pincode: ${patientData.pincode.trim()}` : null,
+      'Bengaluru, Karnataka'
+    ].filter(Boolean).join(', ');
+
     setIsProcessingPayment(true);
 
     import('../../utils/analytics.js').then(({ logAnalyticsEvent }) => {
@@ -143,13 +207,6 @@ export default function CartDrawer() {
     const coinsToUse = isCoinsApplied ? coinsRequested : 0;
 
     try {
-      // Defensive check: If paymentMethodChoice is 'online', block execution immediately
-      if (paymentMethodChoice === 'online') {
-        setErrorMessage('Online payment is temporarily unavailable. Please select Cash on Delivery.');
-        setIsProcessingPayment(false);
-        return;
-      }
-
       // ----------------------------------------------------
       // COD (CASH ON DELIVERY / PAY ON COLLECTION) FLOW
       // ----------------------------------------------------
@@ -158,7 +215,12 @@ export default function CartDrawer() {
           customerName: patientData.name,
           customerPhone: patientData.phone,
           customerEmail: patientData.email,
-          city: patientData.address,
+          city: 'Bengaluru',
+          deliveryAddress: fullDeliveryAddress,
+          landmark: patientData.landmark?.trim() || null,
+          pincode: patientData.pincode?.trim() || null,
+          scheduledDate: patientData.scheduledDate || null,
+          scheduledSlot: patientData.scheduledSlot || null,
           items: cartItems,
           promoCode: appliedPromo?.code || null,
           coinsToUse: coinsToUse,
@@ -176,6 +238,9 @@ export default function CartDrawer() {
 
         setConfirmedOrder({
           ...codOrderRes,
+          delivery_address: fullDeliveryAddress,
+          scheduled_date: patientData.scheduledDate,
+          scheduled_slot: patientData.scheduledSlot,
           payment_status: 'PENDING',
           order_status: 'CONFIRMED',
           payment_method: 'COD',
@@ -213,7 +278,12 @@ export default function CartDrawer() {
         customerName: patientData.name,
         customerPhone: patientData.phone,
         customerEmail: patientData.email,
-        city: patientData.address,
+        city: 'Bengaluru',
+        deliveryAddress: fullDeliveryAddress,
+        landmark: patientData.landmark?.trim() || null,
+        pincode: patientData.pincode?.trim() || null,
+        scheduledDate: patientData.scheduledDate || null,
+        scheduledSlot: patientData.scheduledSlot || null,
         items: cartItems,
         promoCode: appliedPromo?.code || null,
         coinsToUse: coinsToUse,
@@ -450,6 +520,24 @@ export default function CartDrawer() {
                       </span>
                     </div>
 
+                    {(confirmedOrder?.scheduled_date || patientData.scheduledDate) && (
+                      <div className="flex justify-between text-purple-950 font-bold">
+                        <span className="text-slate-500 font-semibold">Sample Slot:</span>
+                        <span>
+                          {confirmedOrder?.scheduled_date || patientData.scheduledDate} • {confirmedOrder?.scheduled_slot || patientData.scheduledSlot}
+                        </span>
+                      </div>
+                    )}
+
+                    {(confirmedOrder?.delivery_address) && (
+                      <div className="flex flex-col gap-0.5 text-slate-700">
+                        <span className="text-slate-500 font-semibold text-[11px]">Collection Address:</span>
+                        <span className="font-medium text-slate-800 text-[11px] leading-tight">
+                          {confirmedOrder.delivery_address}
+                        </span>
+                      </div>
+                    )}
+
                     {confirmedOrder?.promo_code && (
                       <div className="flex justify-between text-emerald-700 font-bold">
                         <span>Promo Code Applied:</span>
@@ -475,15 +563,34 @@ export default function CartDrawer() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      setCheckoutStep('cart');
-                      closeCart();
-                    }}
-                    className="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white font-black text-xs rounded-2xl transition-colors cursor-pointer"
-                  >
-                    Done & Return to Site
-                  </button>
+                  <div className="space-y-2 pt-1">
+                    <button
+                      onClick={() => {
+                        const code = confirmedOrder?.order_code;
+                        closeCart();
+                        setCheckoutStep('cart');
+                        if (code) {
+                          navigate(`/track/${code}`);
+                        } else {
+                          navigate('/track');
+                        }
+                      }}
+                      className="w-full py-3.5 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white font-black text-xs rounded-2xl shadow-lg shadow-purple-900/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>Track Order & Phlebotomist Status</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setCheckoutStep('cart');
+                        closeCart();
+                      }}
+                      className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                    >
+                      Done & Return to Site
+                    </button>
+                  </div>
                 </div>
               ) : checkoutStep === 'checkout' ? (
                 /* Checkout Form Step */
@@ -536,16 +643,110 @@ export default function CartDrawer() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-800 mb-1">Locality / Address (Bengaluru) *</label>
-                    <input
-                      type="text"
-                      required
-                      value={patientData.address}
-                      onChange={(e) => setPatientData({ ...patientData, address: e.target.value })}
-                      placeholder="e.g., Indiranagar, Bengaluru"
-                      className="w-full px-4 py-3 rounded-xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
-                    />
+                  {/* SAMPLE COLLECTION APPOINTMENT (DATE & SLOT) */}
+                  <div className="space-y-3 p-3.5 bg-purple-50/70 border border-purple-200/80 rounded-2xl">
+                    <div className="flex items-center gap-2 text-purple-950 font-bold text-xs">
+                      <Calendar className="w-4 h-4 text-purple-700" />
+                      <span>Select Preferred Sample Collection Slot *</span>
+                    </div>
+
+                    {/* Date Selector Pills */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {collectionDateOptions.map((opt) => (
+                        <button
+                          key={opt.iso}
+                          type="button"
+                          onClick={() => setPatientData({ ...patientData, scheduledDate: opt.iso })}
+                          className={`py-2 px-2.5 rounded-xl text-center border text-[11px] font-bold transition-all cursor-pointer ${
+                            patientData.scheduledDate === opt.iso
+                              ? 'bg-purple-700 text-white border-purple-800 shadow-sm'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-purple-300'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Slot Picker Dropdown */}
+                    <div>
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 mb-1">
+                        <Clock className="w-3.5 h-3.5 text-purple-600" />
+                        <span>Available Morning & Day Time Slots:</span>
+                      </div>
+                      <select
+                        value={patientData.scheduledSlot}
+                        onChange={(e) => setPatientData({ ...patientData, scheduledSlot: e.target.value })}
+                        className="w-full px-3 py-2.5 rounded-xl border border-purple-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white text-slate-800"
+                      >
+                        {collectionSlotOptions.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-purple-900/80 font-medium mt-1">
+                        * Phlebotomist arrives at your doorstep equipped with sterile vacutainers.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* STRUCTURED COLLECTION ADDRESS */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                      <MapPin className="w-4 h-4 text-purple-700" />
+                      <span>Home Collection Address (Bengaluru) *</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Flat / House / Building *</label>
+                        <input
+                          type="text"
+                          required
+                          value={patientData.flatBuilding}
+                          onChange={(e) => setPatientData({ ...patientData, flatBuilding: e.target.value })}
+                          placeholder="Flat 304, Green Heights"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Street / Area / Locality *</label>
+                        <input
+                          type="text"
+                          required
+                          value={patientData.streetArea}
+                          onChange={(e) => setPatientData({ ...patientData, streetArea: e.target.value })}
+                          placeholder="12th Main, Indiranagar"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Landmark (Optional)</label>
+                        <input
+                          type="text"
+                          value={patientData.landmark}
+                          onChange={(e) => setPatientData({ ...patientData, landmark: e.target.value })}
+                          placeholder="Near Apollo Pharmacy"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Pincode *</label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={6}
+                          value={patientData.pincode}
+                          onChange={(e) => setPatientData({ ...patientData, pincode: e.target.value })}
+                          placeholder="560038"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-purple-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* CHOOSE PAYMENT METHOD */}
@@ -556,7 +757,7 @@ export default function CartDrawer() {
                         onClick={() => setPaymentMethodChoice('cod')}
                         className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
                           paymentMethodChoice === 'cod'
-                            ? 'bg-purple-50/90 border-purple-600 ring-2 ring-purple-600/30 text-purple-950'
+                            ? 'bg-purple-50/90 border-purple-600 ring-2 ring-purple-600/30 text-purple-950 shadow-xs'
                             : 'bg-white border-slate-200 hover:border-purple-200 text-slate-700'
                         }`}
                       >
@@ -569,23 +770,27 @@ export default function CartDrawer() {
                             {paymentMethodChoice === 'cod' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-medium leading-tight">Pay Cash / UPI at sample collection</p>
+                        <p className="text-[10px] text-slate-500 font-medium leading-tight">Pay Cash / UPI to Phlebotomist at collection</p>
                       </div>
 
                       <div
-                        className="p-3.5 rounded-2xl border bg-slate-50/80 border-slate-200/80 text-slate-400 opacity-60 cursor-not-allowed select-none transition-all flex flex-col justify-between gap-1.5 relative overflow-hidden"
-                        title="Online payment is temporarily unavailable"
+                        onClick={() => setPaymentMethodChoice('online')}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between gap-1.5 ${
+                          paymentMethodChoice === 'online'
+                            ? 'bg-purple-50/90 border-purple-600 ring-2 ring-purple-600/30 text-purple-950 shadow-xs'
+                            : 'bg-white border-slate-200 hover:border-purple-200 text-slate-700'
+                        }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-extrabold flex items-center gap-1.5 text-slate-500">
-                            <CreditCard className="w-4 h-4 text-slate-400" />
+                          <span className="text-xs font-extrabold flex items-center gap-1.5">
+                            <CreditCard className="w-4 h-4 text-purple-700" />
                             <span>Pay Online</span>
                           </span>
-                          <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 text-[9px] font-black uppercase tracking-wider">
-                            Coming Soon
+                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center ${paymentMethodChoice === 'online' ? 'border-purple-700 bg-purple-700' : 'border-slate-300'}`}>
+                            {paymentMethodChoice === 'online' && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-400 font-medium leading-tight">Online payment will be available soon.</p>
+                        <p className="text-[10px] text-slate-500 font-medium leading-tight">Instant UPI, Cards & NetBanking (Razorpay)</p>
                       </div>
                     </div>
                   </div>

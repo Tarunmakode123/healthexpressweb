@@ -5,7 +5,8 @@ import {
   ExternalLink, Download, ChevronRight, Eye, Phone, Mail, MapPin, Truck, CreditCard, LogOut, Check, X,
   BarChart2, Activity, Calendar, ArrowUpRight, CheckSquare, Layers, UserCheck, Menu, Settings,
   CreditCard as PaymentIcon, Bell, Tag, Percent, Plus, Layers3, Coins, Gift, History, Award,
-  Cpu, Sparkles, Key, EyeOff, Play, Server, Globe, TrendingUp, ArrowUp, ArrowDown, FolderTree
+  Cpu, Sparkles, Key, EyeOff, Play, Server, Globe, TrendingUp, ArrowUp, ArrowDown, FolderTree,
+  Upload, Paperclip, Copy
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { 
@@ -34,7 +35,8 @@ import {
   fetchAdminServices,
   createAdminService,
   updateAdminService,
-  toggleAdminServiceStatus
+  toggleAdminServiceStatus,
+  uploadAdminOrderReport
 } from '../services/adminService';
 import { 
   fetchAdminCategories,
@@ -656,6 +658,38 @@ function AdminDashboardPage() {
   // Confirmation Modal for COD Collection
   const [codConfirmOrder, setCodConfirmOrder] = useState(null);
   const [isCollectingCod, setIsCollectingCod] = useState(false);
+
+  // Diagnostic Report Upload & Tracking Link in Order Details
+  const [reportFileToUpload, setReportFileToUpload] = useState(null);
+  const [isUploadingReport, setIsUploadingReport] = useState(false);
+  const [reportUploadMessage, setReportUploadMessage] = useState(null);
+  const [trackingLinkCopied, setTrackingLinkCopied] = useState(false);
+
+  const handleUploadOrderReport = async () => {
+    if (!selectedOrder?.id || !reportFileToUpload) return;
+    setIsUploadingReport(true);
+    setReportUploadMessage(null);
+    try {
+      const res = await uploadAdminOrderReport(selectedOrder.id, reportFileToUpload);
+      if (res.success) {
+        setSelectedOrder(prev => ({
+          ...prev,
+          report_url: res.report_url,
+          report_file_name: res.file_name,
+          report_uploaded_at: res.report_uploaded_at || new Date().toISOString()
+        }));
+        setReportFileToUpload(null);
+        setReportUploadMessage({ type: 'success', text: 'Diagnostic lab report attached successfully!' });
+        loadAdminData();
+      } else {
+        setReportUploadMessage({ type: 'error', text: res.error || 'Failed to upload report.' });
+      }
+    } catch (err) {
+      setReportUploadMessage({ type: 'error', text: err.message || 'Error uploading report.' });
+    } finally {
+      setIsUploadingReport(false);
+    }
+  };
 
   // PROMO MODAL STATES & DYNAMIC INPUTS
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
@@ -4211,10 +4245,28 @@ function AdminDashboardPage() {
 
                     <div>
                       <span className="text-slate-400 font-bold block text-[10px] uppercase">Delivery Address / Location</span>
-                      <span className="font-medium text-slate-200">
-                        {selectedOrder.shipping_address || selectedOrder.delivery_address || selectedOrder.address || 'Standard Delivery / Sample Pick-up'}
+                      <span className="font-medium text-slate-200 block">
+                        {selectedOrder.delivery_address || selectedOrder.shipping_address || selectedOrder.address || 'Standard Delivery / Sample Pick-up'}
                       </span>
+                      {selectedOrder.landmark && (
+                        <span className="text-[11px] text-purple-300 block mt-0.5">Landmark: {selectedOrder.landmark}</span>
+                      )}
+                      {selectedOrder.pincode && (
+                        <span className="text-[11px] text-slate-400 block font-mono">Pincode: {selectedOrder.pincode}</span>
+                      )}
                     </div>
+
+                    {(selectedOrder.scheduled_date || selectedOrder.scheduled_slot) && (
+                      <div className="sm:col-span-2 p-3 bg-purple-950/40 rounded-xl border border-purple-800/40 flex items-center justify-between text-xs">
+                        <span className="text-purple-300 font-bold flex items-center gap-1.5">
+                          <Calendar className="w-4 h-4 text-purple-400" />
+                          <span>Scheduled Sample Collection Slot:</span>
+                        </span>
+                        <span className="font-extrabold text-white">
+                          {selectedOrder.scheduled_date ? new Date(selectedOrder.scheduled_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBD'} • {selectedOrder.scheduled_slot || 'Morning Slot'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -4377,6 +4429,137 @@ function AdminDashboardPage() {
                   <div className="pt-3 border-t border-slate-800 flex items-center justify-between font-black text-sm">
                     <span className="text-slate-300">Total Order Amount:</span>
                     <span className="text-emerald-400 text-base">₹{selectedOrder.total_amount}</span>
+                  </div>
+                </div>
+
+                {/* 4. Official Diagnostic Lab Report & Patient Tracking Desk */}
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-4">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-purple-300 flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div className="flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Official Diagnostic Lab Report & Live Tracking Desk</span>
+                    </div>
+                    {selectedOrder.report_url ? (
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Report Ready
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-bold">
+                        Pending Upload
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Public Tracking Link Box */}
+                  <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs">
+                    <div className="space-y-0.5">
+                      <div className="font-bold text-slate-300 flex items-center gap-1.5">
+                        <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Universal Live Tracking Link (Share with Patient / Staff)</span>
+                      </div>
+                      <div className="text-[11px] font-mono text-purple-300">
+                        /track/{selectedOrder.order_code}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = `${window.location.origin}/track/${selectedOrder.order_code}`;
+                          navigator.clipboard.writeText(url);
+                          setTrackingLinkCopied(true);
+                          setTimeout(() => setTrackingLinkCopied(false), 2500);
+                        }}
+                        className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{trackingLinkCopied ? 'Copied Link!' : 'Copy Tracking Link'}</span>
+                      </button>
+                      <a
+                        href={`/track/${selectedOrder.order_code}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <span>Open Tracking</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Report Attachment Section */}
+                  <div className="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-3">
+                    {selectedOrder.report_url ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-400 font-bold text-xs">Attached Lab Report:</span>
+                          <span className="text-[10px] text-slate-400">
+                            {selectedOrder.report_uploaded_at ? `Uploaded on ${new Date(selectedOrder.report_uploaded_at).toLocaleString('en-IN')}` : 'Available for Patient'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                          <div className="flex items-center gap-2 text-xs text-white font-bold truncate">
+                            <FileText className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <span className="truncate">{selectedOrder.report_file_name || 'HealthExpress_Lab_Report.pdf'}</span>
+                          </div>
+                          <a
+                            href={selectedOrder.report_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-lg flex items-center gap-1.5 transition-colors shrink-0"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>View / Download</span>
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400">
+                        No official lab report attached yet. Upload the verified pathology/diagnostic lab report (PDF) once processing completes.
+                      </p>
+                    )}
+
+                    {/* Report Upload Form */}
+                    <div className="pt-2 border-t border-slate-800 space-y-2.5">
+                      <label className="block text-slate-300 font-bold text-xs">
+                        {selectedOrder.report_url ? 'Replace / Upload Updated Report (PDF/Scan):' : 'Upload Diagnostic Lab Report (PDF/Scan):'}
+                      </label>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <input
+                          type="file"
+                          accept=".pdf,image/png,image/jpeg"
+                          onChange={(e) => setReportFileToUpload(e.target.files?.[0] || null)}
+                          className="flex-1 text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-purple-900/60 file:text-purple-200 hover:file:bg-purple-800/80 cursor-pointer"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleUploadOrderReport}
+                          disabled={!reportFileToUpload || isUploadingReport}
+                          className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                        >
+                          {isUploadingReport ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Attach Report</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {reportUploadMessage && (
+                        <div className={`p-2.5 rounded-lg text-xs font-bold flex items-center gap-2 ${
+                          reportUploadMessage.type === 'success' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                        }`}>
+                          {reportUploadMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                          <span>{reportUploadMessage.text}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 

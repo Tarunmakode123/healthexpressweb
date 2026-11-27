@@ -212,6 +212,104 @@ export async function markCodPaymentCollected(orderId) {
 }
 
 /**
+ * Upload Lab Test Report PDF/Image for an Order from Admin Panel
+ */
+export async function uploadAdminOrderReport(orderId, file) {
+  if (!orderId || !file) return { success: false, error: 'Missing order ID or file.' };
+  if (!isSupabaseConfigured || !supabase) return { success: false, error: 'Supabase configuration missing.' };
+
+  try {
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `reports/${orderId}_${Date.now()}_${cleanFileName}`;
+
+    // Upload to prescriptions bucket (has authenticated storage policy)
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('prescriptions')
+      .upload(storagePath, file, { cacheControl: '3600', upsert: true });
+
+    if (uploadError) {
+      console.error('Storage upload report error:', uploadError);
+      return { success: false, error: `Upload error: ${uploadError.message}` };
+    }
+
+    // Generate signed URL (expires in 30 days)
+    const { data: signedData } = await supabase.storage
+      .from('prescriptions')
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 30);
+
+    const reportUrl = signedData?.signedUrl || uploadData?.path || storagePath;
+
+    // Call RPC to attach report to orders record
+    const { data: rpcData, error: rpcError } = await supabase.rpc('attach_order_report', {
+      p_order_id: orderId,
+      p_report_url: reportUrl,
+      p_report_file_name: file.name
+    });
+
+    if (rpcError) {
+      // Fallback direct update
+      const { data: directData, error: directError } = await supabase
+        .from('orders')
+        .update({
+          report_url: reportUrl,
+          report_file_name: file.name,
+          report_uploaded_at: new Date().toISOString(),
+          order_status: 'COMPLETED',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+        .select();
+
+      if (directError) return { success: false, error: directError.message };
+      return { success: true, data: directData?.[0], reportUrl };
+    }
+
+    return { success: true, data: rpcData, reportUrl };
+  } catch (err) {
+    console.error('Report upload exception:', err);
+    return { success: false, error: err.message || 'Report upload exception.' };
+  }
+}
+
+/**
+ * Public Order Tracking Lookup (Safe for guest or registered patients)
+ */
+export async function fetchOrderTrackingDetails(orderIdentifier) {
+  if (!orderIdentifier) return { success: false, error: 'Missing order code.' };
+  if (!isSupabaseConfigured || !supabase) return { success: false, error: 'Supabase configuration missing.' };
+
+  try {
+    const { data, error } = await supabase.rpc('get_order_tracking_details', {
+      p_order_identifier: String(orderIdentifier).trim()
+    });
+
+    if (error) {
+      console.warn('RPC get_order_tracking_details warning:', error.message);
+      const clean = String(orderIdentifier).trim().toUpperCase();
+      const { data: directData, error: directErr } = await supabase
+        .from('orders')
+        .select('*')
+        .or(`order_code.ilike.${clean},id.eq.${clean}`)
+        .maybeSingle();
+
+      if (directErr || !directData) {
+        return { success: false, error: 'Order not found.' };
+      }
+      return { success: true, data: directData };
+    }
+
+    if (!data || data.success === false) {
+      return { success: false, error: data?.error || 'Order not found.' };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('Fetch tracking exception:', err);
+    return { success: false, error: err.message || 'Could not fetch order tracking.' };
+  }
+}
+
+/**
  * Fetch all prescription uploads for Admin Panel
  */
 export async function fetchAdminPrescriptions() {

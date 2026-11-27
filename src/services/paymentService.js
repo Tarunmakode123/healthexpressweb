@@ -81,7 +81,25 @@ export async function createRazorpayOrderServer({ items, promoCode = null, coins
 /**
  * Creates internal order in database for either COD or ONLINE payment method
  */
-export async function createInternalOrder({ customerName, customerPhone, customerEmail, city = 'Bengaluru', items, promoCode = null, coinsToUse = 0, walletBalance = 0, walletSettings = null, userId = null, paymentMethod = 'ONLINE', razorpayOrderId = null }) {
+export async function createInternalOrder({ 
+  customerName, 
+  customerPhone, 
+  customerEmail, 
+  city = 'Bengaluru', 
+  items, 
+  promoCode = null, 
+  coinsToUse = 0, 
+  walletBalance = 0, 
+  walletSettings = null, 
+  userId = null, 
+  paymentMethod = 'ONLINE', 
+  razorpayOrderId = null,
+  deliveryAddress = null,
+  landmark = null,
+  pincode = null,
+  scheduledDate = null,
+  scheduledSlot = null
+}) {
   // 1. Validate inputs
   if (!customerName || customerName.trim().length < 2) {
     return { success: false, error: 'Please enter your full name (minimum 2 characters).' };
@@ -102,6 +120,7 @@ export async function createInternalOrder({ customerName, customerPhone, custome
   const { verifiedTotal, verifiedSubtotal, promoDiscount, coinDiscount, coinsUsed, promoCodeApplied, validatedItems } = cartValidation;
   const isCod = paymentMethod.toUpperCase() === 'COD';
   const paymentMode = isRazorpayLiveConfigured() ? 'LIVE' : 'DEMO';
+  const effectiveAddress = (deliveryAddress && deliveryAddress.trim()) || city || 'Bengaluru';
 
   // 3. Database persistence via Supabase RPC
   if (isSupabaseConfigured) {
@@ -120,7 +139,12 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         p_coins_used: coinsUsed,
         p_coin_discount: coinDiscount,
         p_promo_code: promoCodeApplied?.code || null,
-        p_promo_discount: promoDiscount
+        p_promo_discount: promoDiscount,
+        p_delivery_address: effectiveAddress,
+        p_landmark: landmark ? landmark.trim() : null,
+        p_pincode: pincode ? pincode.trim() : null,
+        p_scheduled_date: scheduledDate || null,
+        p_scheduled_slot: scheduledSlot || null
       });
 
       if (error) {
@@ -151,7 +175,12 @@ export async function createInternalOrder({ customerName, customerPhone, custome
         order_status: isCod ? 'CONFIRMED' : 'PENDING',
         items: validatedItems,
         customer_name: customerName.trim(),
-        customer_phone: phone_e164
+        customer_phone: phone_e164,
+        delivery_address: effectiveAddress,
+        landmark: landmark || null,
+        pincode: pincode || null,
+        scheduled_date: scheduledDate || null,
+        scheduled_slot: scheduledSlot || null
       };
     } catch (err) {
       console.error('Order creation exception:', err);
@@ -182,7 +211,12 @@ export async function createInternalOrder({ customerName, customerPhone, custome
     order_status: isCod ? 'CONFIRMED' : 'PENDING',
     items: validatedItems,
     customer_name: customerName.trim(),
-    customer_phone: phone_e164
+    customer_phone: phone_e164,
+    delivery_address: effectiveAddress,
+    landmark: landmark || null,
+    pincode: pincode || null,
+    scheduled_date: scheduledDate || null,
+    scheduled_slot: scheduledSlot || null
   };
 }
 

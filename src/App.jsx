@@ -31,6 +31,7 @@ import LegalPage from './pages/LegalPage';
 import AuthPage from './pages/AuthPage';
 import GenericDashboardPage from './pages/GenericDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
 
 // Protected Route Component for Authenticated User Session
 function ProtectedRoute({ children }) {
@@ -148,6 +149,8 @@ function MainLayout() {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/signup" element={<AuthPage />} />
+            <Route path="/track" element={<OrderTrackingPage />} />
+            <Route path="/track/:orderCode" element={<OrderTrackingPage />} />
             <Route path="/account" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute><GenericDashboardPage /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminDashboardPage />} />
