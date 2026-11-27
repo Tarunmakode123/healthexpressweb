@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { openWhatsApp, DEFAULT_MESSAGES } from '../utils/whatsapp';
 import { POPULAR_COUNTRY_CODES, validateAndNormalizeInternationalPhone } from '../utils/phone';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -79,7 +80,6 @@ export default function AuthPage() {
       }
 
       // 2. Trigger Supabase Auth signInWithOtp (fires Supabase Send SMS Hook to Fast2SMS)
-      const { supabase, isSupabaseConfigured } = await import('../lib/supabase.js');
       if (!isSupabaseConfigured || !supabase) {
         setError('Supabase environment is not configured.');
         setIsSubmitting(false);
@@ -152,7 +152,6 @@ export default function AuthPage() {
     setIsSubmitting(true);
 
     try {
-      const { supabase, isSupabaseConfigured } = await import('../lib/supabase.js');
       if (!isSupabaseConfigured || !supabase) {
         setError('Supabase connection is not configured.');
         setIsSubmitting(false);
@@ -208,7 +207,6 @@ export default function AuthPage() {
       } catch (e) {}
 
       try {
-        const { supabase, isSupabaseConfigured } = await import('../lib/supabase.js');
         if (isSupabaseConfigured && supabase) {
           await supabase.auth.signInWithOtp({
             phone: phoneCheck.phone_e164

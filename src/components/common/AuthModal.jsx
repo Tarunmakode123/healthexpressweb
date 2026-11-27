@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { POPULAR_COUNTRY_CODES, validateAndNormalizeInternationalPhone } from '../../utils/phone';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export default function AuthModal({
   isOpen,
@@ -91,7 +92,6 @@ export default function AuthModal({
         await logAnalyticsEvent('OTP_REQUESTED', { metadata: { auth_method: 'phone_otp', phone: phoneCheck.phone_e164 } });
       } catch (e) {}
 
-      const { supabase, isSupabaseConfigured } = await import('../../lib/supabase.js');
       if (!isSupabaseConfigured || !supabase) {
         setError('Supabase environment is not configured.');
         setIsSubmitting(false);
@@ -163,7 +163,6 @@ export default function AuthModal({
     setIsSubmitting(true);
 
     try {
-      const { supabase, isSupabaseConfigured } = await import('../../lib/supabase.js');
       if (!isSupabaseConfigured || !supabase) {
         setError('Supabase connection is not configured.');
         setIsSubmitting(false);
@@ -212,7 +211,6 @@ export default function AuthModal({
     const phoneCheck = validateAndNormalizeInternationalPhone(phone, countryCode);
     if (phoneCheck.isValid) {
       try {
-        const { supabase, isSupabaseConfigured } = await import('../../lib/supabase.js');
         if (isSupabaseConfigured && supabase) {
           await supabase.auth.signInWithOtp({
             phone: phoneCheck.phone_e164
