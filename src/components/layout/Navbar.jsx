@@ -205,6 +205,7 @@ export default function Navbar({ onOpenUploadModal }) {
     { label: 'Radiology', href: '/services?category=imaging' },
     { label: 'Health Packages', href: '/services?category=health-packages' },
     { label: 'Home Nursing', href: '/home-nursing-care' },
+    { label: 'Track Order', href: '/track', badge: 'Live' },
     { label: 'Genomics', href: '/services?category=genetics' },
     { label: 'Surgeries', href: '/surgeries' },
     { label: 'Telemedicine', href: '/telemedicine', badge: 'Soon' },

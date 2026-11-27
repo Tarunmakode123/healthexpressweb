@@ -85,10 +85,11 @@ export default function Footer({ onOpenUploadModal }) {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li><Link to="/surgeries" className="hover:text-purple-400 transition-colors font-bold text-purple-300">Surgeries & Treatment Options</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Lab Tests</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Preventive Health Packages</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Imaging Scans</Link></li>
-              <li><Link to="/services" className="hover:text-purple-400 transition-colors">Home Nursing</Link></li>
+              <li><Link to="/services?category=lab-tests" className="hover:text-purple-400 transition-colors">Lab Tests</Link></li>
+              <li><Link to="/services?category=health-packages" className="hover:text-purple-400 transition-colors">Preventive Health Packages</Link></li>
+              <li><Link to="/services?category=imaging" className="hover:text-purple-400 transition-colors">Imaging Scans</Link></li>
+              <li><Link to="/home-nursing-care" className="hover:text-purple-400 transition-colors">Home Nursing Care</Link></li>
+              <li><Link to="/track" className="hover:text-purple-400 transition-colors font-bold text-emerald-400">Track Order & Reports 📍</Link></li>
             </ul>
           </div>
 

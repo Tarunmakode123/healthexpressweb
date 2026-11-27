@@ -155,6 +155,15 @@ export default function HealthExpressAssistant({ onOpenUploadModal }) {
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (e) {
       console.error("HEX processing error:", e);
+      const fallbackMsg = {
+        id: Date.now() + 1,
+        sender: 'assistant',
+        text: "I am having a brief connection glitch. Please allow me to connect you directly with your Health Manager on WhatsApp.",
+        quickReplies: [
+          { label: "💬 Connect with Health Manager", action: "whatsapp_general" }
+        ]
+      };
+      setMessages((prev) => [...prev, fallbackMsg]);
     } finally {
       setIsTyping(false);
     }

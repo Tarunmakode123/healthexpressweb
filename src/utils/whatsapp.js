@@ -21,9 +21,14 @@ export const DEFAULT_MESSAGES = {
 
 /**
  * Open WhatsApp with a prefilled message
- * @param {string} message - Text message to prefill
+ * Accepts either single message string or (category, message) pair for backward compatibility.
+ * @param {string} categoryOrMessage - Text message or message category
+ * @param {string} [maybeMessage] - Optional message if first param was category
  */
-export const openWhatsApp = (message = DEFAULT_MESSAGES.general) => {
+export const openWhatsApp = (categoryOrMessage = DEFAULT_MESSAGES.general, maybeMessage = null) => {
+  const message = (typeof maybeMessage === 'string' && maybeMessage.trim()) 
+    ? maybeMessage 
+    : (typeof categoryOrMessage === 'string' && categoryOrMessage.trim() ? categoryOrMessage : DEFAULT_MESSAGES.general);
   const cleanNumber = WHATSAPP_NUMBER.replace(/[^0-9]/g, '');
   const encodedMsg = encodeURIComponent(message);
   const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMsg}`;
